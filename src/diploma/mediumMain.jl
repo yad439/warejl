@@ -22,8 +22,9 @@ plot(localRes1[3])
 plot(localRes2[3])
 
 rep=map(1:10) do _
-	pl=rand(1:100,n)
+	pl=rand(n)*10
 	exactSoll=exact(n,m,pl)
-	localRes1l=localTabu2(n,m,pl,TabuSearchSettings(100,100,1000))
-	100(localRes1l[2]/exactSoll[2])-100
+	localRes1l=localTabu2(n,m,pl,TabuSearchSettings(200,50,1000))
+	localRes2l=localTabu3(n,m,pl,TabuSearchSettings(200,50,1000))
+	100(localRes1l[2]/exactSoll[2])-100,100(localRes2l[2]/exactSoll[2])-100
 end
