@@ -1,6 +1,5 @@
 include("$(@__DIR__)/common.jl")
 
-
 using DataStructures
 using ProgressMeter
 using Random
@@ -14,7 +13,13 @@ const SWAP_MACHINE=4
 const MOVE_ORDER=5
 const SWAP_ORDER=6
 
-function localTabu2(n,m,p,tabuSize,neighbourhoodSize)
+struct TabuSearchSettings
+	searchTries::Int
+	tabuSize::Int
+	neighbourhoodSize::Int
+end
+
+function localTabu2(n,m,p,settings)
 	# tabuSize=floor(Int,0.6n)
 
 	progress=ProgressThresh(0.0,"Local tabu search (permutation):")
@@ -27,8 +32,8 @@ function localTabu2(n,m,p,tabuSize,neighbourhoodSize)
 	count=0
 
 	push!(history,minval)
-	while count<100
-		new=randomLocalTabuImprovePermutation(tasks,p,m,tabu,neighbourhoodSize)
+	while count<settings.searchTries
+		new=randomLocalTabuImprovePermutation(tasks,p,m,tabu,settings.neighbourhoodSize)
 		@assert new[1]≠NONE
 		if new[1]==MOVE
 			val=tasks[new[2]]
@@ -47,7 +52,7 @@ function localTabu2(n,m,p,tabuSize,neighbourhoodSize)
 		else
 			count+=1
 		end
-		while length(tabu)>tabuSize
+		while length(tabu)>settings.tabuSize
 			dequeue!(tabu)
 		end
 		ProgressMeter.update!(progress,minval,showvalues=[(:count,count)])
@@ -56,7 +61,7 @@ function localTabu2(n,m,p,tabuSize,neighbourhoodSize)
 	minsol,minval,history
 end
 
-function localTabu3(n,m,p,tabuSize,neighbourhoodSize)
+function localTabu3(n,m,p,settings)
 	@assert length(p)==n
 	# tabuSize=floor(Int,n)
 
@@ -71,8 +76,8 @@ function localTabu3(n,m,p,tabuSize,neighbourhoodSize)
 	count=0
 
 	push!(history,minval)
-	while count<200
-		new=randomLocalTabuImprove(assignment,order,p,m,tabu,neighbourhoodSize)
+	while count<settings.searchTries
+		new=randomLocalTabuImprove(assignment,order,p,m,tabu,settings.neighbourhoodSize)
 		if new[1]==MOVE_MACHINE
 			assignment[new[2]]=new[3]
 		elseif new[1]==SWAP_MACHINE
@@ -96,7 +101,7 @@ function localTabu3(n,m,p,tabuSize,neighbourhoodSize)
 		else
 			count+=1
 		end
-		while length(tabu)>tabuSize
+		while length(tabu)>settings.tabuSize
 			dequeue!(tabu)
 		end
 		ProgressMeter.update!(progress,minval,showvalues=[(:count,count)])
