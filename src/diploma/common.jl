@@ -31,6 +31,27 @@ function timeOfPermutationWithCarPenatly(tasks,p,m,carCount,carTravelTime,penalt
 	maximum(sums)+(cars>carCount ? (cars-carCount)penalty : 0)
 end
 
+function computeTimes(tasks,p,m)
+	sums=fill(zero(eltype(p)),m)
+	times=Vector{eltype(p)}(undef,length(tasks))
+	for (i,task)∈Iterators.enumerate(tasks)
+		times[i]=sums[task]
+		sums[task]+=p[i]
+	end
+	times
+end
+
+function computeTimesOfPermutation(tasks,p,m)
+	sums=fill(zero(eltype(p)),m)
+	times=Vector{eltype(p)}(undef,length(tasks))
+	for (i,task) ∈ Iterators.enumerate(tasks)
+		minimal=argmin(sums)
+		times[i]=sums[minimal]
+		sums[minimal]+=p[task]
+	end
+	times
+end
+
 function neededCarCount(times,carTravelTime)
 	inUseTimes=Queue{eltype(times)}()
 	maxUsed=0
@@ -43,6 +64,19 @@ function neededCarCount(times,carTravelTime)
 		n>maxUsed && (maxUsed=n)
 	end
 	maxUsed
+end
+
+function neededCarCountHistory(times,carTravelTime)
+	inUseTimes=Queue{eltype(times)}()
+	history=Vector{Int}(undef,0)
+	for time ∈ times
+		while !isempty(inUseTimes) && first(inUseTimes)<time-carTravelTime
+			dequeue!(inUseTimes)
+		end
+		enqueue!(inUseTimes,time)
+		push!(history,length(inUseTimes)
+	end
+	history
 end
 
 function randchoice(rng,list,count)
