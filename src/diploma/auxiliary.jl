@@ -14,7 +14,7 @@ end
 
 function maxTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
-	inUseCars=Queue{Tuple{eltype(times),Int}}()
+	inUseCars=Queue{Tuple{eltype(jobLengths),Int}}()
 	carsAvailable=carCount
 	availableFromTime=0
 	for job ∈ jobs.permutation
@@ -44,7 +44,7 @@ function maxTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machineCou
 			currentTime=availableFromTime+carTravelTime
 		end
 		machine=jobs.assignment[job]
-		sums[machine]=max(sums[machine],currentTime)+p[i]
+		sums[machine]=max(sums[machine],currentTime)+p[job]
 	end
 	maximum(sums)
 end
