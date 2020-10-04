@@ -1,4 +1,5 @@
 using Random
+import Base.copy,Base.copy!
 
 struct TwoVectorEncoding
 	assignment::Vector{Int}
@@ -11,16 +12,23 @@ end
 
 randomTwoVectorEncoding(jobCount,machineCount)=TwoVectorEncoding(rand(1:machineCount,jobCount),shuffle(1:jobCount))
 randomPermutationEncoding(jobCount)=PermutationEncoding(shuffle(1:jobCount))
+copy(jobs::TwoVectorEncoding)=TwoVectorEncoding(copy(jobs.assignment),copy(jobs.permutation))
+copy(jobs::PermutationEncoding)=PermutationEncoding(copy(jobs.permutation))
+copy!(dst::PermutationEncoding, src::PermutationEncoding)=copy!(dst.permutation,src.permutation)
+function copy!(dst::TwoVectorEncoding, src::TwoVectorEncoding)
+	copy!(dst.assignment,src.assignment)
+	copy!(dst.permutation,src.permutation)
+end
 
 function randomChange!(jobs::TwoVectorEncoding,canDo,jobCount,machineCount)
 	while true
 		type=rand([TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER])
 		arg1=rand(1:jobCount)
-		arg2=rand(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? 1:jobCount : 1:machineCount)
+		arg2=rand(1:(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? jobCount : machineCount))
 		arg1==arg2 && type≠TWO_VECTOR_MOVE_ASSIGNMENT && continue
 		type==TWO_VECTOR_MOVE_ASSIGNMENT && jobs.assignment[arg1]==arg2 && continue
-		canDo(type,arg1,arg2) || continue
-		return change!(jobs,type,arg1,arg2)
+		canDo((type,arg1,arg2)) || continue
+		return (type,arg1,arg2),change!(jobs,type,arg1,arg2)
 	end
 end
 function randomChange!(jobs::PermutationEncoding,canDo,jobCount,machineCount)
@@ -29,16 +37,17 @@ function randomChange!(jobs::PermutationEncoding,canDo,jobCount,machineCount)
 		arg1=rand(1:jobCount)
 		arg2=rand(1:jobCount)
 		arg1==arg2 && continue
-		canDo(type,arg1,arg2) || continue
-		return change!(jobs,type,arg1,arg2)
+		canDo((type,arg1,arg2)) || continue
+		return (type,arg1,arg2),change!(jobs,type,arg1,arg2)
 	end
 end
+change!(jobs,(type,arg1,arg2))=change!(jobs,type,arg1,arg2)
 function change!(jobs::TwoVectorEncoding,type,arg1,arg2)
 	if type==TWO_VECTOR_MOVE_ASSIGNMENT
 		old=jobs.assignment[arg1]
 		jobs.assignment[arg1]=arg2
 		return TWO_VECTOR_MOVE_ASSIGNMENT,arg1,old
-	else type==TWO_VECTOR_SWAP_ASSIGNMENT
+	elseif type==TWO_VECTOR_SWAP_ASSIGNMENT
 		jobs.assignment[pos1],jobs.assignment[pos2]=jobs.assignment[pos2],jobs.assignment[pos1]
 		return TWO_VECTOR_SWAP_ASSIGNMENT,arg1,arg2
 	elseif type==TWO_VECTOR_MOVE_ORDER
@@ -50,7 +59,7 @@ function change!(jobs::TwoVectorEncoding,type,arg1,arg2)
 		jobs.permutation[pos1],jobs.permutation[pos2]=jobs.permutation[pos2],jobs.permutation[pos1]
 		return TWO_VECTOR_SWAP_ORDER,arg1,arg2
 	end
-	@assert(false)
+	@assert false type
 end
 function change!(jobs::PermutationEncoding,type,arg1,arg2)
 	if type==PERMUTATION_MOVE
@@ -59,10 +68,10 @@ function change!(jobs::PermutationEncoding,type,arg1,arg2)
 		insert!(jobs.permutation,arg2,val)
 		return PERMUTATION_MOVE,arg2,arg1
 	elseif type==PERMUTATION_SWAP
-		jobs.permutation[pos1],jobs.permutation[pos2]=jobs.permutation[pos2],jobs.permutation[pos1]
+		jobs.permutation[arg1],jobs.permutation[arg2]=jobs.permutation[arg2],jobs.permutation[arg1]
 		return PERMUTATION_SWAP,arg1,arg2
 	end
-	@assert(false)
+	@assert false type
 end
 
 const PERMUTATION_MOVE=10
