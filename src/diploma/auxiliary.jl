@@ -132,7 +132,7 @@ function neededCarCountHistory(times,carTravelTime)
 			dequeue!(inUseTimes)
 		end
 		enqueue!(inUseTimes,time)
-		push!(history,length(inUseTimes)
+		push!(history,length(inUseTimes))
 	end
 	history
 end
