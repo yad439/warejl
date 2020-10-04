@@ -21,6 +21,9 @@ localRes2=localTabu3(n,m,p,TabuSearchSettings(100,10,100))
 plot(localRes1[3])
 plot(localRes2[3])
 
+plot(neededCarCountHistory(computeTimesOfPermutation(localRes1[1],p,m),50))
+plot(neededCarCountHistory(computeTimes(localRes2[1],p,m),50))
+
 rep=map(1:10) do _
 	pl=rand(n)*10
 	exactSoll=exact(n,m,pl)
