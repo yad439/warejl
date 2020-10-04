@@ -9,25 +9,25 @@ struct PermutationEncoding
 	permutation::Vector{Int}
 end
 
-randomTwoVectorEncoding(n,m)=TwoVectorEncoding(rand(1:m,n),shuffle(1:n))
-randomPermutationEncoding(n)=PermutationEncoding(shuffle(1:n))
+randomTwoVectorEncoding(jobCount,machineCount)=TwoVectorEncoding(rand(1:machineCount,jobCount),shuffle(1:jobCount))
+randomPermutationEncoding(jobCount)=PermutationEncoding(shuffle(1:jobCount))
 
-function randomChange!(jobs::TwoVectorEncoding,canDo,n,m)
+function randomChange!(jobs::TwoVectorEncoding,canDo,jobCount,machineCount)
 	while true
 		type=rand([TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER])
-		arg1=rand(1:n)
-		arg2=rand(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? 1:n : 1:m)
+		arg1=rand(1:jobCount)
+		arg2=rand(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? 1:jobCount : 1:machineCount)
 		arg1==arg2 && type≠TWO_VECTOR_MOVE_ASSIGNMENT && continue
 		type==TWO_VECTOR_MOVE_ASSIGNMENT && jobs.assignment[arg1]==arg2 && continue
 		canDo(type,arg1,arg2) || continue
 		return change!(jobs,type,arg1,arg2)
 	end
 end
-function randomChange!(jobs::PermutationEncoding,canDo,n,m)
+function randomChange!(jobs::PermutationEncoding,canDo,jobCount,machineCount)
 	while true
 		type=rand([PERMUTATION_MOVE,PERMUTATION_SWAP])
-		arg1=rand(1:n)
-		arg2=rand(1:n)
+		arg1=rand(1:jobCount)
+		arg2=rand(1:jobCount)
 		arg1==arg2 && continue
 		canDo(type,arg1,arg2) || continue
 		return change!(jobs,type,arg1,arg2)
