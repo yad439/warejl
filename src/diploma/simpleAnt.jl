@@ -1,4 +1,4 @@
-include("$(@__DIR__)/simpleCommon.jl")
+include("$(@__DIR__)/simpleauxiliary.jl")
 
 using Distributions
 
