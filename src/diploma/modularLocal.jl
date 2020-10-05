@@ -9,22 +9,22 @@ struct TabuSearchSettings
 	neighbourhoodSize::Int
 end
 
-function modularTabuSearch(jobCount,machineCount,jobLengths,settings,scoreFunction,startTimeTable)
+function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTimeTable)
 	progress=ProgressUnknown("Local tabu search:")
 	history=Vector{eltype(p)}(undef,0)
 
 	timeTable=startTimeTable
 	tabu=Queue{Tuple{Int,Int,Int}}()
-	minval=scoreFunction(timeTable,jobLengths,machineCount)
+	minval=scoreFunction(timeTable)
 	minsol=copy(timeTable)
 	count=0
 
 	push!(history,minval)
 	while count<settings.searchTries
-		newTimeTableChange=modularTabuImprove(timeTable,jobCount,jobLengths,machineCount,tabu,settings.neighbourhoodSize,scoreFunction)
+		newTimeTableChange=modularTabuImprove(timeTable,jobCount,machineCount,tabu,settings.neighbourhoodSize,scoreFunction)
 		change!(timeTable,newTimeTableChange)
 		enqueue!(tabu,newTimeTableChange)
-		score=scoreFunction(timeTable,jobLengths,machineCount)
+		score=scoreFunction(timeTable)
 		push!(history,score)
 		if score<minval
 			count=0
@@ -42,12 +42,12 @@ function modularTabuSearch(jobCount,machineCount,jobLengths,settings,scoreFuncti
 	minsol,minval,history
 end
 
-function modularTabuImprove(timeTable,jobCount,jobLengths,machineCount,tabu,neighbourhoodSize,scoreFunction)
+function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSize,scoreFunction)
 	minval=typemax(Int)
 	toApply=(0,0,0)
 	for _=1:neighbourhoodSize
 		newChange,restoreChange=randomChange!(timeTable,change->tabuCanChange(timeTable,change,tabu),jobCount,machineCount)
-		score=scoreFunction(timeTable,jobLengths,machineCount)
+		score=scoreFunction(timeTable)
 		change!(timeTable,restoreChange)
 		if score<minval
 			minval=score
