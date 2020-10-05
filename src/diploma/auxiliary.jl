@@ -60,15 +60,15 @@ function maxTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsNeede
 	carsAvailable=carCount
 	carTime=0
 	for job ∈ jobs.permutation
-		while carsAvailable<carNeeded[job]
+		while carsAvailable<carsNeeded[job]
 			(carTime,carsFreed)=dequeue!(inUseCars)
 			carsAvailable+=carsFreed
 		end
 		machine=jobs.assignment[job]
-		startTime=max(sums[machine],currentTime)
+		startTime=max(machineTimes[machine],carTime)
 		carsAvailable-=carsNeeded[job]
 		enqueue!(inUseCars,(startTime+carTravelTime,carsNeeded[job]))
-		machineTimes[machine]=startTime+p[i]
+		machineTimes[machine]=startTime+p[job]
 	end
 	maximum(machineTimes)
 end

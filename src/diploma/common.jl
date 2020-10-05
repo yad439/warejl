@@ -48,7 +48,7 @@ function change!(jobs::TwoVectorEncoding,type,arg1,arg2)
 		jobs.assignment[arg1]=arg2
 		return TWO_VECTOR_MOVE_ASSIGNMENT,arg1,old
 	elseif type==TWO_VECTOR_SWAP_ASSIGNMENT
-		jobs.assignment[pos1],jobs.assignment[pos2]=jobs.assignment[pos2],jobs.assignment[pos1]
+		jobs.assignment[arg1],jobs.assignment[arg2]=jobs.assignment[arg2],jobs.assignment[arg1]
 		return TWO_VECTOR_SWAP_ASSIGNMENT,arg1,arg2
 	elseif type==TWO_VECTOR_MOVE_ORDER
 		val=jobs.permutation[arg1]
@@ -56,7 +56,7 @@ function change!(jobs::TwoVectorEncoding,type,arg1,arg2)
 		insert!(jobs.permutation,arg2,val)
 		return TWO_VECTOR_MOVE_ORDER,arg2,arg1
 	elseif type==TWO_VECTOR_SWAP_ORDER
-		jobs.permutation[pos1],jobs.permutation[pos2]=jobs.permutation[pos2],jobs.permutation[pos1]
+		jobs.permutation[arg1],jobs.permutation[arg2]=jobs.permutation[arg2],jobs.permutation[arg1]
 		return TWO_VECTOR_SWAP_ORDER,arg1,arg2
 	end
 	@assert false type
