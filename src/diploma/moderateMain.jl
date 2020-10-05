@@ -15,3 +15,4 @@ c=4
 
 exactRes=moderateExact(n,m,c,p,k,tt)
 localRes1=modularTabuSearch(n,m,TabuSearchSettings(100,10,10),jobs->maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt),randomTwoVectorEncoding(n,m))
+localRes2=modularTabuSearch(n,m,TabuSearchSettings(100,10,10),jobs->maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt),randomPermutationEncoding(n))
