@@ -203,7 +203,7 @@ function randchoice(list,count)
 	res=Vector{eltype(list)}(undef,count)
 	for i=1:count
 		val=rand(notChosen)
-		res[i]=val
+		res[i]=list[val]
 		delete!(notChosen,val)
 	end
 	res
