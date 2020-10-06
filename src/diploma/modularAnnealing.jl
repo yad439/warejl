@@ -41,7 +41,7 @@ function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTime
 		ProgressMeter.next!(progress,showvalues=[("Min score",minval)])
 	end
 	ProgressMeter.finish!(progress)
-	minsol,minval,history
+	minval,minsol,history
 end
 
 function maxDif(jobs::PermutationEncoding,jobCount,machineCount,scoreFunction)

@@ -39,7 +39,7 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 		ProgressMeter.next!(progress,showvalues=[("Min score",minval)])
 	end
 	ProgressMeter.finish!(progress)
-	minsol,minval,history
+	minval,minsol,history
 end
 
 function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSize,scoreFunction)
