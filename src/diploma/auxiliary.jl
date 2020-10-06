@@ -198,15 +198,13 @@ function neededCarCountHistory(times,carTravelTime)
 	history
 end
 
-function randchoice(rng,list,count)
+function randchoice(list,count)
 	notChosen=BitSet(1:length(list))
 	res=Vector{eltype(list)}(undef,count)
 	for i=1:count
-		val=rand(rng,notChosen)
+		val=rand(notChosen)
 		res[i]=val
 		delete!(notChosen,val)
 	end
 	res
 end
-
-randchoice(list,count)=randchoice(Random.GLOBAL_RNG,list,count)
