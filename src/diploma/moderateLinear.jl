@@ -1,11 +1,12 @@
 using JuMP,Gurobi
 using LinearAlgebra
 
-function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime)
+function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
 	M=sum(p)+n*carTravelTime
 	# M2=M+0.5
 
 	model=Model(Gurobi.Optimizer)
+	timeLimit==0 || set_time_limit_sec(model,timeLimit)
 	@variable(model,t[1:n]≥0)
 
 	@variable(model,ord[1:n,1:n],Bin)
@@ -29,5 +30,5 @@ function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carT
 
 	optimize!(model)
 
-	objective_value(model)
+	objective_value(model),objective_bound(model)
 end
