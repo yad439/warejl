@@ -8,6 +8,11 @@ struct TabuSearchSettings
 	tabuSize::Int
 	neighbourhoodSize::Int
 end
+struct TabuSearchSettings2
+	searchTries::Int
+	tabuSize::Int
+	neighbourhoodSize::Float64
+end
 
 function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTimeTable)
 	progress=ProgressUnknown("Local tabu search:")
@@ -42,7 +47,7 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 	minval,minsol,history
 end
 
-function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSize,scoreFunction)
+function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSize::Int,scoreFunction)
 	minval=typemax(Int)
 	toApply=(0,0,0)
 	for _=1:neighbourhoodSize
@@ -57,7 +62,23 @@ function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSi
 	toApply
 end
 
-function tabuCanChange(_::TwoVectorEncoding,change,tabu)
+function modularTabuImprove(timetable,jobCount,machineCount,tabu,neighbourhoodProbability::Float64,scoreFunction)
+	minval=typemax(Int)
+	toApply=(0,0,0)
+	for change ∈ changeIterator(timetable,jobCount,machineCount)
+		rand() > neighbourhoodProbability && continue
+		restoreChange=change!(timetable,change)
+		score=scoreFunction(timetable)
+		change!(timetable,restoreChange)
+		if score<minval
+			minval=score
+			toApply=change
+		end
+	end
+	toApply
+end
+
+function tabuCanChange(::TwoVectorEncoding,change,tabu)
 	if change[1]==TWO_VECTOR_MOVE_ORDER || change[1]==TWO_VECTOR_MOVE_ASSIGNMENT
 		return change ∉ tabu
 	elseif change[1]==TWO_VECTOR_SWAP_ORDER || change[1]==TWO_VECTOR_SWAP_ASSIGNMENT
@@ -66,7 +87,7 @@ function tabuCanChange(_::TwoVectorEncoding,change,tabu)
 	@assert(false)
 end
 
-function tabuCanChange(_::PermutationEncoding,change,tabu)
+function tabuCanChange(::PermutationEncoding,change,tabu)
 	if change[1]==PERMUTATION_MOVE
 		return change ∉ tabu
 	elseif change[1]==PERMUTATION_SWAP
