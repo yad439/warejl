@@ -8,7 +8,7 @@ using Plots
 using Printf
 using Statistics
 
-n=200
+n=100
 m=5
 p=rand(5:20,n)
 k=rand(1:2,n)
@@ -18,8 +18,10 @@ c=10
 scoreFun=jobs->maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
 
 exactRes=moderateExact(n,m,c,p,k,tt,300)
-localRes1=modularTabuSearch(n,m,TabuSearchSettings(400,200,200),scoreFun,randomTwoVectorEncoding(n,m))
-localRes2=modularTabuSearch(n,m,TabuSearchSettings(400,200,200),scoreFun,randomPermutationEncoding(n))
+localRes1=modularTabuSearch(n,m,TabuSearchSettings(100,100,100),scoreFun,randomTwoVectorEncoding(n,m))
+localRes2=modularTabuSearch(n,m,TabuSearchSettings(100,100,100),scoreFun,randomPermutationEncoding(n))
+localRes3=modularTabuSearch(n,m,TabuSearchSettings2(100,100,0.1),scoreFun,randomTwoVectorEncoding(n,m))
+localRes4=modularTabuSearch(n,m,TabuSearchSettings2(100,100,0.1),scoreFun,randomPermutationEncoding(n))
 tmp=randomPermutationEncoding(n)
 annealingRes1=modularAnnealing(n,m,AnnealingSettings(1000,maxDif(tmp,n,m,scoreFun),it->it*0.99,(old,new,threshold)->new-old<threshold),scoreFun,tmp)
 tmp=randomTwoVectorEncoding(n,m)
