@@ -3,7 +3,6 @@ using LinearAlgebra
 
 function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
 	M=sum(jobLengths)+jobCount*carTravelTime
-	# M2=M+0.5
 
 	model=Model(Gurobi.Optimizer)
 	timeLimit==0 || set_time_limit_sec(model,timeLimit)
@@ -34,8 +33,8 @@ function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carT
 end
 
 function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
-	M=sum(jobLengths)+jobCount*carTravelTime
-	# M2=M+0.5
+	T=ceil(Int,sum(carsNeeded)/carCount)
+	M=sum(jobLengths)+T*carTravelTime
 
 	model=Model(Gurobi.Optimizer)
 	timeLimit==0 || set_time_limit_sec(model,timeLimit)
@@ -52,7 +51,6 @@ function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,car
 		sum(first)≤machineCount
 	end)
 
-	T=ceil(Int,sum(carsNeeded)/carCount)
 	@variables(model,begin
 		timeSlot[1:carCount,1:T,1:jobCount],Bin
 	end)
