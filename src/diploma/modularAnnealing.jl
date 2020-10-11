@@ -16,12 +16,12 @@ function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTime
 	timeTable=startTimeTable
 	minval=scoreFunction(timeTable)
 	minsol=copy(timeTable)
-	count=0
+	counter=0
 	threshold=settings.startTheshold
 
 	prevScore=minval
 	push!(history,minval)
-	while count<settings.searchTries
+	while counter<settings.searchTries
 		newChange,restoreChange=randomChange!(timeTable,change->true,jobCount,machineCount)
 		score=scoreFunction(timeTable)
 		if settings.applyChange(prevScore,score,threshold)
@@ -30,11 +30,11 @@ function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTime
 			change!(timeTable,restoreChange)
 		end
 		if score<minval
-			count=0
+			counter=0
 			minval=score
 			copy!(minsol,timeTable)
 		else
-			count+=1
+			counter+=1
 		end
 		threshold=settings.decreasingFunction(threshold)
 		push!(history,prevScore)

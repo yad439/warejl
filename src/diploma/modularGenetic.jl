@@ -15,10 +15,10 @@ function modularGenetic(jobCount,machineCount,settings,scoreFunction,startPopula
 	history=Vector{eltype(p)}(undef,0)
 
 	population=startPopulation
-	count=0
+	counter=0
 
 	push!(history,population[1].score)
-	while count<settings.searchTries
+	while counter<settings.searchTries
 		parent1=randchoice(population,settings.choiceCount) |> minimum
 		parent2=randchoice(population,settings.choiceCount) |> minimum
 
@@ -27,9 +27,9 @@ function modularGenetic(jobCount,machineCount,settings,scoreFunction,startPopula
 
 		score=scoreFunction(child)
 		if score≥population[1].score
-			count+=1
+			counter+=1
 		else
-			count=0
+			counter=0
 		end
 		pop!(population)
 		insertSorted!(population,GeneticEntity(child,score))

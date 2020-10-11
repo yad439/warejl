@@ -22,21 +22,21 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 	tabu=Queue{Tuple{Int,Int,Int}}()
 	minval=scoreFunction(timeTable)
 	minsol=copy(timeTable)
-	count=0
+	counter=0
 
 	push!(history,minval)
-	while count<settings.searchTries
+	while counter<settings.searchTries
 		newTimeTableChange=modularTabuImprove(timeTable,jobCount,machineCount,tabu,settings.neighbourhoodSize,scoreFunction)
 		restoreChange=change!(timeTable,newTimeTableChange)
 		enqueue!(tabu,restoreChange)
 		score=scoreFunction(timeTable)
 		push!(history,score)
 		if score<minval
-			count=0
+			counter=0
 			minval=score
 			copy!(minsol,timeTable)
 		else
-			count+=1
+			counter+=1
 		end
 		while length(tabu)>settings.tabuSize
 			dequeue!(tabu)
