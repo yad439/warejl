@@ -27,8 +27,8 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 	push!(history,minval)
 	while count<settings.searchTries
 		newTimeTableChange=modularTabuImprove(timeTable,jobCount,machineCount,tabu,settings.neighbourhoodSize,scoreFunction)
-		change!(timeTable,newTimeTableChange)
-		enqueue!(tabu,newTimeTableChange)
+		restoreChange=change!(timeTable,newTimeTableChange)
+		enqueue!(tabu,restoreChange)
 		score=scoreFunction(timeTable)
 		push!(history,score)
 		if score<minval
