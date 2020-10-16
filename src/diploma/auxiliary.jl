@@ -227,14 +227,14 @@ end
 function iterate(iter::IteratorSum{T1,T2},state) where {T1,T2}
 	if state[1]==1
 		ret=iterate(iter.iter1,state[2])
-		if ret==nothing
+		if ret≡nothing
 			ret=iterate(iter.iter2)
 			return ret[1],(2,ret[2])
 		end
 		return ret[1],(1,ret[2])
 	else
 		ret=iterate(iter.iter2,state[2])
-		return ret==nothing ? nothing : (ret[1],(2,ret[2]))
+		return ret≡nothing ? nothing : (ret[1],(2,ret[2]))
 	end
 end
 eltype(iter::IteratorSum{T1,T2}) where {T1,T2}=eltype(iter.iter1)
