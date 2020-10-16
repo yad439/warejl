@@ -1,5 +1,5 @@
 using ProgressMeter
-import Base.isless,Base.isequal
+import Base.isless,Base.isequal,Base.==
 
 include("$(@__DIR__)/common.jl")
 
@@ -46,14 +46,15 @@ struct GeneticEntity{T}
 	score::Int
 end
 isless(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.score<ent2.score
-isequal(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.score==ent2.score
+# isequal(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.score==ent2.score
+==(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.jobs==ent2.jobs
 
 function pmxCrossover(list1,list2)
 	n=length(list1)
 	@assert length(list2)==n
 	startIndex,endIndex=minmax(rand(1:n+1),rand(1:n+1))
 	endIndex-=1
-	pmxCrossover(lis1,list2,startIndex,endIndex)
+	pmxCrossover(list1,list2,startIndex,endIndex)
 end
 
 function pmxCrossover(list1,list2,startIndex,endIndex)

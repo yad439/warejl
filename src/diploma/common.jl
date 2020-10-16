@@ -1,5 +1,5 @@
 using Random
-import Base.copy,Base.copy!
+import Base.copy,Base.copy!,Base.==
 
 struct TwoVectorEncoding
 	assignment::Vector{Int}
@@ -9,6 +9,9 @@ end
 struct PermutationEncoding
 	permutation::Vector{Int}
 end
+
+==(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=jobs1.assignment==jobs2.assignment && jobs1.permutation==jobs2.permutation
+==(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=jobs1.permutation==jobs2.permutation
 
 randomTwoVectorEncoding(jobCount,machineCount)=TwoVectorEncoding(rand(1:machineCount,jobCount),shuffle(1:jobCount))
 randomPermutationEncoding(jobCount)=PermutationEncoding(shuffle(1:jobCount))
