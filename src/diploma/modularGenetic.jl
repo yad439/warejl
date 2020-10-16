@@ -31,8 +31,10 @@ function modularGenetic(jobCount,machineCount,settings,scoreFunction,startPopula
 		else
 			counter=0
 		end
-		pop!(population)
-		insertSorted!(population,GeneticEntity(child,score))
+		if child ∉ population
+			pop!(population)
+			insertSorted!(population,GeneticEntity(child,score))
+		end
 
 		push!(history,score)
 		ProgressMeter.next!(progress,showvalues=[("Min score",population[1].score)])
