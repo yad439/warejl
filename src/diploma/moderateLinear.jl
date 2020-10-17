@@ -1,6 +1,8 @@
 using JuMP,Gurobi
 using LinearAlgebra
 
+include("$(@__DIR__)/auxiliary.jl")
+
 function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
 	M=sum(jobLengths)+jobCount*carTravelTime
 
@@ -29,7 +31,7 @@ function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carT
 
 	optimize!(model)
 
-	objective_value(model),objective_bound(model)
+	objective_value(model),objective_bound(model),(times=value.(t),order=value.(ord))
 end
 
 function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
@@ -66,5 +68,24 @@ function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,car
 
 	optimize!(model)
 
-	objective_value(model),objective_bound(model)
+	objective_value(model),objective_bound(model),(times=value.(t),order=value.(ord))
+end
+
+function exactSolutionToSchedule(solution,jobLengths,machineCount)
+	times=round.(Int,solution.times)
+	Schedule(times,timesToAssignment(times,jobLengths,machineCount))
+end
+
+function timesToAssignment(times,jobLengths,machineCount)
+	@assert length(times)==length(jobLengths)
+	sums=fill(zero(eltype(jobLengths)),machineCount)
+	order=sortperm(times)
+	assignment=Vector{Int}(undef,length(times))
+	for job ∈ order
+		machine=argmin(sums)
+		@assert sums[machine]≤times[job]
+		assignment[job]=machine
+		sums[machine]+=jobLengths[job]
+	end
+	assignment
 end
