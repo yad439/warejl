@@ -2,6 +2,7 @@ using DataStructures
 using ProgressMeter
 
 include("$(@__DIR__)/common.jl")
+include("$(@__DIR__)/utility.jl")
 
 struct TabuSearchSettings
 	searchTries::Int
