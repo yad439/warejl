@@ -7,8 +7,8 @@ include("$(@__DIR__)/auxiliary.jl")
 using Plots
 using Printf
 using Statistics
-
-n=10
+##
+n=20
 m=5
 p=rand(5:20,n)
 k=rand(1:2,n)
@@ -17,7 +17,7 @@ c=3
 
 scoreFun=jobs->maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
 scoreFun2=jobs->maxTimeWithCars(jobs,p,k,m,c,tt)
-
+##
 exactRes=moderateExact(n,m,c,p,k,tt,300)
 exactRes2=moderateExact2(n,m,c,p,k,tt,300)
 localRes1=modularTabuSearch(n,m,TabuSearchSettings(100,100,100),scoreFun,randomTwoVectorEncoding(n,m))
