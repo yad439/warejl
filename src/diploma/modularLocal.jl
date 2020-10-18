@@ -24,7 +24,7 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 	minsol=copy(timeTable)
 	counter=0
 
-	history=Vector{typeof(minsol)}(undef,0)
+	history=Vector{typeof(minval)}(undef,0)
 	push!(history,minval)
 	while counter<settings.searchTries
 		newTimeTableChange=modularTabuImprove(timeTable,jobCount,machineCount,tabu,settings.neighbourhoodSize,scoreFunction)
