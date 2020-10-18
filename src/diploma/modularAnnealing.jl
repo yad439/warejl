@@ -11,7 +11,6 @@ end
 
 function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTimeTable)
 	progress=ProgressUnknown("Annealing:")
-	history=Vector{eltype(p)}(undef,0)
 
 	timeTable=startTimeTable
 	minval=scoreFunction(timeTable)
@@ -20,6 +19,7 @@ function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTime
 	threshold=settings.startTheshold
 
 	prevScore=minval
+	history=Vector{typeof(minval)}(undef,0)
 	push!(history,minval)
 	while counter<settings.searchTries
 		newChange,restoreChange=randomChange!(timeTable,change->true,jobCount,machineCount)

@@ -52,7 +52,7 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 		machine=jobs.assignment[job]
 		startTime=max(sums[machine],currentTime)
 		times[job]=startTime
-		sums[machine]=startTime+p[job]
+		sums[machine]=startTime+jobLengths[job]
 	end
 	Schedule(jobs.assignment,times),maximum(sums)
 end
@@ -95,7 +95,7 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 		assignment[job]=machine
 		startTime=max(sums[machine],currentTime)
 		times[job]=startTime
-		sums[machine]=startTime+p[job]
+		sums[machine]=startTime+jobLengths[job]
 	end
 	times,maximum(sums)
 end
@@ -117,7 +117,7 @@ function computeTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsN
 		carsAvailable-=carsNeeded[job]
 		enqueue!(inUseCars,(startTime+carTravelTime,carsNeeded[job]))
 		times[job]=startTime
-		machineTimes[machine]=startTime+p[job]
+		machineTimes[machine]=startTime+jobLengths[job]
 	end
 	Schedule(jobs.assignment,times),maximum(machineTimes)
 end
@@ -141,7 +141,7 @@ function computeTimeWithCarsUnoptimized(jobs::PermutationEncoding,jobLengths,car
 		carsAvailable-=carsNeeded[job]
 		enqueue!(inUseCars,(startTime+carTravelTime,carsNeeded[job]))
 		times[job]=startTime
-		machineTimes[machine]=startTime+p[job]
+		machineTimes[machine]=startTime+jobLengths[job]
 	end
 	Schedule(assignment,times),maximum(machineTimes)
 end

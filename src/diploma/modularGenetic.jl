@@ -12,11 +12,11 @@ end
 
 function modularGenetic(jobCount,machineCount,settings,scoreFunction,startPopulation)
 	progress=ProgressUnknown("Genetic:")
-	history=Vector{eltype(p)}(undef,0)
 
 	population=startPopulation
 	counter=0
 
+	history=Vector{typeof(population[1].score)}(undef,0)
 	push!(history,population[1].score)
 	while counter<settings.searchTries
 		parent1=randchoice(population,settings.choiceCount) |> minimum
@@ -101,7 +101,7 @@ function order1Crossover(list1,list2)
 	@assert length(list2)==n
 	startIndex,endIndex=minmax(rand(1:n+1),rand(1:n+1))
 	endIndex-=1
-	order1Crossover(lis1,list2,startIndex,endIndex)
+	order1Crossover(list1,list2,startIndex,endIndex)
 end
 
 function order1Crossover(list1,list2,startIndex,endIndex)
