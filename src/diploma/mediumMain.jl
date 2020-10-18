@@ -1,6 +1,6 @@
-include("$(@__DIR__)/simpleLinear.jl")
-include("$(@__DIR__)/mediumLocal.jl")
-include("$(@__DIR__)/modularLocal.jl")
+include("simpleLinear.jl")
+include("mediumLocal.jl")
+include("modularLocal.jl")
 
 using Plots
 using Printf

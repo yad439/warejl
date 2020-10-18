@@ -1,6 +1,6 @@
 using ProgressMeter
 
-include("$(@__DIR__)/common.jl")
+include("common.jl")
 
 struct AnnealingSettings
 	searchTries::Int

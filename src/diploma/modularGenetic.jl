@@ -1,7 +1,8 @@
 using ProgressMeter
 import Base.isless,Base.isequal,Base.==
 
-include("$(@__DIR__)/common.jl")
+include("common.jl")
+include("utility.jl")
 
 struct GeneticSettings
 	searchTries::Int

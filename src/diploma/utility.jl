@@ -2,6 +2,8 @@ using Random
 import Base.iterate,Base.eltype
 using OffsetArrays
 
+include("common.jl")
+
 function randchoice(list,count)
 	notChosen=BitSet(1:length(list))
 	res=Vector{eltype(list)}(undef,count)
@@ -68,7 +70,7 @@ function damerauLevenshteinDistance(a,b)
 
 	da=zeros(Int,n)
 	d=OffsetMatrix(Matrix{Float64}(undef,n+2,n+2),-1:n,-1:n)
-	
+
 	maxdist = 2n
 	d[-1, -1]=maxdist
 	for i=0:n
@@ -77,7 +79,7 @@ function damerauLevenshteinDistance(a,b)
 		d[-1, i]=maxdist
 		d[0, i]=i/2
 	end
-	
+
 	for i=1:n
 		db = 0
 		for j=1:n

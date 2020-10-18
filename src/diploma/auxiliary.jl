@@ -1,6 +1,6 @@
 using DataStructures
 
-include("$(@__DIR__)/common.jl")
+include("common.jl")
 
 maxTime(jobs::TwoVectorEncoding,jobLengths,machineCount)=maxTime(jobs.assignment,jobLengths,machineCount)
 maxTime(jobs::PermutationEncoding,jobLengths,machineCount)=timeOfPermutation(jobs.permutation,jobLengths,machineCount)

@@ -1,8 +1,8 @@
-include("$(@__DIR__)/moderateLinear.jl")
-include("$(@__DIR__)/modularLocal.jl")
-include("$(@__DIR__)/modularAnnealing.jl")
-include("$(@__DIR__)/modularGenetic.jl")
-include("$(@__DIR__)/auxiliary.jl")
+include("moderateLinear.jl")
+include("modularLocal.jl")
+include("modularAnnealing.jl")
+include("modularGenetic.jl")
+include("auxiliary.jl")
 
 using Plots
 using Printf

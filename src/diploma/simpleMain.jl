@@ -1,7 +1,7 @@
-include("$(@__DIR__)/simpleLinear.jl")
-include("$(@__DIR__)/simpleGenetic.jl")
-include("$(@__DIR__)/simpleLocal.jl")
-include("$(@__DIR__)/simpleAnnealing.jl")
+include("simpleLinear.jl")
+include("simpleGenetic.jl")
+include("simpleLocal.jl")
+include("simpleAnnealing.jl")
 
 using Plots
 using Printf

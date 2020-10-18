@@ -1,7 +1,7 @@
 using JuMP,Gurobi
 using LinearAlgebra
 
-include("$(@__DIR__)/auxiliary.jl")
+include("auxiliary.jl")
 
 function moderateExact(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
 	M=sum(jobLengths)+jobCount*carTravelTime

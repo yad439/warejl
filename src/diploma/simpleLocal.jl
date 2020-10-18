@@ -1,4 +1,4 @@
-include("$(@__DIR__)/simpleauxiliary.jl")
+include("auxiliary.jl")
 
 using DataStructures
 using ProgressMeter
