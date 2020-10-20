@@ -100,3 +100,19 @@ function damerauLevenshteinDistance(a,b)
 	end
 	d[n, n]
 end
+
+function assignmentDistance(list1,list2,machineCount)
+	swap=[Vector{Int}(undef,0) for _=1:machineCount]
+	dist=0
+	for i ∈ eachindex(list1)
+		list1[i]==list2[i] && continue
+		ind=findlast(==(list1[i]),swap[list2[i]])
+		if ind≡nothing
+			dist+=1
+			push!(swap[list1[i]],list2[i])
+		else
+			deleteat!(swap[list2[i]],ind)
+		end
+	end
+	dist
+end
