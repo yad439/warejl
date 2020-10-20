@@ -8,8 +8,8 @@ using Plots
 using Printf
 using Statistics
 ##
-n=20
-m=5
+n=11
+m=3
 p=rand(5:20,n)
 k=rand(1:2,n)
 tt=10
