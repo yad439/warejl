@@ -89,7 +89,7 @@ function damerauLevenshteinDistance(a,b)
 				cost = 0
 				db = j
 			else
-				cost = 0.5
+				cost = maxdist
 			end
 			d[i, j] = min(d[i-1, j-1] + cost,#substitution
 							d[i,   j-1] + 0.5,#insertion
