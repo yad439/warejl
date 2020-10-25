@@ -1,5 +1,4 @@
 using CSV,DataFrames
-using Lazy
 using Dates
 
 struct Batch
@@ -53,16 +52,25 @@ function parseRealData(batchInfo,boxInfo,boxProcessingTime,itemInfo,itemProcessi
 	foreach(eachrow(boxInfo)) do entry
 		push!(orders[entry.ORDER_ID].boxes,boxes[entry.BOX_ID])
 	end
-	batches=batchInfo.BATCH_ID |> unique |> (it->map(i->i=>Batch(i,Order[]),it)) |> Dict
+	batches=batchInfo.BATCH_ID |> unique |> fmap(i->i=>Batch(i,Order[])) |> Dict
 	foreach(eachrow(batchInfo)) do entry
 		push!(batches[entry.BATCH_ID].orders,orders[entry.ORDER_ID])
 	end
-	batches
+	values(batches)|>collect
 end
 
 function parseRealData(directory,instanceSize,instanceNum)
 	dir="$directory/$instanceSize/$instanceNum"
-	data=@>> ["batch_info","box_info","box_processing_time","item_info","item_processing_time"] map(x->"$dir/$(instanceSize)_$(instanceNum)_$x.csv") map(CSV.File) map(DataFrame)
+	data=["batch_info",
+		  "box_info",
+		  "box_processing_time",
+		  "item_info",
+		  "item_processing_time"]|>
+		fmap(i->"$dir/$(instanceSize)_$(instanceNum)_$i.csv") |>
+		fmap(CSV.File ▷ DataFrame)
 	transform!(data[1],:END_ESTIMATED_PACKAGE_DATE=>(it->DateTime.(it,"y-m-d H:M:S"))=>:END_ESTIMATED_PACKAGE_DATE)
 	parseRealData(data...)
 end
+
+▷(f,g)=g∘f
+fmap(f)=x->map(f,x)
