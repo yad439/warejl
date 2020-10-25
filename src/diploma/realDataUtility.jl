@@ -1,5 +1,5 @@
 using CSV,DataFrames
-using Dates
+using Dates,Statistics
 
 struct Batch
 	id
@@ -70,6 +70,17 @@ function parseRealData(directory,instanceSize,instanceNum)
 		fmap(CSV.File ▷ DataFrame)
 	transform!(data[1],:END_ESTIMATED_PACKAGE_DATE=>(it->DateTime.(it,"y-m-d H:M:S"))=>:END_ESTIMATED_PACKAGE_DATE)
 	parseRealData(data...)
+end
+
+function toModerateJobs(batches)
+	orders=map(batch->batch.orders,batches) |> Iterators.flatten
+	boxes=map(order->order.boxes,orders) |> Iterators.flatten
+	jobLengths=map(box->box.pickingTime+box.packingTime+box.weighingTime,boxes)
+	itemIds=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.id) |> unique
+	itemMapping=Iterators.enumerate(itemIds) |> fmap(x->(x[2],x[1])) |> Dict
+	itemsForJob=[map(x->itemMapping[x.id],box.items) for box ∈ boxes]
+	carTravelTime=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.transportTime) |> mean |> x->round(Int,x)
+	Int.(jobLengths),itemsForJob,carTravelTime
 end
 
 ▷(f,g)=g∘f
