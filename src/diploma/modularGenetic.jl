@@ -51,6 +51,7 @@ end
 isless(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.score<ent2.score
 # isequal(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.score==ent2.score
 ==(ent1::GeneticEntity,ent2::GeneticEntity)=ent1.jobs==ent2.jobs
+distance(entity1::GeneticEntity{T},entity2::GeneticEntity{T},machineCount) where {T}=distance(entity1.jobs,entity2.jobs,machineCount)
 
 function pmxCrossover(list1,list2)
 	n=length(list1)

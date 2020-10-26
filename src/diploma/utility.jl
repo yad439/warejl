@@ -21,6 +21,11 @@ changeIterator(::TwoVectorEncoding,jobCount,machineCount)=Iterators.flatten((
 	((type,arg1,arg2) for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_SWAP_ORDER,TWO_VECTOR_MOVE_ORDER],arg1=1:jobCount,arg2=1:jobCount if arg1≠arg2)
 ))
 
+distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,_)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
+distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding,machineCount)=assignmentDistance(jobs1.assignment,jobs2.assignment,machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
+nomalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,m)=distance(jobs1,jobs2,m)/n
+nomalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding,m)=distance(jobs1,jobs2,m)/2n
+
 function damerauLevenshteinDistanceOSA(perm1,perm2)
 	len=length(perm1)
 	@assert length(perm2)==len
