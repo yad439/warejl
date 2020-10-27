@@ -1,5 +1,5 @@
 include("moderateLinear.jl")
-include("modularLocal.jl")
+include("modularTabu.jl")
 include("modularAnnealing.jl")
 include("modularGenetic.jl")
 include("auxiliary.jl")
