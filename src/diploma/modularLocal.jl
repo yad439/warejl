@@ -1,13 +1,13 @@
 include("utility.jl")
 
-function modularLocalSearch(jobCount,machineCount,settings,scoreFunction,startTimeTable)
+function modularLocalSearch(settings,scoreFunction,startTimeTable)
 	timeTable=startTimeTable
 	score=scoreFunction(timeTable)
 
 	while true
 		minScore=score
 		minChange=(0,0,0)
-		for change ∈ changeIterator(timeTable,jobCount,machineCount)
+		for change ∈ changeIterator(timeTable)
 			restore=change!(timeTable,change)
 			val=scoreFunction(timeTable)
 			if val<minScore

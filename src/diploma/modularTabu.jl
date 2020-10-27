@@ -15,7 +15,7 @@ struct TabuSearchSettings2
 	neighbourhoodSize::Float64
 end
 
-function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTimeTable)
+function modularTabuSearch(settings,scoreFunction,startTimeTable)
 	progress=ProgressUnknown("Local tabu search:")
 
 	timeTable=startTimeTable
@@ -27,7 +27,7 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 	history=Vector{typeof(minval)}(undef,0)
 	push!(history,minval)
 	while counter<settings.searchTries
-		newTimeTableChange=modularTabuImprove(timeTable,jobCount,machineCount,tabu,settings.neighbourhoodSize,scoreFunction)
+		newTimeTableChange=modularTabuImprove(timeTable,tabu,settings.neighbourhoodSize,scoreFunction)
 		restoreChange=change!(timeTable,newTimeTableChange)
 		enqueue!(tabu,restoreChange)
 		score=scoreFunction(timeTable)
@@ -48,11 +48,11 @@ function modularTabuSearch(jobCount,machineCount,settings,scoreFunction,startTim
 	minval,minsol,history
 end
 
-function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSize::Int,scoreFunction)
+function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction)
 	minval=typemax(Int)
 	toApply=(0,0,0)
 	for _=1:neighbourhoodSize
-		newChange,restoreChange=randomChange!(timeTable,change->tabuCanChange(timeTable,change,tabu),jobCount,machineCount)
+		newChange,restoreChange=randomChange!(timeTable,change->tabuCanChange(timeTable,change,tabu))
 		score=scoreFunction(timeTable)
 		change!(timeTable,restoreChange)
 		if score<minval
@@ -63,10 +63,10 @@ function modularTabuImprove(timeTable,jobCount,machineCount,tabu,neighbourhoodSi
 	toApply
 end
 
-function modularTabuImprove(timetable,jobCount,machineCount,tabu,neighbourhoodProbability::Float64,scoreFunction)
+function modularTabuImprove(timetable,tabu,neighbourhoodProbability::Float64,scoreFunction)
 	minval=typemax(Int)
 	toApply=(0,0,0)
-	for change ∈ changeIterator(timetable,jobCount,machineCount)
+	for change ∈ changeIterator(timetable)
 		rand() > neighbourhoodProbability && continue
 		tabuCanChange(timetable,change,tabu) || continue
 		restoreChange=change!(timetable,change)

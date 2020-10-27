@@ -9,7 +9,7 @@ struct AnnealingSettings
 	applyChange::Function
 end
 
-function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTimeTable)
+function modularAnnealing(settings,scoreFunction,startTimeTable)
 	progress=ProgressUnknown("Annealing:")
 
 	timeTable=startTimeTable
@@ -22,7 +22,7 @@ function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTime
 	history=Vector{typeof(minval)}(undef,0)
 	push!(history,minval)
 	while counter<settings.searchTries
-		newChange,restoreChange=randomChange!(timeTable,change->true,jobCount,machineCount)
+		newChange,restoreChange=randomChange!(timeTable,change->true)
 		score=scoreFunction(timeTable)
 		if settings.applyChange(prevScore,score,threshold)
 			prevScore=score
@@ -44,37 +44,37 @@ function modularAnnealing(jobCount,machineCount,settings,scoreFunction,startTime
 	minval,minsol,history
 end
 
-function maxDif(jobs::PermutationEncoding,jobCount,machineCount,scoreFunction)
+function maxDif(jobs::PermutationEncoding,scoreFunction)
 	minval=typemax(Int)
 	maxval=typemin(Int)
-	for type∈[PERMUTATION_MOVE,PERMUTATION_SWAP],arg1=1:jobCount,arg2=1:jobCount
+	for type∈[PERMUTATION_MOVE,PERMUTATION_SWAP],arg1=1:length(jobs),arg2=1:length(jobs)
 		arg1==arg2 && continue
 		restoreChange=change!(jobs,type,arg1,arg2)
 		score=scoreFunction(jobs)
 		change!(jobs,restoreChange)
 		score<minval && (minval=score)
-		score>maxval &&(maxval=score)
+		score>maxval && (maxval=score)
 	end
 	maxval-minval
 end
 
-function maxDif(jobs::TwoVectorEncoding,jobCount,machineCount,scoreFunction)
+function maxDif(jobs::TwoVectorEncoding,scoreFunction)
 	minval=typemax(Int)
 	maxval=typemin(Int)
-	for type∈[TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER],arg1=1:jobCount,arg2=1:jobCount
+	for type∈[TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER],arg1=1:length(jobs),arg2=1:length(jobs)
 		arg1==arg2 && continue
 		restoreChange=change!(jobs,type,arg1,arg2)
 		score=scoreFunction(jobs)
 		change!(jobs,restoreChange)
 		score<minval && (minval=score)
-		score>maxval &&(maxval=score)
+		score>maxval && (maxval=score)
 	end
-	for arg1=1:jobCount,arg2=1:machineCount
+	for arg1=1:length(jobs),arg2=1:jobs.machineCount
 		restoreChange=change!(jobs,TWO_VECTOR_MOVE_ASSIGNMENT,arg1,arg2)
 		score=scoreFunction(jobs)
 		change!(jobs,restoreChange)
 		score<minval && (minval=score)
-		score>maxval &&(maxval=score)
+		score>maxval && (maxval=score)
 	end
 	maxval-minval
 end

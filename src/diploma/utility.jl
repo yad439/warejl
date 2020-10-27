@@ -15,16 +15,16 @@ function randchoice(list,count)
 	res
 end
 
-changeIterator(::PermutationEncoding,jobCount,_)=((type,arg1,arg2) for type ∈ [PERMUTATION_SWAP,PERMUTATION_MOVE],arg1=1:jobCount,arg2=1:jobCount if arg1≠arg2)
-changeIterator(::TwoVectorEncoding,jobCount,machineCount)=Iterators.flatten((
-	((TWO_VECTOR_MOVE_ASSIGNMENT,arg1,arg2) for arg1=1:jobCount,arg2=1:machineCount),
-	((type,arg1,arg2) for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_SWAP_ORDER,TWO_VECTOR_MOVE_ORDER],arg1=1:jobCount,arg2=1:jobCount if arg1≠arg2)
+changeIterator(jobs::PermutationEncoding)=((type,arg1,arg2) for type ∈ [PERMUTATION_SWAP,PERMUTATION_MOVE],arg1=1:length(jobs.permutation),arg2=1:length(jobs.permutation) if arg1≠arg2)
+changeIterator(jobs::TwoVectorEncoding)=Iterators.flatten((
+	((TWO_VECTOR_MOVE_ASSIGNMENT,arg1,arg2) for arg1=1:length(jobs.permutation),arg2=1:jobs.machineCount),
+	((type,arg1,arg2) for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_SWAP_ORDER,TWO_VECTOR_MOVE_ORDER],arg1=1:length(jobs.permutation),arg2=1:length(jobs.permutation) if arg1≠arg2)
 ))
 
-distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,_)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
-distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding,machineCount)=assignmentDistance(jobs1.assignment,jobs2.assignment,machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
-nomalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,m)=distance(jobs1,jobs2,m)/n
-nomalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding,m)=distance(jobs1,jobs2,m)/2n
+distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
+distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=assignmentDistance(jobs1.assignment,jobs2.assignment,jobs1.machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
+nomalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=distance(jobs1,jobs2)/length(jobs1)
+nomalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=distance(jobs1,jobs2)/2length(jobs1)
 
 function damerauLevenshteinDistanceOSA(perm1,perm2)
 	len=length(perm1)

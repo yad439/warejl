@@ -11,7 +11,7 @@ struct GeneticSettings
 	mutation!::Function
 end
 
-function modularGenetic(jobCount,machineCount,settings,scoreFunction,startPopulation)
+function modularGenetic(settings,scoreFunction,startPopulation)
 	progress=ProgressUnknown("Genetic:")
 
 	population=startPopulation
