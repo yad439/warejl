@@ -68,6 +68,7 @@ function modularTabuImprove(timetable,jobCount,machineCount,tabu,neighbourhoodPr
 	toApply=(0,0,0)
 	for change ∈ changeIterator(timetable,jobCount,machineCount)
 		rand() > neighbourhoodProbability && continue
+		tabuCanChange(timetable,change,tabu) || continue
 		restoreChange=change!(timetable,change)
 		score=scoreFunction(timetable)
 		change!(timetable,restoreChange)
