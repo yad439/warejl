@@ -29,6 +29,8 @@ changeIterator(jobs::TwoVectorEncoding)=Iterators.flatten((
 	((TWO_VECTOR_MOVE_ASSIGNMENT,arg1,arg2) for arg1=1:length(jobs.permutation),arg2=1:jobs.machineCount),
 	((type,arg1,arg2) for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_SWAP_ORDER,TWO_VECTOR_MOVE_ORDER],arg1=1:length(jobs.permutation),arg2=1:length(jobs.permutation) if arg1≠arg2)
 ))
+randomChangeIterator(jobs,count::Int)=(randomChange(jobs) for _=1:count)
+randomChangeIterator(jobs,probability::Float64)=Iterators.filter(_->rand()<probability,changeIterator(jobs))
 
 distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
 distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=assignmentDistance(jobs1.assignment,jobs2.assignment,jobs1.machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
