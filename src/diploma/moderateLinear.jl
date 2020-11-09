@@ -73,7 +73,7 @@ end
 
 function exactSolutionToSchedule(solution,jobLengths,machineCount)
 	times=round.(Int,solution.times)
-	Schedule(times,timesToAssignment(times,jobLengths,machineCount))
+	Schedule(timesToAssignment(times,jobLengths,machineCount),times)
 end
 
 function timesToAssignment(times,jobLengths,machineCount)
