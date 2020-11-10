@@ -34,8 +34,8 @@ randomChangeIterator(jobs,probability::Float64)=Iterators.filter(_->rand()<proba
 
 distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
 distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=assignmentDistance(jobs1.assignment,jobs2.assignment,jobs1.machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
-nomalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=distance(jobs1,jobs2)/length(jobs1)
-nomalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=distance(jobs1,jobs2)/2length(jobs1)
+normalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=distance(jobs1,jobs2)/length(jobs1)
+normalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=distance(jobs1,jobs2)/2length(jobs1)
 
 function damerauLevenshteinDistanceOSA(perm1,perm2)
 	len=length(perm1)
