@@ -19,23 +19,36 @@ end
 struct EncodingSample{T}
 	jobCount::Int
 	machineCount::Int
+	itemCount::Int
 end
+EncodingSample{T}(jobCount,machineCount) where{T}=EncodingSample{T}(jobCount,machineCount,0)
 eltype(::Type{EncodingSample{T}}) where {T}=T
 rand(rng::AbstractRNG, d::Random.SamplerTrivial{EncodingSample{PermutationEncoding}})=PermutationEncoding(shuffle(rng,1:d[].jobCount))
 rand(rng::AbstractRNG, d::Random.SamplerTrivial{EncodingSample{TwoVectorEncoding}})=TwoVectorEncoding(d[].machineCount,rand(rng,1:d[].machineCount,d[].jobCount),shuffle(rng,1:d[].jobCount))
+function rand(rng::AbstractRNG, d::Random.SamplerTrivial{EncodingSample{StateEncoding{T}}}) where{T}
+	jobs=rand(EncodingSample{T}(d[].jobCount,d[].machineCount))
+	states=rand(Bool,(d[].itemCount,d[].jobCount))|>BitMatrix
+	StateEncoding(jobs,states)
+end
 
 changeIterator(jobs::PermutationEncoding)=((type,arg1,arg2) for type ∈ [PERMUTATION_SWAP,PERMUTATION_MOVE],arg1=1:length(jobs.permutation),arg2=1:length(jobs.permutation) if arg1≠arg2)
 changeIterator(jobs::TwoVectorEncoding)=Iterators.flatten((
 	((TWO_VECTOR_MOVE_ASSIGNMENT,arg1,arg2) for arg1=1:length(jobs.permutation),arg2=1:jobs.machineCount),
 	((type,arg1,arg2) for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_SWAP_ORDER,TWO_VECTOR_MOVE_ORDER],arg1=1:length(jobs.permutation),arg2=1:length(jobs.permutation) if arg1≠arg2)
 ))
+changeIterator(timetable::StateEncoding{T}) where{T}=Iterators.flatten((
+	changeIterator(timetable.machineEncoding),
+	((STATE_BITFLIP,arg1,arg2) for arg1=axes(timetable.states,1),arg2=axes(timetable.states,2))
+))
 randomChangeIterator(jobs,count::Int)=(randomChange(jobs) for _=1:count)
 randomChangeIterator(jobs,probability::Float64)=Iterators.filter(_->rand()<probability,changeIterator(jobs))
 
 distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
 distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=assignmentDistance(jobs1.assignment,jobs2.assignment,jobs1.machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
+distance(timetable1::StateEncoding{T},timetable2::StateEncoding{T}) where{T}=distance(timetable1.machineEncoding,timetable2.machineEncoding)+hammingDistance(timetable1.states,timetable2.states)
 normalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=distance(jobs1,jobs2)/length(jobs1)
 normalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=distance(jobs1,jobs2)/2length(jobs1)
+normalizedDistance(timetable1::StateEncoding{T},timetable2::StateEncoding{T}) where{T}=normalizedDistance(timetable1.machineEncoding,timetable2.machineEncoding)/2+hammingDistance(timetable1.states,timetable2.states)/2length(timetable1.states)
 
 function damerauLevenshteinDistanceOSA(perm1,perm2)
 	len=length(perm1)
@@ -109,3 +122,4 @@ function assignmentDistance(list1,list2,machineCount)
 	end
 	dist
 end
+hammingDistance(vec1,vec2)=count(it->it[1]≠it[2],Iterators.zip(vec1,vec2))

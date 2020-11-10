@@ -11,21 +11,32 @@ struct PermutationEncoding
 	permutation::Vector{Int}
 end
 
+struct StateEncoding{T}
+	machineEncoding::T
+	states::BitMatrix
+end
 ==(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=jobs1.assignment==jobs2.assignment && jobs1.permutation==jobs2.permutation
 ==(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=jobs1.permutation==jobs2.permutation
+==(timetable1::StateEncoding{T},timetable2::StateEncoding{T}) where {T}=timetable1.machineEncoding==timetable2.machineEncoding && timetable1.states==timetable2.states
 
 randomTwoVectorEncoding(jobCount,machineCount)=TwoVectorEncoding(machineCount,rand(1:machineCount,jobCount),shuffle(1:jobCount))
 randomPermutationEncoding(jobCount)=PermutationEncoding(shuffle(1:jobCount))
 copy(jobs::TwoVectorEncoding)=TwoVectorEncoding(jobs.machineCount,copy(jobs.assignment),copy(jobs.permutation))
 copy(jobs::PermutationEncoding)=PermutationEncoding(copy(jobs.permutation))
+copy(timetable::StateEncoding{T}) where {T}=StateEncoding(copy(timetable.machineEncoding),copy(timetable.states))
 copy!(dst::PermutationEncoding, src::PermutationEncoding)=copy!(dst.permutation,src.permutation)
 function copy!(dst::TwoVectorEncoding, src::TwoVectorEncoding)
 	copy!(dst.assignment,src.assignment)
 	copy!(dst.permutation,src.permutation)
 end
+function copy!(dst::StateEncoding{T},src:;StateEncoding{T}) where{T}
+	copy!(dst.machineEncoding,src.machineEncoding)
+	copy!(dst.states,src.states)
+end
 
 length(jobs::PermutationEncoding)=length(jobs.permutation)
 length(jobs::TwoVectorEncoding)=length(jobs.permutation)
+length(timetable::StateEncoding{T}) where{T}=length(timetable.machineEncoding)
 
 function randomChange(jobs::PermutationEncoding)
 	jobCount=length(jobs.permutation)
@@ -48,6 +59,10 @@ function randomChange(jobs::TwoVectorEncoding)
 		return type,arg1,arg2
 	end
 end
+function randomChange(timetable::StateEncoding{T}) where{T}
+	sz=size(timetable.states)
+	return rand<0.5 ? randomChange(timetable.machineEncoding) : (STATE_BITFLIP,rand(1:sz[1]),rand(1:sz[2]))
+end
 function randomChange!(jobs::TwoVectorEncoding,canDo)
 	jobCount=length(jobs.assignment)
 	while true
@@ -69,6 +84,16 @@ function randomChange!(jobs::PermutationEncoding,canDo)
 		arg1==arg2 && continue
 		canDo((type,arg1,arg2)) || continue
 		return (type,arg1,arg2),change!(jobs,type,arg1,arg2)
+	end
+end
+function randomChange!(timetable::StateEncoding{T},canDo) where{T}
+	rand()<0.5 && return randomChange!(timetable.machineEncoding)
+	ax=axes(timetable.states)
+	while true
+		arg1=rand(ax[1])
+		arg2=rand(ax[2])
+		canDo((STATE_BITFLIP,arg1,arg2)) || continue
+		return (STATE_BITFLIP,arg1,arg2),change!(timetable,STATE_BITFLIP,arg1,arg2)
 	end
 end
 change!(jobs,(type,arg1,arg2))=change!(jobs,type,arg1,arg2)
@@ -103,6 +128,13 @@ function change!(jobs::PermutationEncoding,type,arg1,arg2)
 	end
 	@assert false type
 end
+function change!(timetable::StateEncoding{T},type,arg1,arg2) where{T}
+	type<STATE_BITFLIP && return change!(timetable.machineEncoding,type,arg1,arg2)
+
+	@assert type==STATE_BITFLIP
+	timetable.states[arg1,arg2]=!timetable.states[arg1,arg2]
+	return STATE_BITFLIP,arg1,arg2
+end
 
 const PERMUTATION_MOVE=10
 const PERMUTATION_SWAP=11
@@ -110,3 +142,4 @@ const TWO_VECTOR_MOVE_ASSIGNMENT=12
 const TWO_VECTOR_SWAP_ASSIGNMENT=13
 const TWO_VECTOR_MOVE_ORDER=14
 const TWO_VECTOR_SWAP_ORDER=15
+const STATE_BITFLIP=100
