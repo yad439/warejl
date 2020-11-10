@@ -30,11 +30,19 @@ model=Model(Gurobi.Optimizer)
 @variable(model,timeSlotTime[1:carNum,1:T]≥0)
 @constraint(model,[c=1:carNum,τ=1:T],sum(timeSlotItem[c,τ,:])≤1)
 @constraint(model,[c=1:carNum,τ=1:T-1],timeSlotTime[c,τ]+travelTime≤timeSlotTime[c,τ+1])
+
 @variable(model,done[1:n,1:carNum,1:T],Bin)
 @constraint(model,[i=1:n,c=1:carNum,τ=1:2:T],t[i]≤timeSlotTime[c,τ]+travelTime-1+M*done[i,c,τ])
 @constraint(model,[i=1:n,c=1:carNum,τ=1:2:T],t[i]≥timeSlotTime[c,τ]+travelTime-M*(1-done[i,c,τ]))
 @constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],t[i]≤timeSlotTime[c,τ]-1+M*done[i,c,τ])
 @constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],t[i]≥timeSlotTime[c,τ]-M*(1-done[i,c,τ]))
+
+@variable(model,inTime[1:n,1:carNum,2:2:T],Bin)
+@variable(model,inTimeG[1:n,1:carNum,2:2:T],Bin)
+@variable(model,inTimeL[1:n,1:carNum,2:2:T],Bin)
+@constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],timeSlotTime[c,τ]≤t[i]-1+M*inTimeG[i,c,τ])
+@constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],timeSlotTime[c,τ]≥t[i]+p[i]+1-M*inTimeL[i,c,τ])
+@constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],inTime[i,c,τ]≥inTimeG[i,c,τ]+inTimeL[i,c,τ]-1)
 
 @variable(model,doneItem[i=1:n,1:carNum,1:T,itemsNeeded[i]],Bin)
 @constraints(model,begin
@@ -47,6 +55,8 @@ end)
 # @constraint(model,[i=1:n,item in itemsNeeded[i]],sum((-1)^(τ+1)*timeSlotItem[c,τ,item]*done[i,c,τ] for c=1:carNum,τ=1:T)≥1)
 @constraint(model,[τ0=1:T],sum((-1)^(τ+1)*timeSlotItem[c,τ,item] for c=1:carNum,τ=1:τ0,item=1:itemCount)≤storageSize)
 @constraint(model,[τ0=1:T,item=1:itemCount],sum((-1)^(τ+1)*timeSlotItem[c,τ,item] for c=1:carNum,τ=1:τ0)≥0)
+
+@constraint(model,[c=1:carNum,τ=2:2:T,i=1:n,item in itemsNeeded[i]],timeSlotItem[c,τ,item]≤1-inTime[i,c,τ])
 
 @variable(model,res)
 @constraint(model,[i=1:n],res≥t[i]+p[i])
