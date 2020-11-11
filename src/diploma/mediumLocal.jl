@@ -1,4 +1,4 @@
-include("auxiliary.jl")
+include("mediumAuxiliary.jl")
 
 using DataStructures
 using ProgressMeter

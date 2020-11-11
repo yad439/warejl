@@ -1,4 +1,4 @@
-include("auxiliary.jl")
+include("simpleAuxiliary.jl")
 
 using ProgressMeter
 

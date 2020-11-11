@@ -3,7 +3,7 @@ include("modularLocal.jl")
 include("modularTabu.jl")
 include("modularAnnealing.jl")
 include("modularGenetic.jl")
-include("auxiliary.jl")
+include("moderateAuxiliary.jl")
 
 using Plots
 using Printf

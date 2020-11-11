@@ -5,7 +5,7 @@ using Statistics
 
 import Base.isless,Base.isequal
 
-include("auxiliary.jl")
+include("simpleAuxiliary.jl")
 
 function genetic(n,m,p,popSize)
 	progress=ProgressThresh(zero(eltype(p)),"Genetic:")

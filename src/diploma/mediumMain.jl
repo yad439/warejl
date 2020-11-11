@@ -1,6 +1,8 @@
 include("simpleLinear.jl")
 include("mediumLocal.jl")
 include("modularTabu.jl")
+include("mediumAuxiliary.jl")
+include("simpleAuxiliary.jl")
 
 using Plots
 using Printf
