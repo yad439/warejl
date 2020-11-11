@@ -7,6 +7,7 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
 	inUseCars=Queue{Tuple{eltype(jobLengths),Int}}()
+	carHistory=Tuple{eltype(jobLengths),Int}[]
 	carsAvailable=carCount
 	availableFromTime=0
 	for job ∈ jobs.permutation
@@ -15,9 +16,11 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 		if carsAvailable>carNeeded[job]
 			carsAvailable-=carNeeded[job]
 			enqueue!(inUseCars,(availableFromTime+carTravelTime,carNeeded[job]))
+			push!(carHistory,(availableFromTime,carNeeded[job]))
 		else
 			if carsAvailable≠0
 				enqueue!(inUseCars,(availableFromTime+carTravelTime,carsAvailable))
+				push!(carHistory,(availableFromTime,carsAvailable))
 			end
 			carsAvailable=0
 		end
@@ -29,8 +32,10 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 				carsAvailable=carsFreed-carNeeded[job]+itemsDelivered
 				availableFromTime=currentTime
 				enqueue!(inUseCars,(currentTime+carTravelTime,carNeeded[job]-itemsDelivered))
+				push!(carHistory,(currentTime,carNeeded[job]-itemsDelivered))
 			else
 				enqueue!(inUseCars,(currentTime+carTravelTime,carsFreed))
+				push!(carHistory,(currentTime,carsFreed))
 			end
 			itemsDelivered+=carsFreed
 			currentTime=availableFromTime+carTravelTime
@@ -40,7 +45,7 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 	end
-	Schedule(jobs.assignment,times),maximum(sums)
+	Schedule(jobs.assignment,times),maximum(sums),carHistory
 end
 
 maxTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)=computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)[2]
@@ -49,6 +54,7 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
 	inUseCars=Queue{Tuple{eltype(jobLengths),Int}}()
+	carHistory=Tuple{eltype(jobLengths),Int}[]
 	carsAvailable=carCount
 	availableFromTime=0
 	for job ∈ jobs.permutation
@@ -57,9 +63,11 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 		if carsAvailable>carNeeded[job]
 			carsAvailable-=carNeeded[job]
 			enqueue!(inUseCars,(availableFromTime+carTravelTime,carNeeded[job]))
+			push!(carHistory,(availableFromTime,carNeeded[job]))
 		else
 			if carsAvailable≠0
 				enqueue!(inUseCars,(availableFromTime+carTravelTime,carsAvailable))
+				push!(carHistory,(availableFromTime,carsAvailable))
 			end
 			carsAvailable=0
 		end
@@ -71,8 +79,10 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 				carsAvailable=carsFreed-carNeeded[job]+itemsDelivered
 				availableFromTime=currentTime
 				enqueue!(inUseCars,(currentTime+carTravelTime,carNeeded[job]-itemsDelivered))
+				push!(carHistory,(currentTime,carNeeded[job]-itemsDelivered))
 			else
 				enqueue!(inUseCars,(currentTime+carTravelTime,carsFreed))
+				push!(carHistory,(currentTime,carsFreed))
 			end
 			itemsDelivered+=carsFreed
 			currentTime=availableFromTime+carTravelTime
@@ -83,7 +93,7 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 	end
-	times,maximum(sums)
+	times,maximum(sums),carHistory
 end
 
 maxTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsNeeded,machineCount,carCount,carTravelTime)=computeTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsNeeded,machineCount,carCount,carTravelTime)[2]
@@ -91,6 +101,7 @@ function computeTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsN
 	machineTimes=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
 	inUseCars=Queue{Tuple{eltype(jobLengths),Int}}()
+	carHistory=Tuple{eltype(jobLengths),Int}[]
 	carsAvailable=carCount
 	carTime=0
 	for job ∈ jobs.permutation
@@ -102,10 +113,11 @@ function computeTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsN
 		startTime=max(machineTimes[machine],carTime)
 		carsAvailable-=carsNeeded[job]
 		enqueue!(inUseCars,(startTime+carTravelTime,carsNeeded[job]))
+		push!(carHistory,(startTime,carsNeeded[job]))
 		times[job]=startTime
 		machineTimes[machine]=startTime+jobLengths[job]
 	end
-	Schedule(jobs.assignment,times),maximum(machineTimes)
+	Schedule(jobs.assignment,times),maximum(machineTimes),carHistory
 end
 
 maxTimeWithCarsUnoptimized(jobs::PermutationEncoding,jobLengths,carsNeeded,machineCount,carCount,carTravelTime)=computeTimeWithCarsUnoptimized(jobs::PermutationEncoding,jobLengths,carsNeeded,machineCount,carCount,carTravelTime)[2]
@@ -114,6 +126,7 @@ function computeTimeWithCarsUnoptimized(jobs::PermutationEncoding,jobLengths,car
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
 	inUseCars=Queue{Tuple{eltype(jobLengths),Int}}()
+	carHistory=Tuple{eltype(jobLengths),Int}[]
 	carsAvailable=carCount
 	carTime=0
 	for job ∈ jobs.permutation
@@ -126,8 +139,9 @@ function computeTimeWithCarsUnoptimized(jobs::PermutationEncoding,jobLengths,car
 		startTime=max(machineTimes[machine],carTime)
 		carsAvailable-=carsNeeded[job]
 		enqueue!(inUseCars,(startTime+carTravelTime,carsNeeded[job]))
+		push!(carHistory,(startTime,carsNeeded[job]))
 		times[job]=startTime
 		machineTimes[machine]=startTime+jobLengths[job]
 	end
-	Schedule(assignment,times),maximum(machineTimes)
+	Schedule(assignment,times),maximum(machineTimes),carHistory
 end
