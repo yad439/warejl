@@ -29,7 +29,7 @@ function copy!(dst::TwoVectorEncoding, src::TwoVectorEncoding)
 	copy!(dst.assignment,src.assignment)
 	copy!(dst.permutation,src.permutation)
 end
-function copy!(dst::StateEncoding{T},src:;StateEncoding{T}) where{T}
+function copy!(dst::StateEncoding{T},src::StateEncoding{T}) where{T}
 	copy!(dst.machineEncoding,src.machineEncoding)
 	copy!(dst.states,src.states)
 end
