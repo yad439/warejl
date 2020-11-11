@@ -23,8 +23,4 @@ docs/site/
 # environment.
 Manifest.toml
 
-out
-src/optim
-src/src.7z
-*.bat
-*.ps1
+out/
