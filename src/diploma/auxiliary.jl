@@ -23,7 +23,7 @@ end
 	shapes
 end
 
-function plotGantt(jobs,jobLengths)
+function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10)
 	pl=plot()
 	for i=1:length(jobLengths)
 		plot!(pl,Shape([
@@ -31,7 +31,7 @@ function plotGantt(jobs,jobLengths)
 			(jobs.times[i],jobs.assignment[i]),
 			(jobs.times[i]+jobLengths[i],jobs.assignment[i]),
 			(jobs.times[i]+jobLengths[i],jobs.assignment[i]-1)
-		]),label=length(jobLengths)>10 ? nothing : "job $i")
+		]),label=useLabel ? "job $i" : nothing)
 	end
 	pl
 end
