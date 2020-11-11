@@ -35,3 +35,17 @@ function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10)
 	end
 	pl
 end
+
+function plotCarUsage(carHistory,carTravelTime)
+	endings=map(it->(it[1]+carTravelTime,-it[2]),carHistory)
+	allEvents=vcat(carHistory,endings)
+	sort!(allEvents,by=first)
+	carsInUse=0
+	line=[(0,0)]
+	for event ∈ allEvents
+		push!(line,(event[1],carsInUse))
+		carsInUse+=event[2]
+		push!(line,(event[1],carsInUse))
+	end
+	plot(line,label="Car usage")
+end
