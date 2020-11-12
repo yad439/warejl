@@ -48,7 +48,7 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 	Schedule(jobs.assignment,times),maximum(sums),carHistory
 end
 
-maxTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)=computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)[2]
+maxTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)=computeTimeWithCars(jobs,jobLengths,carNeeded,machineCount,carCount,carTravelTime)[2]
 function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,machineCount,carCount,carTravelTime)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
@@ -93,7 +93,7 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 	end
-	times,maximum(sums),carHistory
+	Schedule(assignment,times),maximum(sums),carHistory
 end
 
 maxTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsNeeded,machineCount,carCount,carTravelTime)=computeTimeWithCarsUnoptimized(jobs::TwoVectorEncoding,jobLengths,carsNeeded,machineCount,carCount,carTravelTime)[2]
