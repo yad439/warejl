@@ -16,8 +16,8 @@ k=rand(1:2,n)
 tt=10
 c=3
 
-scoreFun=jobs->maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
-scoreFun2=jobs->maxTimeWithCars(jobs,p,k,m,c,tt)
+# scoreFun=jobs->maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
+scoreFun=jobs->maxTimeWithCars(jobs,p,k,m,c,tt)
 ##
 exactRes=moderateExact(n,m,c,p,k,tt,300)
 exactRes2=moderateExact2(n,m,c,p,k,tt,300)
@@ -50,3 +50,8 @@ popul=[begin
 end for _=1:100] |> sort!
 crossw=(p1,p2)->TwoVectorEncoding(p1.machineCount,elementviseCrossover(p1.assignment,p2.assignment),pmxCrossover(p1.permutation,p2.permutation))
 geneticRes2=modularGenetic(GeneticSettings(1000,2,crossw,mutate),scoreFun,popul)
+
+sol=computeTimeWithCars(tabuRes2[2],p,k,m,c,tt)
+pl1=plotGantt(sol[1],p)
+pl2=plotCarUsage(sol[3],tt,(0,sol[2]))
+plot(pl1,pl2,layout=(2,1))
