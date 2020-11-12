@@ -39,13 +39,23 @@ end
 function plotCarUsage(carHistory,carTravelTime)
 	endings=map(it->(it[1]+carTravelTime,-it[2]),carHistory)
 	allEvents=vcat(carHistory,endings)
-	sort!(allEvents,by=first)
+	fixedHistory=[(zero(carHistory[1][1]),0)]
+	curTime=fixedHistory[1][1]
+	for event ∈ allEvents
+		if event[1]==curTime
+			fixedHistory[end]=(curTime,fixedHistory[end]+event[2]
+		else
+			curTime=event[1]
+			push!(fixedHistory,event)
+		end
+	end
+	sort!(fixedHistory,by=first)
 	carsInUse=0
 	line=[(0,0)]
-	for event ∈ allEvents
+	for event ∈ fixedHistory
 		push!(line,(event[1],carsInUse))
 		carsInUse+=event[2]
 		push!(line,(event[1],carsInUse))
 	end
-	plot(line,label="Car usage")
+	plot(line,label=false)
 end
