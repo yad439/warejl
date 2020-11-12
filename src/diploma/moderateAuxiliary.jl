@@ -38,7 +38,7 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 				push!(carHistory,(currentTime,carsFreed))
 			end
 			itemsDelivered+=carsFreed
-			currentTime=availableFromTime+carTravelTime
+			currentTime=availableFromTime
 		end
 		machine=jobs.assignment[job]
 		startTime=max(sums[machine],currentTime)
@@ -85,7 +85,7 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 				push!(carHistory,(currentTime,carsFreed))
 			end
 			itemsDelivered+=carsFreed
-			currentTime=availableFromTime+carTravelTime
+			currentTime=availableFromTime
 		end
 		machine=argmin(sums)
 		assignment[job]=machine
