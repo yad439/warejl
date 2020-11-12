@@ -24,7 +24,7 @@ end
 end
 
 function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10)
-	pl=plot()
+	pl=plot(xlims=(0,:auto))
 	for i=1:length(jobLengths)
 		plot!(pl,Shape([
 			(jobs.times[i],jobs.assignment[i]-1),
@@ -36,9 +36,10 @@ function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10)
 	pl
 end
 
-function plotCarUsage(carHistory,carTravelTime)
+function plotCarUsage(carHistory,carTravelTime,xlims=:auto)
 	endings=map(it->(it[1]+carTravelTime,-it[2]),carHistory)
 	allEvents=vcat(carHistory,endings)
+	sort!(allEvents,by=first)
 	fixedHistory=[(zero(carHistory[1][1]),0)]
 	curTime=fixedHistory[1][1]
 	for event ∈ allEvents
@@ -49,7 +50,6 @@ function plotCarUsage(carHistory,carTravelTime)
 			push!(fixedHistory,event)
 		end
 	end
-	sort!(fixedHistory,by=first)
 	carsInUse=0
 	line=[(0,0)]
 	for event ∈ fixedHistory
@@ -57,5 +57,5 @@ function plotCarUsage(carHistory,carTravelTime)
 		carsInUse+=event[2]
 		push!(line,(event[1],carsInUse))
 	end
-	plot(line,label=false)
+	plot(line,label=false,xlims=xlims)
 end
