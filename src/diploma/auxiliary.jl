@@ -43,7 +43,7 @@ function plotCarUsage(carHistory,carTravelTime)
 	curTime=fixedHistory[1][1]
 	for event ∈ allEvents
 		if event[1]==curTime
-			fixedHistory[end]=(curTime,fixedHistory[end]+event[2]
+			fixedHistory[end]=(curTime,fixedHistory[end]+event[2])
 		else
 			curTime=event[1]
 			push!(fixedHistory,event)
