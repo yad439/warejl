@@ -11,8 +11,8 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 	carsAvailable=carCount
 	availableFromTime=0
 	for job ∈ jobs.permutation
-		# currentTime=availableFromTime
 		itemsDelivered=carsAvailable
+		deliveredTime=availableFromTime+carTravelTime
 		if carsAvailable>carNeeded[job]
 			carsAvailable-=carNeeded[job]
 			enqueue!(inUseCars,(availableFromTime+carTravelTime,carNeeded[job]))
@@ -24,24 +24,22 @@ function computeTimeWithCars(jobs::TwoVectorEncoding,jobLengths,carNeeded,machin
 			end
 			carsAvailable=0
 		end
-		currentTime=availableFromTime+carTravelTime
 		while itemsDelivered<carNeeded[job]
 			(availableFromTime,carsFreed)=dequeue!(inUseCars)
 
 			if carsFreed>carNeeded[job]-itemsDelivered
 				carsAvailable=carsFreed-carNeeded[job]+itemsDelivered
-				availableFromTime=currentTime
-				enqueue!(inUseCars,(currentTime+carTravelTime,carNeeded[job]-itemsDelivered))
-				push!(carHistory,(currentTime,carNeeded[job]-itemsDelivered))
+				enqueue!(inUseCars,(availableFromTime+carTravelTime,carNeeded[job]-itemsDelivered))
+				push!(carHistory,(availableFromTime,carNeeded[job]-itemsDelivered))
 			else
-				enqueue!(inUseCars,(currentTime+carTravelTime,carsFreed))
-				push!(carHistory,(currentTime,carsFreed))
+				enqueue!(inUseCars,(availableFromTime+carTravelTime,carsFreed))
+				push!(carHistory,(availableFromTime,carsFreed))
 			end
 			itemsDelivered+=carsFreed
-			currentTime=availableFromTime
+			deliveredTime=availableFromTime+carTravelTime
 		end
 		machine=jobs.assignment[job]
-		startTime=max(sums[machine],currentTime)
+		startTime=max(sums[machine],deliveredTime)
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 	end
@@ -58,8 +56,8 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 	carsAvailable=carCount
 	availableFromTime=0
 	for job ∈ jobs.permutation
-		# currentTime=availableFromTime
 		itemsDelivered=carsAvailable
+		deliveredTime=availableFromTime+carTravelTime
 		if carsAvailable>carNeeded[job]
 			carsAvailable-=carNeeded[job]
 			enqueue!(inUseCars,(availableFromTime+carTravelTime,carNeeded[job]))
@@ -71,25 +69,23 @@ function computeTimeWithCars(jobs::PermutationEncoding,jobLengths,carNeeded,mach
 			end
 			carsAvailable=0
 		end
-		currentTime=availableFromTime+carTravelTime
 		while itemsDelivered<carNeeded[job]
 			(availableFromTime,carsFreed)=dequeue!(inUseCars)
 
 			if carsFreed>carNeeded[job]-itemsDelivered
 				carsAvailable=carsFreed-carNeeded[job]+itemsDelivered
-				availableFromTime=currentTime
-				enqueue!(inUseCars,(currentTime+carTravelTime,carNeeded[job]-itemsDelivered))
-				push!(carHistory,(currentTime,carNeeded[job]-itemsDelivered))
+				enqueue!(inUseCars,(availableFromTime+carTravelTime,carNeeded[job]-itemsDelivered))
+				push!(carHistory,(availableFromTime,carNeeded[job]-itemsDelivered))
 			else
-				enqueue!(inUseCars,(currentTime+carTravelTime,carsFreed))
-				push!(carHistory,(currentTime,carsFreed))
+				enqueue!(inUseCars,(availableFromTime+carTravelTime,carsFreed))
+				push!(carHistory,(availableFromTime,carsFreed))
 			end
 			itemsDelivered+=carsFreed
-			currentTime=availableFromTime
+			deliveredTime=availableFromTime+carTravelTime
 		end
 		machine=argmin(sums)
 		assignment[job]=machine
-		startTime=max(sums[machine],currentTime)
+		startTime=max(sums[machine],deliveredTime)
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 	end
