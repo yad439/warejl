@@ -59,3 +59,5 @@ function plotCarUsage(carHistory,carTravelTime,xlims=:auto)
 	end
 	plot(line,label=false,xlims=xlims)
 end
+
+scheduleToEncoding(::Type{PermutationEncoding},schedule)=schedule.times|>sortperm|>PermutationEncoding
