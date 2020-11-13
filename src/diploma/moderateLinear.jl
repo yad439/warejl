@@ -68,7 +68,7 @@ function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,car
 
 	optimize!(model)
 
-	objective_value(model),objective_bound(model),(times=value.(t),order=value.(ord))
+	objective_value(model),objective_bound(model),(times=value.(time),order=value.(ord))
 end
 
 function exactSolutionToSchedule(solution,jobLengths,machineCount)
