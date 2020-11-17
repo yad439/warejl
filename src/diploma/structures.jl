@@ -1,5 +1,5 @@
 using DataStructures
-import Base.eltype,Base.length,Base.iterate,Base.push!,Base.pop!
+import Base.eltype,Base.length,Base.iterate,Base.push!,Base.pop!,Base.copy,Base.first,Base.isempty
 
 struct EventQueue
 	data::SortedDict{Int,Int}
@@ -17,3 +17,6 @@ function pop!(queue::EventQueue)
 	pop!(queue.data,ret[1])
 	ret
 end
+copy(queue::EventQueue)=EventQueue(copy(queue.data))
+first(queue::EventQueue)=first(queue.data)
+isempty(queue::EventQueue)=isempty(queue.data)
