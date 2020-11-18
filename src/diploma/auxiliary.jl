@@ -23,15 +23,19 @@ end
 	shapes
 end
 
-function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10)
+function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10,text=nothing)
 	pl=plot(xlims=(0,:auto))
 	for i=1:length(jobLengths)
+		x1=jobs.times[i]
+		x2=jobs.times[i]+jobLengths[i]
+		y1=jobs.assignment[i]-1
+		y2=jobs.assignment[i]
 		plot!(pl,Shape([
-			(jobs.times[i],jobs.assignment[i]-1),
-			(jobs.times[i],jobs.assignment[i]),
-			(jobs.times[i]+jobLengths[i],jobs.assignment[i]),
-			(jobs.times[i]+jobLengths[i],jobs.assignment[i]-1)
-		]),label=useLabel ? "job $i" : nothing)
+			(x1,y1),
+			(x1,y2),
+			(x2,y2),
+			(x2,y1)
+		]),label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? ((x1+x2)/2,(y1+y2)/2,text[i]) : nothing))
 	end
 	pl
 end
