@@ -63,8 +63,8 @@ function computeTimeGetOnlyWaitOne(timetable::PermutationEncoding,machineCount,j
 	prevItems=BitSet()
 	for job ∈ timetable.permutation
 		lastDeliverTime=0
-		itemsLeft=setdiff(itemsNeeded,prevItems) |> length
-		while length>0
+		itemsLeft=setdiff(itemsNeeded[job],prevItems) |> length
+		while itemsLeft>0
 			availableAtEnd=carsAvailable
 			for event ∈ inUseCars
 				event[1]≥availableFromTime+carTravelTime && break
