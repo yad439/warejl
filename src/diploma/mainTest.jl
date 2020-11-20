@@ -1,6 +1,8 @@
 include("mainAuxiliary.jl");
 include("moderateAuxiliary.jl");
 include("utility.jl");
+include("modularTabu.jl");
+include("modularLocal.jl");
 ##
 n=10
 m=3
@@ -13,8 +15,17 @@ k=length.(itemsNeeded)
 ##
 sf1(jobs)=maxTimeWithCars(jobs,p,k,m,c,tt)
 sf2(jobs)=computeTimeGetOnly(jobs,m,p,itemsNeeded,c,tt)[2]
+sf3(jobs)=computeTimeGetOnlyWaitOne(jobs,m,p,itemsNeeded,c,tt)[2]
 ##
 st=rand(EncodingSample{PermutationEncoding}(n,m))
 ##
 sol1=computeTimeWithCars(st,p,k,m,c,tt)
 sol2=computeTimeGetOnly(st,m,p,itemsNeeded,c,tt)
+##
+localRes=modularLocalSearch(LocalSearchSettings(changeIterator(st),false),sf3,copy(st))
+tabuRes1=modularTabuSearch(TabuSearchSettings(1000,1000,100),sf3,copy(st))
+##
+sol=computeTimeGetOnlyWaitOne(tabuRes1[2],m,p,itemsNeeded,c,tt)
+pl1=plotGantt(sol[1],p,false,string.(itemsNeeded))
+pl2=plotCarUsage(sol[3],tt,(0,sol[2]))
+plr=plot(pl1,pl2,layout=(2,1))
