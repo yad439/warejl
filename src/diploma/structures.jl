@@ -37,8 +37,10 @@ iterate(queue::EventQueue2,state)=iterate(queue.data,state)
 function push!(queue::EventQueue2,time,new,add,item)
 	if haskey(queue.data,(time,new))
 		if add
+			@assert queue.data[(time,new)].add ∌ item
 			push!(queue.data[(time,new)].add,item)
 		else
+			@assert queue.data[(time,new)].remove ∌ item
 			push!(queue.data[(time,new)].remove,item)
 		end
 	else
@@ -48,8 +50,10 @@ function push!(queue::EventQueue2,time,new,add,item)
 end
 function push!(queue::EventQueue2,time,new,entry)
 	if haskey(queue.data,(time,new))
-		union!(queue.data[time].add,entry.add)
-		union!(queue.data[time].remove,entry.remove)
+		@assert isdisjoint(queue.data[(time,new)].add,entry.add)
+		@assert isdisjoint(queue.data[(time,new)].remove,entry.remove)
+		union!(queue.data[(time,new)].add,entry.add)
+		union!(queue.data[(time,new)].remove,entry.remove)
 	else
 		insert!(queue.data,(time,new),entry)
 	end
