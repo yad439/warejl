@@ -208,7 +208,7 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 			end
 			realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0
-				@assert realAvailable==0 realAvailable
+				@assert realAvailable==0
 				(availableFromTime,isNew),carChange=pop!(inUseCars)
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
 				@assert carsAvailable≥0
@@ -256,14 +256,14 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 			end
 			realAvailable=min(backAvailable,availableAtEnd)
 			while realAvailable≤0
-				@assert realAvailable==0 realAvailable
+				@assert realAvailable==0
 				(backAvailableFrom,isNew),carChange=pop!(inUseCars2)
 				backAvailable-=length(carChange)*(2Int(isNew)-1)
 				@assert backAvailable≥0
 				backAvailable==0 && continue
 				availableAtEnd=backAvailable
 				for event ∈ inUseCars2
-					event[1]≥backAvailable+carTravelTime && break
+					event[1][1]≥backAvailable+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 				end
 				@assert availableAtEnd≥0
