@@ -195,38 +195,36 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 	availableFromTime=0
 	for job ∈ timetable.permutation
 		lastDeliverTime=0
-		itemsLeft=itemsNeeded[job]
+		itemsLeft=copy(itemsNeeded[job])
 		while length(itemsLeft)>0
 			availableAtEnd=carsAvailable
 			for event ∈ inUseCars
-				event[1][1]≥availableFromTime+carTravelTime && break
-				if event[1][2]
-					inter=intersect(itemsLeft,event[2].remove)
-					setdiff!(itemsLeft,inter)
-					setdiff!(event[2].remove)
-				end
+				event[1][1]>availableFromTime+carTravelTime && break
+				inter=intersect(itemsLeft,event[2].remove)
+				setdiff!(itemsLeft,inter)
+				setdiff!(event[2].remove,inter)
+				event[1][1]==availableFromTime+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 			end
 			realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0
-				@assert realAvailable==0
+				@assert realAvailable==0 realAvailable
 				(availableFromTime,isNew),carChange=pop!(inUseCars)
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
 				@assert carsAvailable≥0
 				carsAvailable==0 && continue
 				availableAtEnd=carsAvailable
 				for event ∈ inUseCars
-					event[1][1]≥availableFromTime+carTravelTime && break
-					if event[1][2]
-						inter=intersect(itemsLeft,event[2].remove)
-						setdiff!(itemsLeft,inter)
-						setdiff!(event[2].remove)
-					end
+					event[1][1]>availableFromTime+carTravelTime && break
+					inter=intersect(itemsLeft,event[2].remove)
+					setdiff!(itemsLeft,inter)
+					setdiff!(event[2].remove,inter)
+					event[1][1]==availableFromTime+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 				end
 				realAvailable=min(carsAvailable,availableAtEnd)
 			end
-			carsUsed=min(realAvailable,itemsLeft)
+			carsUsed=min(realAvailable,length(itemsLeft))
 			carsAvailable-=carsUsed
 			items=Iterators.take(itemsLeft,carsUsed)
 			for item ∈ items
@@ -243,7 +241,7 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 		sums[machine]=startTime+jobLengths[job]
 
 		backAvailableFrom=startTime+jobLengths[job]
-		itemsLeft=itemsNeeded[job]
+		itemsLeft=copy(itemsNeeded[job])
 		backAvailable=carsAvailable
 		inUseCars2=copy(inUseCars)
 		while !isempty(inUseCars2) && first(inUseCars2)[1][1]<backAvailableFrom
@@ -252,12 +250,13 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 		end
 		while length(itemsLeft)>0
 			availableAtEnd=backAvailable
-			for event ∈ inUseCars
+			for event ∈ inUseCars2
 				event[1][1]≥availableFromTime+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 			end
 			realAvailable=min(backAvailable,availableAtEnd)
-			while realAvailable==0
+			while realAvailable≤0
+				@assert realAvailable==0 realAvailable
 				(backAvailableFrom,isNew),carChange=pop!(inUseCars2)
 				backAvailable-=length(carChange)*(2Int(isNew)-1)
 				@assert backAvailable≥0
@@ -270,7 +269,7 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 				@assert availableAtEnd≥0
 				realAvailable=min(backAvailable,availableAtEnd)
 			end
-			carsUsed=min(realAvailable,itemsLeft)
+			carsUsed=min(realAvailable,length(itemsLeft))
 			backAvailable-=carsUsed
 			items=Iterators.take(itemsLeft,carsUsed)
 			entry=EventEntry(BitSet(),BitSet(items))
