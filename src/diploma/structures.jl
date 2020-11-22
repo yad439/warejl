@@ -27,23 +27,23 @@ struct EventEntry
 end
 EventEntry()=EventEntry(BitSet(),BitSet())
 struct EventQueue2
-	data::SortedDict{Tuple{Bool,Int},EventEntry}
+	data::SortedDict{Tuple{Int,Bool},EventEntry}
 end
-EventQueue2()=EventQueue2(SortedDict{Tuple{Bool,Int},EventEntry}())
-eltype(::Type{EventQueue2})=Pair{Tuple{Bool,Int},EventEntry}
+EventQueue2()=EventQueue2(SortedDict{Tuple{Int,Bool},EventEntry}())
+eltype(::Type{EventQueue2})=Pair{Tuple{Int,Bool},EventEntry}
 length(queue::EventQueue2)=length(queue.data)
 iterate(queue::EventQueue2)=iterate(queue.data)
 iterate(queue::EventQueue2,state)=iterate(queue.data,state)
 function push!(queue::EventQueue2,time,new,add,item)
 	if haskey(queue.data,(time,new))
 		if add
-			push!(queue.data[time].add,item)
+			push!(queue.data[(time,new)].add,item)
 		else
-			push!(queue.data[time].remove,item)
+			push!(queue.data[(time,new)].remove,item)
 		end
 	else
 		entry=add ? EventEntry(BitSet((item,)),BitSet()) : EventEntry(BitSet(),BitSet((item,)))
-		insert!(queue.data,time,entry)
+		insert!(queue.data,(time,new),entry)
 	end
 end
 function push!(queue::EventQueue2,time,new,entry)
@@ -51,7 +51,7 @@ function push!(queue::EventQueue2,time,new,entry)
 		union!(queue.data[time].add,entry.add)
 		union!(queue.data[time].remove,entry.remove)
 	else
-		insert!(queue.data,time,entry)
+		insert!(queue.data,(time,new),entry)
 	end
 end
 function pop!(queue::EventQueue2)
@@ -59,7 +59,7 @@ function pop!(queue::EventQueue2)
 	pop!(queue.data,ret[1])
 	ret
 end
-copy(queue::EventQueue2)=EventQueue(deepcopy(queue.data))
+copy(queue::EventQueue2)=EventQueue2(deepcopy(queue.data))
 first(queue::EventQueue2)=first(queue.data)
 isempty(queue::EventQueue2)=isempty(queue.data)
 length(entry::EventEntry)=length(entry.add)+length(entry.remove)
