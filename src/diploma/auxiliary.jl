@@ -65,3 +65,6 @@ function plotCarUsage(carHistory,carTravelTime,xlims=:auto)
 end
 
 scheduleToEncoding(::Type{PermutationEncoding},schedule)=schedule.times|>sortperm|>PermutationEncoding
+
+selectMachine(job,timetable::PermutationEncoding,sums)=argmin(sums)
+selectMachine(job,timetable::TwoVectorEncoding,sums)=timetable.assignment[job]

@@ -3,7 +3,7 @@ using DataStructures
 include("auxiliary.jl")
 include("structures.jl")
 
-function computeTimeGetOnly(timetable::PermutationEncoding,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
+function computeTimeGetOnly(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
 	carNeeded=length.(itemsNeeded)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
@@ -42,7 +42,7 @@ function computeTimeGetOnly(timetable::PermutationEncoding,machineCount,jobLengt
 				realAvailable=min(carsAvailable,availableAtEnd)
 			end
 		end
-		machine=argmin(sums)
+		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
 		startTime=max(sums[machine],lastDeliverTime+carTravelTime)
 		times[job]=startTime
@@ -51,7 +51,7 @@ function computeTimeGetOnly(timetable::PermutationEncoding,machineCount,jobLengt
 	Schedule(assignment,times),maximum(sums),carHistory
 end
 
-function computeTimeGetOnlyWaitOne(timetable::PermutationEncoding,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
+function computeTimeGetOnlyWaitOne(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
@@ -91,7 +91,7 @@ function computeTimeGetOnlyWaitOne(timetable::PermutationEncoding,machineCount,j
 			end
 		end
 		prevItems=itemsNeeded[job]
-		machine=argmin(sums)
+		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
 		startTime=max(sums[machine],lastDeliverTime+carTravelTime)
 		times[job]=startTime
@@ -100,7 +100,7 @@ function computeTimeGetOnlyWaitOne(timetable::PermutationEncoding,machineCount,j
 	Schedule(assignment,times),maximum(sums),carHistory
 end
 
-function computeTimeNoWait(timetable::PermutationEncoding,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
+function computeTimeNoWait(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
 	carNeeded=length.(itemsNeeded)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
@@ -139,7 +139,7 @@ function computeTimeNoWait(timetable::PermutationEncoding,machineCount,jobLength
 			itemsLeft-=carsUsed
 			lastDeliverTime=availableFromTime
 		end
-		machine=argmin(sums)
+		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
 		startTime=max(sums[machine],lastDeliverTime+carTravelTime)
 		times[job]=startTime
@@ -185,7 +185,7 @@ function computeTimeNoWait(timetable::PermutationEncoding,machineCount,jobLength
 	Schedule(assignment,times),maximum(sums),carHistory
 end
 
-function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
+function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
@@ -234,7 +234,7 @@ function computeTimeCancelReturn(timetable::PermutationEncoding,machineCount,job
 			setdiff!(itemsLeft,items)
 			lastDeliverTime=availableFromTime
 		end
-		machine=argmin(sums)
+		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
 		startTime=max(sums[machine],lastDeliverTime+carTravelTime)
 		times[job]=startTime
