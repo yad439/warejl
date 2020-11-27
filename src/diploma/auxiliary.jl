@@ -1,4 +1,5 @@
 using Plots
+import Plots.center
 
 include("common.jl")
 
@@ -7,35 +8,37 @@ struct Schedule
 	times::Vector{Int}
 end
 
+struct GanttJob
+	assignment::Int
+	startTime::Int
+	duration::Int
+end
+
+@recipe plotGanttJob(::Type{GanttJob},job::GanttJob)=Shape([
+	(job.startTime,job.assignment-1),
+	(job.startTime,job.assignment),
+	(job.startTime+job.duration,job.assignment),
+	(job.startTime+job.duration,job.assignment-1)
+])
+center(job::GanttJob)=(job.startTime+job.duration/2,job.assignment-0.5)
+
 @recipe function scheduleToGantt(jobs::Schedule,jobLengths)
 	n=length(jobs.assignment)
 	@assert length(jobs.times)==n
 	@assert length(jobLengths)==n
 	shapes=[
-		Shape([
-			(jobs.times[i],jobs.assignment[i]-1),
-			(jobs.times[i],jobs.assignment[i]),
-			(jobs.times[i]+jobLengths[i],jobs.assignment[i]),
-			(jobs.times[i]+jobLengths[i],jobs.assignment[i]-1)
-		])
+		GanttJob(jobs.assignment[i],jobs.times[i],jobLengths[i])
 	for i=1:n]
 	#label:=["job $i" for i=1:n]
 	shapes
 end
 
-function plotGantt(jobs,jobLengths,useLabel=length(jobLengths)≤10,text=nothing)
+function gantt(jobs,jobLengths,useLabel=length(jobLengths)≤10,text=nothing)
 	pl=plot(xlims=(0,:auto))
 	for i=1:length(jobLengths)
-		x1=jobs.times[i]
-		x2=jobs.times[i]+jobLengths[i]
-		y1=jobs.assignment[i]-1
-		y2=jobs.assignment[i]
-		plot!(pl,Shape([
-			(x1,y1),
-			(x1,y2),
-			(x2,y2),
-			(x2,y1)
-		]),label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? ((x1+x2)/2,(y1+y2)/2,text[i]) : nothing))
+		job=GanttJob(jobs.assignment[i],jobs.times[i],jobLengths[i])
+		cent=center(job)
+		plot!(pl,job,label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? (cent...,text[i]) : nothing))
 	end
 	pl
 end
@@ -62,6 +65,20 @@ function plotCarUsage(carHistory,carTravelTime,xlims=:auto)
 		push!(line,(event[1],carsInUse))
 	end
 	plot(line,label=false,xlims=xlims)
+end
+
+function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
+	maxTime=zeros(carNumber)
+	jobs=map(carHistory) do event
+		map(event.items) do item
+			car=findfirst(≤(event.time),maxTime)
+			job=GanttJob(car,event.time,carTravelTime)
+			maxTime[car]=event.time+carTravelTime
+			job,event.item,event.isAdd
+		end
+	end |> Iterators.flatten
+	plt=plot(label=false,xlims=xlims)
+	foreach(job->plot!(plt,job[1],annotations=(center(job[1])...,job[2])),jobs)
 end
 
 scheduleToEncoding(::Type{PermutationEncoding},schedule)=schedule.times|>sortperm|>PermutationEncoding
