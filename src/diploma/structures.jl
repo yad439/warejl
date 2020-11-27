@@ -63,7 +63,7 @@ function pop!(queue::EventQueue2)
 	pop!(queue.data,ret[1])
 	ret
 end
-copy(queue::EventQueue2)=EventQueue2(deepcopy(queue.data))
+copy(queue::EventQueue2)=EventQueue2(copy(queue.data))
 first(queue::EventQueue2)=first(queue.data)
 isempty(queue::EventQueue2)=isempty(queue.data)
 length(entry::EventEntry)=length(entry.add)+length(entry.remove)
