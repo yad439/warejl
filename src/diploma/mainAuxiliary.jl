@@ -197,21 +197,25 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 	currentStart=nothing
 	for job ∈ timetable.permutation
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
-		inter=currentStart.remove ∩ itemsNeeded[job]
-		setdiff!(currentStart.remove,inter)
-		setdiff!(itemsLeft,inter)
-		union!(bufferState,inter)
-		carsAvailable+=length(inter)
+		if currentStart≢nothing
+			inter=currentStart.remove ∩ itemsNeeded[job]
+			setdiff!(currentStart.remove,inter)
+			setdiff!(itemsLeft,inter)
+			union!(bufferState,inter)
+			carsAvailable+=length(inter)
+			inter=currentStart.add ∩ itemsNeeded[job]
+			setdiff!(itemsLeft,inter)
+		end
 		while length(itemsLeft)>0
 			availableAtEnd=carsAvailable
 			for event ∈ inUseCars
 				event[1][1]>availableFromTime+carTravelTime && break
-				event[1,2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+				event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 				event[1][1]==availableFromTime+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 			end
 			realAvailable=min(carsAvailable,availableAtEnd)
-			while realAvailable≤0
+			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
 				@assert realAvailable==0
 				(availableFromTime,isNew),carChange=pop!(inUseCars)
 				isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
@@ -234,7 +238,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				availableAtEnd=carsAvailable
 				for event ∈ inUseCars
 					event[1][1]>availableFromTime+carTravelTime && break
-					event[1,2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+					event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 					event[1][1]==availableFromTime+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 				end
@@ -246,6 +250,8 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			for item ∈ items #todo optimize
 				push!(inUseCars,availableFromTime+carTravelTime,false,true,item)
 			end
+			currentStart≡nothing && (currentStart=EventEntry(BitSet(),BitSet()))
+			union!(currentStart.add,items)# todo optimize
 			setdiff!(itemsLeft,items)
 		end
 		machine=selectMachine(job,timetable,sums)
@@ -259,12 +265,12 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		inUseCars2=copy(inUseCars)
 		while !isempty(inUseCars2) && first(inUseCars2)[1][1]<backAvailableFrom
 			event=pop!(inUseCars2)
-			event[1,2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+			event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 			backAvailable-=length(event[2])*(2Int(event[1][2])-1)
 		end
 		itemsLeft=copy(itemsNeeded[job])
 		for event ∈ inUseCars2
-			event[1,2] && setdiff!(itemsLeft,event[2].remove) # item is needed somewhere
+			event[1][2] && setdiff!(itemsLeft,event[2].remove) # item is needed somewhere
 		end
 		while length(itemsLeft)>0
 			availableAtEnd=backAvailable
@@ -292,11 +298,11 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			items=Iterators.take(itemsLeft,carsUsed)
 			entry=EventEntry(BitSet(),BitSet(items))
 			push!(inUseCars,backAvailableFrom,true,entry)
-			push!(inUseCars,backAvailableFrom+carTravelTime,false,entry)
-			push!(inUseCars2,backAvailableFrom+carTravelTime,false,entry)
+			push!(inUseCars,backAvailableFrom+carTravelTime,false,entry,true)
+			push!(inUseCars2,backAvailableFrom+carTravelTime,false,entry,true)
 			setdiff!(itemsLeft,items)
 		end
 	end
-	foreach(event->push!(carHistory,event),inUseCars)
+	foreach(event->push!(carHistory,(event[1],event[2])),inUseCars)
 	Schedule(assignment,times),maximum(sums),carHistory
 end

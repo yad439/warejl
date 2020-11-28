@@ -34,7 +34,7 @@ eltype(::Type{EventQueue2})=Pair{Tuple{Int,Bool},EventEntry}
 length(queue::EventQueue2)=length(queue.data)
 iterate(queue::EventQueue2)=iterate(queue.data)
 iterate(queue::EventQueue2,state)=iterate(queue.data,state)
-function push!(queue::EventQueue2,time,new,add,item)
+function push!(queue::EventQueue2,time,new,add::Bool,item::Int)
 	if haskey(queue.data,(time,new))
 		if add
 			@assert queue.data[(time,new)].add ∌ item
@@ -48,12 +48,16 @@ function push!(queue::EventQueue2,time,new,add,item)
 		insert!(queue.data,(time,new),entry)
 	end
 end
-function push!(queue::EventQueue2,time,new,entry)
+function push!(queue::EventQueue2,time,new,entry::EventEntry,dup::Bool=false)
 	if haskey(queue.data,(time,new))
-		@assert isdisjoint(queue.data[(time,new)].add,entry.add)
-		@assert isdisjoint(queue.data[(time,new)].remove,entry.remove)
-		union!(queue.data[(time,new)].add,entry.add)
-		union!(queue.data[(time,new)].remove,entry.remove)
+		if dup
+			#@assert queue.data[(time,new)]≡entry #todo enable
+		else
+			@assert isdisjoint(queue.data[(time,new)].add,entry.add)
+			@assert isdisjoint(queue.data[(time,new)].remove,entry.remove)
+			union!(queue.data[(time,new)].add,entry.add)
+			union!(queue.data[(time,new)].remove,entry.remove)
+		end
 	else
 		insert!(queue.data,(time,new),entry)
 	end
