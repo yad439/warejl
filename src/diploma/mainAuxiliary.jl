@@ -190,7 +190,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
 	inUseCars=EventQueue2()
-	carHistory=Tuple{eltype(jobLengths),Tuple{Int,Int,Bool}}[]
+	carHistory=Tuple{Tuple{Int,Bool},EventEntry}[]
 	carsAvailable=carCount
 	availableFromTime=0 # points at last add travel start
 	bufferState=BitSet()
@@ -216,6 +216,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				(availableFromTime,isNew),carChange=pop!(inUseCars)
 				isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
+				push!(carHistory,((availableFromTime,isNew),carChange))
 				@assert carsAvailable≥0
 				if isNew
 					@assert carChange.remove ⊂ bufferState
@@ -245,7 +246,6 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			for item ∈ items #todo optimize
 				push!(inUseCars,availableFromTime+carTravelTime,false,true,item)
 			end
-			push!(carHistory,(availableFromTime,(job,carsUsed,true)))
 			setdiff!(itemsLeft,items)
 		end
 		machine=selectMachine(job,timetable,sums)
@@ -294,9 +294,9 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			push!(inUseCars,backAvailableFrom,true,entry)
 			push!(inUseCars,backAvailableFrom+carTravelTime,false,entry)
 			push!(inUseCars2,backAvailableFrom+carTravelTime,false,entry)
-			push!(carHistory,(backAvailableFrom,(job,carsUsed,false)))
 			setdiff!(itemsLeft,items)
 		end
 	end
+	foreach(event->push!(carHistory,event),inUseCars)
 	Schedule(assignment,times),maximum(sums),carHistory
 end
