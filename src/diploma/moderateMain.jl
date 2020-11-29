@@ -64,6 +64,6 @@ rrs=["local 1","local 3","tabu 1","tabu 2","anealing 1","anealing 2","anealing 3
 foreach((a,b)->println(b,": ",a[1]),ress,rrs)
 ##
 sol=computeTimeWithCars(tabuRes1[2],p,k,m,c,tt)
-pl1=plotGantt(sol[1],p,false)
+pl1=gantt(sol[1],p,false)
 pl2=plotCarUsage(sol[3],tt,(0,sol[2]))
 plr=plot(pl1,pl2,layout=(2,1))

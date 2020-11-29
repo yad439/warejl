@@ -66,7 +66,7 @@ foreach((a,b)->println(b,": ",a[1]),ress,rrs)
 theme(:dark)
 ##
 sol=computeTimeGetOnlyWaitOne(tabuRes1[2],m,p,itemsNeeded,c,tt)
-pl1=plotGantt(sol[1],p,false,string.(itemsNeeded))
+pl1=gantt(sol[1],p,false,string.(itemsNeeded))
 pl2=plotCarUsage(sol[3],tt,(0,sol[2]))
 plr=plot(pl1,pl2,layout=(2,1))
 ##
