@@ -9,13 +9,13 @@ include("modularGenetic.jl");
 using Random
 ##
 Random.seed!(439)
-n=100
+n=10
 m=3
 p=rand(5:20,n)
-itemCount=10
+itemCount=16
 itemsNeeded=[randsubseq(1:itemCount,0.2) for _=1:n]
 tt=10
-c=6
+c=4
 k=length.(itemsNeeded)
 ##
 sf1(jobs)=maxTimeWithCars(jobs,p,k,m,c,tt)
@@ -71,3 +71,9 @@ pl2=plotCarUsage(sol[3],tt,(0,sol[2]))
 plr=plot(pl1,pl2,layout=(2,1))
 ##
 plot(tabuRes1[3][1:10],label=false)
+##
+sol=computeTimeCancelReturn(st1,m,p,itemsNeeded,c,tt)
+cars=normalizeHistory(sol[3],tt)
+pl1=gantt(sol[1],p,false,string.(itemsNeeded))
+pl2=plotDetailedCarUsage(cars,tt,c,(0,sol[2]))
+plr=plot(pl1,pl2,layout=(2,1))
