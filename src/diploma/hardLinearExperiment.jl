@@ -150,9 +150,17 @@ end)
 	[t0=1:T,τ=1:T],removeEventTime[τ]≥addEventTime[t0]+1-M*removeBeforeAdd2[t0,τ]
 	[t0=1:T,τ=1:T],addEventTime[τ]≥removeEventTime[t0]+1-M*addBeforeRemove2[t0,τ]
 end)
+@variables(model,begin
+	removeJustBeforeAddItem[1:itemCount,1:T,1:T],Bin
+	addJustBeforeRemoveItem[1:itemCount,1:T,1:T],Bin
+end)
 @constraints(model,begin
-	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeEventItems[it,τ]*removeBeforeAdd2[t0,τ]*removeJustBeforeAdd[t0,τ] for it=1:itemCount,τ=1:t0-1)≤carNum #todo linearize
-	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addEventItems[it,τ]*addBeforeRemove2[t0,τ]*addJustBeforeRemove[t0,τ] for it=1:itemCount,τ=1:t0-1)≤carNum
+	[i=1:itemCount,t0=1:T,τ=1:T],removeJustBeforeAddItem[i,t0,τ]≥removeEventItems[i,τ]+removeBeforeAdd2[t0,τ]+removeJustBeforeAdd[t0,τ]-2
+	[i=1:itemCount,t0=1:T,τ=1:T],addJustBeforeRemoveItem[i,t0,τ]≥addEventItems[i,τ]+addBeforeRemove2[t0,τ]+addJustBeforeRemove[t0,τ]-2
+end)
+@constraints(model,begin
+	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])≤carNum #todo linearize
+	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])≤carNum
 end)
 ##
 @variable(model,res)
