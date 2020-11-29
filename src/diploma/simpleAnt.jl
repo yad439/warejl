@@ -1,6 +1,6 @@
 include("simpleAuxiliary.jl")
 
-using Distributions
+# using Distributions
 
 function antColony(n,m,p)
 	paths=fill(0.0,m,n)
@@ -11,7 +11,8 @@ function antColony(n,m,p)
 	while count<10000
 		for i=1:n
 			s=sum(paths[:,i])+m
-			dst=Categorical([(paths[j,i]+1)/s for j=1:m])
+			# dst=Categorical([(paths[j,i]+1)/s for j=1:m])
+			dst=nothing
 			k=rand(dst)
 			path[i]=k
 		end
