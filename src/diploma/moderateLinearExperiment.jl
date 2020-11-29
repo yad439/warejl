@@ -11,6 +11,10 @@ carNum=6
 
 M=sum(p)+n*travelTime+1e-1
 
+T=ceil(Int,sum(carCount)/carCount)
+# M=sum(jobLengths)+T*carTravelTime
+K=maximum(carCount)
+
 model=Model(Gurobi.Optimizer)
 @variable(model,t[1:n]≥0)
 
@@ -49,6 +53,15 @@ model=Model(Gurobi.Optimizer)
 @constraint(model,[i=1:n,j=1:n],needCar[j,i]≥justBefore[j,i]+before[j,i]-1)
 @constraint(model,[i=1:n],needCar[:,i]⋅carCount≤carNum)
 
+@variables(model,begin
+	timeSlot[1:T,1:n],Bin
+	notDelivered[1:T,1:n],Bin
+end)
+@constraints(model,begin
+	[i=1:n,t=1:T],notDelivered[t,i]K≥(carCount[i]-sum(timeSlot[1:t,i]))
+	[i=1:n,t=1:T],time[i]≥notDelivered[t,i]*(t+1)*travelTime
+	[i=1:carNum,t=1:T],sum(timeSlot[t,:])≤carNum
+end)
 
 @variable(model,res)
 @constraint(model,[i=1:n],res≥t[i]+p[i])

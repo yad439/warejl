@@ -37,6 +37,7 @@ end
 function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,carTravelTime,timeLimit=0)
 	T=ceil(Int,sum(carsNeeded)/carCount)
 	M=sum(jobLengths)+T*carTravelTime
+	K=maximum(carsNeeded)
 
 	model=Model(Gurobi.Optimizer)
 	timeLimit==0 || set_time_limit_sec(model,timeLimit)
@@ -54,11 +55,13 @@ function moderateExact2(jobCount,machineCount,carCount,jobLengths,carsNeeded,car
 	end)
 
 	@variables(model,begin
-		timeSlot[1:carCount,1:T,1:jobCount],Bin
+		timeSlot[1:T,1:jobCount],Bin
+		notDelivered[1:T,1:jobCount],Bin
 	end)
 	@constraints(model,begin
-		[i=1:jobCount,t=1:T],time[i]≥(carsNeeded[i]-sum(timeSlot[:,1:t,i]))t*carTravelTime
-		[i=1:carCount,t=1:T],sum(timeSlot[i,t,:])==1
+		[i=1:jobCount,t=1:T],notDelivered[t,i]K≥(carsNeeded[i]-sum(timeSlot[1:t,i]))
+		[i=1:jobCount,t=1:T],time[i]≥notDelivered[t,i]*(t+1)*carTravelTime
+		[i=1:carCount,t=1:T],sum(timeSlot[t,:])≤carCount
 	end)
 
 
