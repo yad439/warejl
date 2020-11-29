@@ -35,7 +35,7 @@ model=Model(Gurobi.Optimizer)
 @variable(model,doneStart[1:n,1:carNum,1:T],Bin)
 # @constraint(model,[i=1:n,c=1:carNum,τ=1:2:T],t[i]≤timeSlotTime[c,τ]+travelTime-1+M*done[i,c,τ])
 # @constraint(model,[i=1:n,c=1:carNum,τ=1:2:T],t[i]≥timeSlotTime[c,τ]+travelTime-M*(1-done[i,c,τ]))
-@constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],t[i]+p[i]≤timeSlotTime[c,τ]+M*doneStart[i,c,τ])
+@constraint(model,[i=1:n,c=1:carNum,τ=2:2:T],t[i]+p[i]≤timeSlotTime[c,τ]+M*doneStart[i,c,τ])#toto not enough?
 # @constraint(model,[i=1:n,c=1:carNum,τ=1:T],t[i]≥timeSlotTime[c,τ]-M*(1-doneStart[i,c,τ]))
 
 @variable(model,doneEnd[1:n,1:carNum,1:T],Bin)
@@ -105,6 +105,55 @@ end)
 end)
 
 @constraint(model,[c0=1:carNum,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0)
+##
+@variable(model,addEventItems[1:itemCount,1:T],Bin)
+@variable(model,removeEventItems[1:itemCount,1:T],Bin)
+@variable(model,addEventTime[1:T]≥0)
+@variable(model,removeEventTime[1:T]≥0)
+@constraint(model,[τ=1:T-1],addEventTime[τ]≤addEventTime[τ+1])
+@constraint(model,[τ=1:T-1],removeEventTime[τ]≤removeEventTime[τ+1])
+
+@variables(model,begin
+	addEventBefore[1:T,1:n],Bin
+	removeEventBefore[1:T,1:n],Bin
+end)
+@constraints(model,begin
+	[τ=1:T,i=1:n],t[i]≥addEventTime[τ]+travelTime-M*(1-addEventBefore[τ,i])
+	[τ=1:T,i=1:n],t[i]+p[i]≤removeEventTime[τ]+M*removeEventBefore[τ,i]
+end)
+@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventItems[item,:].*addEventBefore)-sum(removeEventItems[item,:].*removeEventBefore)≥1)
+@variables(model,begin
+	removeBeforeAdd[1:T,1:T],Bin
+	addBeforeRemove[1:T,1:T],Bin
+end)
+@constraints(model,begin
+	[τ=1:T,t0=1:T],removeEventTime[τ]≤addEventTime[t0]+travelTime+M*(1-removeBeforeAdd[τ,t0])
+	[τ=1:T,t0=1:T],addEventTime[τ]+travelTime≤removeEventTime[t0]+M*(1-addBeforeRemove[τ,t0])
+end)
+@constraints(model,begin
+	[t0=1:T],sum(addEventItems[:,1:t0])-sum(removeEventItems[it,τ]*removeBeforeAdd[τ,t0] for it=1:itemCount,τ=1:T)≤storageSize
+	[t0=1:T],sum(addEventItems[it,τ]*addBeforeRemove[τ,t0] for it=1:itemCount,τ=1:T)-sum(removeEventItems[:,1:t0])≥0
+end)
+@variables(model,begin
+	addJustBefore[t0=1:T,1:t0-1],Bin
+	removeJustBefore[t0=1:T,1:t0-1],Bin
+	removeBeforeAdd2[1:T,1:T],Bin
+	addBeforeRemove2[1:T,1:T],Bin
+	removeJustBeforeAdd[1:T,1:T],Bin
+	addJustBeforeRemove[1:T,1:T],Bin
+end)
+@constraints(model,begin
+	[t0=1:T,τ=1:t0-1],addEventTime[τ]+travelTime≤addEventTime[t0]+M*addJustBefore[t0,τ]
+	[t0=1:T,τ=1:t0-1],removeEventTime[τ]+travelTime≤removeEventTime[t0]+M*removeJustBefore[t0,τ]
+	[t0=1:T,τ=1:T],removeEventTime[τ]+travelTime≤addEventTime[t0]+M*removeJustBeforeAdd[t0,τ]
+	[t0=1:T,τ=1:T],addEventTime[τ]+travelTime≤removeEventTime[t0]+M*addJustBeforeRemove[t0,τ]
+	[t0=1:T,τ=1:T],removeEventTime[τ]≥addEventTime[t0]+1-M*removeBeforeAdd2[t0,τ]
+	[t0=1:T,τ=1:T],addEventTime[τ]≥removeEventTime[t0]+1-M*addBeforeRemove2[t0,τ]
+end)
+@constraints(model,begin
+	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeEventItems[it,τ]*removeBeforeAdd2[t0,τ]*removeJustBeforeAdd[t0,τ] for it=1:itemCount,τ=1:t0-1)≤carNum #todo linearize
+	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addEventItems[it,τ]*addBeforeRemove2[t0,τ]*addJustBeforeRemove[t0,τ] for it=1:itemCount,τ=1:t0-1)≤carNum
+end)
 ##
 @variable(model,res)
 @constraint(model,[i=1:n],res≥t[i]+p[i])
