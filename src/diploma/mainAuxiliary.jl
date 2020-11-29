@@ -208,22 +208,25 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		end
 		while length(itemsLeft)>0
 			availableAtEnd=carsAvailable
+			realAvailable=carsAvailable
 			for event ∈ inUseCars
 				event[1][1]>availableFromTime+carTravelTime && break
 				event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 				event[1][1]==availableFromTime+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
+				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
+				availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
 			end
-			realAvailable=min(carsAvailable,availableAtEnd)
+			# realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
 				@assert realAvailable==0
 				(availableFromTime,isNew),carChange=pop!(inUseCars)
 				isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
 				push!(carHistory,((availableFromTime,isNew),carChange))
-				@assert carsAvailable≥0
+				@assert 0≤carsAvailable≤carCount "Cars availavle: $carsAvailable"
 				if isNew
-					@assert carChange.remove ⊂ bufferState
+					@assert carChange.remove ⊆ bufferState
 					setdiff!(bufferState,carChange.remove)
 				else
 					@assert isdisjoint(bufferState,carChange.add)
@@ -236,13 +239,16 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				end
 				carsAvailable==0 && continue
 				availableAtEnd=carsAvailable
+				realAvailable=carsAvailable
 				for event ∈ inUseCars
 					event[1][1]>availableFromTime+carTravelTime && break
 					event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 					event[1][1]==availableFromTime+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
+					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
+					availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
 				end
-				realAvailable=min(carsAvailable,availableAtEnd)
+				# realAvailable=min(carsAvailable,availableAtEnd)
 			end
 			carsUsed=min(realAvailable,length(itemsLeft))
 			carsAvailable-=carsUsed
@@ -267,6 +273,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			event=pop!(inUseCars2)
 			event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 			backAvailable-=length(event[2])*(2Int(event[1][2])-1)
+			@assert 0≤backAvailable≤carCount "Cars availavle: $backAvailable"
 		end
 		itemsLeft=copy(itemsNeeded[job])
 		for event ∈ inUseCars2
@@ -274,31 +281,37 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		end
 		while length(itemsLeft)>0
 			availableAtEnd=backAvailable
+			realAvailable=backAvailable
 			for event ∈ inUseCars2
-				event[1][1]≥availableFromTime+carTravelTime && break
+				event[1][1]≥backAvailableFrom+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
+				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
+				availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
 			end
-			realAvailable=min(backAvailable,availableAtEnd)
+			# realAvailable=min(backAvailable,availableAtEnd)
 			while realAvailable≤0
 				@assert realAvailable==0
 				(backAvailableFrom,isNew),carChange=pop!(inUseCars2)
 				backAvailable-=length(carChange)*(2Int(isNew)-1)
-				@assert backAvailable≥0
+				@assert 0≤backAvailable≤carCount "Cars availavle: $backAvailable"
 				backAvailable==0 && continue
 				availableAtEnd=backAvailable
+				realAvailable=backAvailable
 				for event ∈ inUseCars2
 					event[1][1]≥backAvailable+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
+					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
+					availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
 				end
 				@assert availableAtEnd≥0
-				realAvailable=min(backAvailable,availableAtEnd)
+				# realAvailable=min(backAvailable,availableAtEnd)
 			end
 			carsUsed=min(realAvailable,length(itemsLeft))
 			backAvailable-=carsUsed
 			items=Iterators.take(itemsLeft,carsUsed)
 			entry=EventEntry(BitSet(),BitSet(items))
-			push!(inUseCars,backAvailableFrom,true,entry)
-			push!(inUseCars,backAvailableFrom+carTravelTime,false,entry,true)
+			entry=push!(inUseCars,backAvailableFrom+carTravelTime,false,entry)
+			push!(inUseCars,backAvailableFrom,true,entry,true)
 			push!(inUseCars2,backAvailableFrom+carTravelTime,false,entry,true)
 			setdiff!(itemsLeft,items)
 		end
