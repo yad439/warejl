@@ -74,14 +74,26 @@ function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
 			car=findfirst(≤(event.time),maxTime)
 			job=GanttJob(car,event.time,carTravelTime)
 			maxTime[car]=event.time+carTravelTime
-			job,event.item,event.isAdd
+			job,item
 		end
 	end |> Iterators.flatten
 	plt=plot(label=false,xlims=xlims)
-	foreach(job->plot!(plt,job[1],annotations=(center(job[1])...,job[2])),jobs)
+	foreach(job->plot!(plt,job[1],annotations=(center(job[1])...,string(job[2])),label=false),jobs)
+	plt
 end
 
 scheduleToEncoding(::Type{PermutationEncoding},schedule)=schedule.times|>sortperm|>PermutationEncoding
 
 selectMachine(job,timetable::PermutationEncoding,sums)=argmin(sums)
 selectMachine(job,timetable::TwoVectorEncoding,sums)=timetable.assignment[job]
+
+function normalizeHistory(history,carTravelTime)
+	onlyStart=history |> it->filter(x->!x[1][2],it) |> it->map(x->(x[1][1]-carTravelTime,x[2]),it)
+	map(onlyStart) do event
+		items=Iterators.flatten((
+			map(x->(x,true),collect(event[2].add)),
+			map(x->(x,false),collect(event[2].remove))
+		))|>collect
+		(time=event[1],items=items)
+	end |> it->filter(x->!isempty(x.items),it)
+end
