@@ -298,7 +298,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				availableAtEnd=backAvailable
 				realAvailable=backAvailable
 				for event ∈ inUseCars2
-					event[1][1]≥backAvailable+carTravelTime && break
+					event[1][1]≥backAvailableFrom+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
 					availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
