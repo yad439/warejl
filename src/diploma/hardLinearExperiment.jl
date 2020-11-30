@@ -2,10 +2,10 @@ using JuMP,Gurobi
 using LinearAlgebra,Random
 using Plots
 
-n=8
+n=7
 m=3
 p=rand(5:20,n)
-itemCount=10
+itemCount=7
 itemsNeeded=[randsubseq(1:itemCount,0.2) for _=1:n]
 travelTime=40
 carNum=4
@@ -104,7 +104,7 @@ end)
 	[c0=1:carNum,i=1:T,c=1:carNum,τ=1:T,it=1:itemCount],doneItemRemove3[c0,i,c,τ,it]≥doneRemove2[c0,i,c,τ]+timeSlotItem[c,τ,it]+(1-isAdd[c,τ])-2
 end)
 
-@constraint(model,[c0=1:carNum,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0)
+@constraint(model,[c0=1:carNum,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0);
 ##
 @variable(model,addEventItems[1:itemCount,1:T],Bin)
 @variable(model,removeEventItems[1:itemCount,1:T],Bin)
@@ -121,7 +121,16 @@ end)
 	[τ=1:T,i=1:n],t[i]≥addEventTime[τ]+travelTime-M*(1-addEventBefore[τ,i])
 	[τ=1:T,i=1:n],t[i]+p[i]≤removeEventTime[τ]+M*removeEventBefore[τ,i]
 end)
-@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventItems[item,:].*addEventBefore)-sum(removeEventItems[item,:].*removeEventBefore)≥1)
+@variables(model,begin
+	addEventBeforeItem[1:itemCount,1:T,1:n],Bin
+	removeEventBeforeItem[1:itemCount,1:T,1:n],Bin
+end)
+@constraints(model,begin
+	[it=1:itemCount,τ=1:T,i=1:n],addEventBeforeItem[it,τ,i]≤addEventItems[it,τ]
+	[it=1:itemCount,τ=1:T,i=1:n],addEventBeforeItem[it,τ,i]≤addEventBefore[τ,i]
+	[it=1:itemCount,τ=1:T,i=1:n],removeEventBeforeItem[it,τ,i]≥removeEventItems[it,τ]+removeEventBefore[τ,i]-1
+end)
+@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[item,:,i])-sum(removeEventBeforeItem[item,:,i])≥1)
 @variables(model,begin
 	removeBeforeAdd[1:T,1:T],Bin
 	addBeforeRemove[1:T,1:T],Bin
@@ -130,9 +139,19 @@ end)
 	[τ=1:T,t0=1:T],removeEventTime[τ]≤addEventTime[t0]+travelTime+M*(1-removeBeforeAdd[τ,t0])
 	[τ=1:T,t0=1:T],addEventTime[τ]+travelTime≤removeEventTime[t0]+M*(1-addBeforeRemove[τ,t0])
 end)
+@variables(model,begin
+	removeBeforeAddItem[1:itemCount,1:T,1:T],Bin
+	addBeforeRemoveItem[1:itemCount,1:T,1:T],Bin
+end)
 @constraints(model,begin
-	[t0=1:T],sum(addEventItems[:,1:t0])-sum(removeEventItems[it,τ]*removeBeforeAdd[τ,t0] for it=1:itemCount,τ=1:T)≤storageSize
-	[t0=1:T],sum(addEventItems[it,τ]*addBeforeRemove[τ,t0] for it=1:itemCount,τ=1:T)-sum(removeEventItems[:,1:t0])≥0
+	[it=1:itemCount,t0=1:T,τ=1:T],removeBeforeAddItem[it,τ,t0]≤removeEventItems[it,τ]
+	[it=1:itemCount,t0=1:T,τ=1:T],removeBeforeAddItem[it,τ,t0]≤removeBeforeAdd[τ,t0]
+	[it=1:itemCount,t0=1:T,τ=1:T],addBeforeRemoveItem[it,τ,t0]≤addEventItems[it,τ]
+	[it=1:itemCount,t0=1:T,τ=1:T],addBeforeRemoveItem[it,τ,t0]≤addBeforeRemove[τ,t0]
+end)
+@constraints(model,begin
+	[t0=1:T],sum(addEventItems[:,1:t0])-sum(removeBeforeAddItem[:,:,t0])≤storageSize
+	[t0=1:T],sum(addBeforeRemoveItem[:,:,t0])-sum(removeEventItems[:,1:t0])≥0
 end)
 @variables(model,begin
 	addJustBefore[t0=1:T,1:t0-1],Bin
