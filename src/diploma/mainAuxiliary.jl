@@ -215,7 +215,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				event[1][1]==availableFromTime+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
-				availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
+				availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 			end
 			# realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
@@ -246,7 +246,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 					event[1][1]==availableFromTime+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
-					availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
+					availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 				end
 				# realAvailable=min(carsAvailable,availableAtEnd)
 			end
@@ -286,7 +286,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				event[1][1]≥backAvailableFrom+carTravelTime && break
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
-				availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
+				availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 			end
 			# realAvailable=min(backAvailable,availableAtEnd)
 			while realAvailable≤0
@@ -301,7 +301,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 					event[1][1]≥backAvailableFrom+carTravelTime && break
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
-					availableAtEnd≤realAvailable && (realAvailable=availableAtEnd)
+					availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 				end
 				@assert availableAtEnd≥0
 				# realAvailable=min(backAvailable,availableAtEnd)
