@@ -77,3 +77,11 @@ cars=normalizeHistory(sol[3],tt)
 pl1=gantt(sol[1],p,false,string.(itemsNeeded))
 pl2=plotDetailedCarUsage(cars,tt,c,(0,sol[2]))
 plr=plot(pl1,pl2,layout=(2,1))
+##
+for i=1:length(sol[4])
+	cars=normalizeHistory(sol[4][i],tt)
+	pl1=gantt(sol[1],p,false,string.(itemsNeeded))
+	pl2=plotDetailedCarUsage(cars,tt,c,(0,sol[2]))
+	plr=plot(pl1,pl2,layout=(2,1))
+	display(plr)
+end

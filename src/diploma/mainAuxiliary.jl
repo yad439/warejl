@@ -191,6 +191,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 	assignment=similar(jobLengths,Int)
 	inUseCars=EventQueue2()
 	carHistory=Tuple{Tuple{Int,Bool},EventEntry}[]
+	bigHistory=Vector{Pair{Tuple{Int,Bool},EventEntry}}[]
 	carsAvailable=carCount
 	availableFromTime=0 # points at last add travel start
 	bufferState=BitSet()
@@ -314,8 +315,9 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			push!(inUseCars,backAvailableFrom,true,entry,true)
 			push!(inUseCars2,backAvailableFrom+carTravelTime,false,entry,true)
 			setdiff!(itemsLeft,items)
+			push!(bigHistory,deepcopy(inUseCars|>collect))
 		end
 	end
 	foreach(event->push!(carHistory,(event[1],event[2])),inUseCars)
-	Schedule(assignment,times),maximum(sums),carHistory
+	Schedule(assignment,times),maximum(sums),carHistory,bigHistory
 end
