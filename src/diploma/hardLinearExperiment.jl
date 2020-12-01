@@ -2,10 +2,10 @@ using JuMP,Gurobi
 using LinearAlgebra,Random
 using Plots
 
-n=7
+n=6
 m=3
 p=rand(5:20,n)
-itemCount=7
+itemCount=6
 itemsNeeded=[randsubseq(1:itemCount,0.2) for _=1:n]
 travelTime=40
 carNum=4
@@ -13,7 +13,7 @@ storageSize=4
 
 itemsNeededMatrix=[item ∈ itemsNeeded[job] for job=1:n,item=1:itemCount]
 
-T=2ceil(Int,sum(length.(itemsNeeded))/carNum)
+T=4ceil(Int,sum(length.(itemsNeeded))/carNum)
 M=sum(p)+T*travelTime
 ##
 model=Model(Gurobi.Optimizer)
@@ -21,10 +21,10 @@ model=Model(Gurobi.Optimizer)
 
 @variable(model,ord[1:n,1:n],Bin)
 @constraint(model,[i=1:n,j=1:n],t[i]≥t[j]+p[j]-M*(1-ord[j,i]))
-@variable(model,first[1:n],Bin)
-@constraint(model,[i=1:n],sum(ord[:,i])≥1-first[i])
+@variable(model,isFirst[1:n],Bin)
+@constraint(model,[i=1:n],sum(ord[:,i])≥1-isFirst[i])
 @constraint(model,[i=1:n,j=1:n,k=1:n; i≠j],ord[i,j]+ord[j,i]≥ord[k,i]+ord[k,j]-1)
-@constraint(model,sum(first)≤m)
+@constraint(model,sum(isFirst)≤m)
 ##
 @variable(model,timeSlotItem[1:carNum,1:T,1:itemCount],Bin)
 @variable(model,timeSlotTime[1:carNum,1:T]≥0)
@@ -178,12 +178,14 @@ end)
 	[i=1:itemCount,t0=1:T,τ=1:T],addJustBeforeRemoveItem[i,t0,τ]≥addEventItems[i,τ]+addBeforeRemove2[t0,τ]+addJustBeforeRemove[t0,τ]-2
 end)
 @constraints(model,begin
-	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])≤carNum #todo linearize
+	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])≤carNum
 	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])≤carNum
 end)
 ##
 @variable(model,res)
 @constraint(model,[i=1:n],res≥t[i]+p[i])
 @objective(model,Min,res)
+##
+set_time_limit_sec(model,300)
 ##
 optimize!(model)
