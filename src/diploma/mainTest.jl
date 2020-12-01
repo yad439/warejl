@@ -8,11 +8,11 @@ include("modularGenetic.jl");
 
 using Random
 ##
-Random.seed!(439)
+# Random.seed!(435)
 n=10
 m=3
 p=rand(5:20,n)
-itemCount=16
+itemCount=14
 itemsNeeded=[randsubseq(1:itemCount,0.2) for _=1:n]
 tt=10
 c=4
@@ -23,7 +23,7 @@ sf5(jobs)=maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
 sf2(jobs)=computeTimeGetOnly(jobs,m,p,itemsNeeded,c,tt)[2]
 sf3(jobs)=computeTimeGetOnlyWaitOne(jobs,m,p,itemsNeeded,c,tt)[2]
 sf4(jobs)=computeTimeCancelReturn(jobs,m,p,itemsNeeded,c,tt)[2]
-sf=sf5
+sf=sf4
 ##
 st1=rand(EncodingSample{PermutationEncoding}(n,m))
 st2=rand(EncodingSample{TwoVectorEncoding}(n,m))
@@ -34,8 +34,8 @@ sol2=computeTimeGetOnly(st1,m,p,itemsNeeded,c,tt)
 localRes1=modularLocalSearch(LocalSearchSettings(changeIterator(st1),false),sf,copy(st1))
 localRes2=modularLocalSearch(LocalSearchSettings(changeIterator(st2),false),sf,copy(st2))
 
-tabuRes1=modularTabuSearch(TabuSearchSettings(1000,1000,1000),sf,copy(st1))
-tabuRes2=modularTabuSearch(TabuSearchSettings(1000,1000,1000),sf,copy(st2))
+tabuRes1=modularTabuSearch(TabuSearchSettings(100,1000,100),sf,copy(st1))
+tabuRes2=modularTabuSearch(TabuSearchSettings(100,1000,100),sf,copy(st2))
 
 tmp=copy(st1)
 annealingRes1=modularAnnealing(AnnealingSettings(10000,maxDif(tmp,sf),it->it*0.995,(old,new,threshold)->new-old<threshold),sf,tmp)
@@ -72,7 +72,10 @@ plr=plot(pl1,pl2,layout=(2,1))
 ##
 plot(tabuRes1[3][1:10],label=false)
 ##
+sol=computeTimeCancelReturn(tabuRes1[2],m,p,itemsNeeded,c,tt)
+##
 sol=computeTimeCancelReturn(st1,m,p,itemsNeeded,c,tt)
+##
 cars=normalizeHistory(sol[3],tt)
 pl1=gantt(sol[1],p,false,string.(itemsNeeded))
 pl2=plotDetailedCarUsage(cars,tt,c,(0,sol[2]))
@@ -83,5 +86,6 @@ for i=1:length(sol[4])
 	pl1=gantt(sol[1],p,false,string.(itemsNeeded))
 	pl2=plotDetailedCarUsage(cars,tt,c,(0,sol[2]))
 	plr=plot(pl1,pl2,layout=(2,1))
+	png(plr,"out/fopt_$i")
 	display(plr)
 end
