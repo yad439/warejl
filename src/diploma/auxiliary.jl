@@ -38,7 +38,7 @@ function gantt(jobs,jobLengths,useLabel=length(jobLengths)≤10,text=nothing)
 	for i=1:length(jobLengths)
 		job=GanttJob(jobs.assignment[i],jobs.times[i],jobLengths[i])
 		cent=center(job)
-		plot!(pl,job,label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? (cent...,text[i]) : nothing))
+		plot!(pl,job,label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? (cent...,Plots.text(text[i],8)) : nothing))
 	end
 	pl
 end
@@ -78,7 +78,7 @@ function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
 		end
 	end |> Iterators.flatten
 	plt=plot(label=false,xlims=xlims)
-	foreach(job->plot!(plt,job[1],annotations=(center(job[1])...,string(job[2])),label=false),jobs)
+	foreach(job->plot!(plt,job[1],annotations=(center(job[1])...,Plots.text(string(job[2]),8)),label=false),jobs)
 	plt
 end
 
