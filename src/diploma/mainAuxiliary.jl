@@ -197,6 +197,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 	bufferState=BitSet()
 	currentStart=nothing
 	for job ∈ timetable.permutation
+		addTime=0
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
 		if currentStart≢nothing
 			inter=currentStart.remove ∩ itemsNeeded[job]
@@ -206,6 +207,12 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			carsAvailable+=length(inter)
 			inter=currentStart.add ∩ itemsNeeded[job]
 			setdiff!(itemsLeft,inter)
+		end
+		for event ∈ inUseCars
+			if !event[1][2] !isdisjoint(itemsLeft,event[2].add)
+				setdiff!(itemsLeft,event[2].add)
+				addTime=event[1][1]
+			end
 		end
 		while length(itemsLeft)>0
 			availableAtEnd=carsAvailable
@@ -220,7 +227,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			end
 			# realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
-				@assert realAvailable==0
+				@assert realAvailable≥0
 				(availableFromTime,isNew),carChange=pop!(inUseCars)
 				isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
@@ -263,7 +270,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		end
 		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
-		startTime=max(sums[machine],availableFromTime+carTravelTime)
+		startTime=max(sums[machine],availableFromTime+carTravelTime)#toda addTime?
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 
@@ -290,8 +297,8 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 			end
 			# realAvailable=min(backAvailable,availableAtEnd)
-			while realAvailable≤0
-				@assert realAvailable==0
+			while realAvailable≤0 || (!isempty(inUseCars2) && first(inUseCars2)[1][1]==backAvailableFrom)
+				@assert realAvailable≥0
 				(backAvailableFrom,isNew),carChange=pop!(inUseCars2)
 				backAvailable-=length(carChange)*(2Int(isNew)-1)
 				@assert 0≤backAvailable≤carCount "Cars availavle: $backAvailable"
