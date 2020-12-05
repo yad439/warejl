@@ -51,7 +51,7 @@ end
 function push!(queue::EventQueue2,time,new,entry::EventEntry,dup::Bool=false)
 	if haskey(queue.data,(time,new))
 		if dup
-			@assert queue.data[(time,new)]≡entry #todo enable
+			@assert queue.data[(time,new)]≡entry
 		else
 			@assert isdisjoint(queue.data[(time,new)].add,entry.add)
 			@assert isdisjoint(queue.data[(time,new)].remove,entry.remove)
