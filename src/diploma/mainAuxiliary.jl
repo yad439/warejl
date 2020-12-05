@@ -225,7 +225,6 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
 				availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 			end
-			# realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
 				@assert realAvailable≥0
 				(availableFromTime,isNew),carChange=popfirst!(inUseCars)
@@ -256,7 +255,6 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
 					availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 				end
-				# realAvailable=min(carsAvailable,availableAtEnd)
 			end
 			carsUsed=min(realAvailable,length(itemsLeft))
 			carsAvailable-=carsUsed
@@ -295,7 +293,6 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
 				availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 			end
-			# realAvailable=min(backAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars2) && first(inUseCars2)[1][1]==backAvailableFrom)
 				@assert realAvailable≥0
 				(backAvailableFrom,isNew),carChange=popfirst!(inUseCars2)
@@ -311,7 +308,6 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 					availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 				end
 				@assert availableAtEnd≥0
-				# realAvailable=min(backAvailable,availableAtEnd)
 			end
 			carsUsed=min(realAvailable,length(itemsLeft))
 			backAvailable-=carsUsed
