@@ -209,7 +209,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			setdiff!(itemsLeft,inter)
 		end
 		for event ∈ inUseCars
-			if !event[1][2] !isdisjoint(itemsLeft,event[2].add)
+			if !event[1][2] && !isdisjoint(itemsLeft,event[2].add)
 				setdiff!(itemsLeft,event[2].add)
 				addTime=event[1][1]
 			end
@@ -270,7 +270,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		end
 		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
-		startTime=max(sums[machine],availableFromTime+carTravelTime)#toda addTime?
+		startTime=max(sums[machine],availableFromTime+carTravelTime,addTime)
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 
