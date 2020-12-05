@@ -30,7 +30,7 @@ function computeTimeGetOnly(timetable,machineCount,jobLengths,itemsNeeded,carCou
 			itemsLeft-=carsUsed
 			lastDeliverTime=availableFromTime
 			while realAvailable≤0
-				availableFromTime,carChange=pop!(inUseCars)
+				availableFromTime,carChange=popfirst!(inUseCars)
 				carsAvailable+=carChange
 				@assert carsAvailable≥0
 				carsAvailable==0 && continue
@@ -78,7 +78,7 @@ function computeTimeGetOnlyWaitOne(timetable,machineCount,jobLengths,itemsNeeded
 			itemsLeft-=carsUsed
 			lastDeliverTime=availableFromTime
 			while realAvailable≤0
-				availableFromTime,carChange=pop!(inUseCars)
+				availableFromTime,carChange=popfirst!(inUseCars)
 				carsAvailable+=carChange
 				@assert carsAvailable≥0
 				carsAvailable==0 && continue
@@ -121,7 +121,7 @@ function computeTimeNoWait(timetable,machineCount,jobLengths,itemsNeeded,carCoun
 			realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0
 				@assert realAvailable==0
-				availableFromTime,carChange=pop!(inUseCars)
+				availableFromTime,carChange=popfirst!(inUseCars)
 				carsAvailable+=carChange
 				@assert carsAvailable≥0
 				carsAvailable==0 && continue
@@ -150,7 +150,7 @@ function computeTimeNoWait(timetable,machineCount,jobLengths,itemsNeeded,carCoun
 		backAvailable=carsAvailable
 		inUseCars2=copy(inUseCars)
 		while !isempty(inUseCars2) && first(inUseCars2)[1]<backAvailableFrom
-			backAvailable+=pop!(inUseCars2)[2]
+			backAvailable+=popfirst!(inUseCars2)[2]
 		end
 		while itemsLeft>0
 			availableAtEnd=backAvailable
@@ -169,7 +169,7 @@ function computeTimeNoWait(timetable,machineCount,jobLengths,itemsNeeded,carCoun
 			itemsLeft-=carsUsed
 			itemsLeft==0 && break
 			while realAvailable==0
-				backAvailableFrom,carChange=pop!(inUseCars2)
+				backAvailableFrom,carChange=popfirst!(inUseCars2)
 				backAvailable+=carChange
 				@assert backAvailable≥0
 				backAvailable==0 && continue
@@ -228,7 +228,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			# realAvailable=min(carsAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
 				@assert realAvailable≥0
-				(availableFromTime,isNew),carChange=pop!(inUseCars)
+				(availableFromTime,isNew),carChange=popfirst!(inUseCars)
 				isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
 				push!(carHistory,((availableFromTime,isNew),carChange))
@@ -278,7 +278,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		backAvailable=carsAvailable
 		inUseCars2=copy(inUseCars)
 		while !isempty(inUseCars2) && first(inUseCars2)[1][1]<backAvailableFrom
-			event=pop!(inUseCars2)
+			event=popfirst!(inUseCars2)
 			event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
 			backAvailable-=length(event[2])*(2Int(event[1][2])-1)
 			@assert 0≤backAvailable≤carCount "Cars availavle: $backAvailable"
@@ -299,7 +299,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			# realAvailable=min(backAvailable,availableAtEnd)
 			while realAvailable≤0 || (!isempty(inUseCars2) && first(inUseCars2)[1][1]==backAvailableFrom)
 				@assert realAvailable≥0
-				(backAvailableFrom,isNew),carChange=pop!(inUseCars2)
+				(backAvailableFrom,isNew),carChange=popfirst!(inUseCars2)
 				backAvailable-=length(carChange)*(2Int(isNew)-1)
 				@assert 0≤backAvailable≤carCount "Cars availavle: $backAvailable"
 				backAvailable==0 && continue
