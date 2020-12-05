@@ -1,5 +1,5 @@
 using DataStructures
-import Base.eltype,Base.length,Base.iterate,Base.push!,Base.pop!,Base.copy,Base.first,Base.isempty,Base.popfirst!
+import Base.eltype,Base.length,Base.iterate,Base.push!,Base.pop!,Base.copy,Base.first,Base.isempty,Base.popfirst!,Base.append!
 
 struct EventQueue
 	data::SortedDict{Int,Int}
@@ -62,6 +62,20 @@ function push!(queue::EventQueue2,time,new,entry::EventEntry,dup::Bool=false)
 		insert!(queue.data,(time,new),entry)
 	end
 	queue.data[(time,new)]
+end
+function append!(queue::EventQueue2,time,new,add,items)
+	if haskey(queue.data,(time,new))
+		if add
+			@assert isdisjoint(queue.data[(time,new)].add,items)
+			union!(queue.data[(time,new)].add,items)
+		else
+			@assert isdisjoint(queue.data[(time,new)].remove,items)
+			union!(queue.data[(time,new)].remove,items)
+		end
+	else
+		entry=add ? EventEntry(BitSet(items),BitSet()) : EventEntry(BitSet(),BitSet(items))
+		insert!(queue.data,(time,new),entry)
+	end
 end
 function popfirst!(queue::EventQueue2)
 	ret=first(queue.data)

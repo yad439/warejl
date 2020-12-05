@@ -261,9 +261,7 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 			carsUsed=min(realAvailable,length(itemsLeft))
 			carsAvailable-=carsUsed
 			items=Iterators.take(itemsLeft,carsUsed)
-			for item ∈ items #todo optimize
-				push!(inUseCars,availableFromTime+carTravelTime,false,true,item)
-			end
+			append!(inUseCars,availableFromTime+carTravelTime,false,true,items)
 			currentStart≡nothing && (currentStart=EventEntry(BitSet(),BitSet()))
 			union!(currentStart.add,items)# todo optimize
 			setdiff!(itemsLeft,items)
