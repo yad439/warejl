@@ -185,7 +185,7 @@ function computeTimeNoWait(timetable,machineCount,jobLengths,itemsNeeded,carCoun
 	Schedule(assignment,times),maximum(sums),carHistory
 end
 
-function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime)
+function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize)
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
@@ -217,18 +217,41 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 		while length(itemsLeft)>0
 			availableAtEnd=carsAvailable
 			realAvailable=carsAvailable
+			currentBufferSize=length(bufferState)
 			for event ∈ inUseCars
 				event[1][1]>availableFromTime+carTravelTime && break
-				event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
-				event[1][1]==availableFromTime+carTravelTime && break
+				# event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+				if event[1][2]
+					inter=event[2].remove ∩ itemsNeeded[job]
+					if !isempty(inter)
+						minch=currentBufferSize-bufferSize
+						maxd=length(event[2].remove)-minch
+						rm=Iterators.take(itemsNeeded[job],maxd)
+						setdiff!(event[2].remove,rm)
+					end
+					currentBufferSize-=length(event[2].remove)
+				else
+					currentBufferSize+=length(event[2].add)
+				end
+				event[1][1]==availableFromTime+carTravelTime && continue
 				availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 				@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
 				availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 			end
+			@assert currentBufferSize≤bufferSize "Items in buffer: $currentBufferSize"
 			while realAvailable≤0 || (!isempty(inUseCars) && first(inUseCars)[1][1]==availableFromTime)
 				@assert realAvailable≥0
 				(availableFromTime,isNew),carChange=popfirst!(inUseCars)
-				isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
+				# isNew && setdiff!(carChange.remove,itemsNeeded[job]) # cancel remove start
+				if isNew
+					inter=carChange.remove ∩ itemsNeeded[job]
+					if !isempty(inter)
+						minch=currentBufferSize-bufferSize
+						maxd=length(carChange.remove)-minch
+						rm=Iterators.take(itemsNeeded[job],maxd)
+						setdiff!(carChange.remove,rm)
+					end
+				end
 				carsAvailable-=length(carChange)*(2Int(isNew)-1)
 				push!(carHistory,((availableFromTime,isNew),carChange))
 				@assert 0≤carsAvailable≤carCount "Cars availavle: $carsAvailable"
@@ -247,16 +270,86 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 				carsAvailable==0 && continue
 				availableAtEnd=carsAvailable
 				realAvailable=carsAvailable
+				currentBufferSize=length(bufferState)
 				for event ∈ inUseCars
 					event[1][1]>availableFromTime+carTravelTime && break
-					event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
-					event[1][1]==availableFromTime+carTravelTime && break
+					# event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+					if event[1][2]
+						inter=event[2].remove ∩ itemsNeeded[job]
+					if !isempty(inter)
+						minch=currentBufferSize-bufferSize
+						maxd=length(event[2].remove)-minch
+						rm=Iterators.take(itemsNeeded[job],maxd)
+						setdiff!(event[2].remove,rm)
+					end
+						currentBufferSize-=length(event[2].remove)
+					else
+						currentBufferSize+=length(event[2].add)
+					end
+					event[1][1]==availableFromTime+carTravelTime && continue
+					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
+					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
+					availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
+				end
+				@assert currentBufferSize≤bufferSize
+			end
+			while currentBufferSize≥bufferSize
+				currentBufferSize=length(bufferState)
+				bufferFreeTime=0
+				for event ∈ inUseCars
+					# event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+					if event[1][2]
+						inter=event[2].remove ∩ itemsNeeded[job]
+					if !isempty(inter)
+						minch=currentBufferSize-bufferSize
+						maxd=length(event[2].remove)-minch
+						rm=Iterators.take(itemsNeeded[job],maxd)
+						setdiff!(event[2].remove,rm)
+					end
+						currentBufferSize-=length(event[2].remove)
+					else
+						currentBufferSize+=length(event[2].add)
+					end
+					bufferFreeTime=event[1][1]
+					(currentBufferSize<bufferSize && bufferFreeTime≥availableFromTime+carTravelTime) && break
+				end
+				while !isempty(inUseCars) && first(inUseCars)[1][1]≤bufferFreeTime-carTravelTime
+					event=popfirst!(inUseCars)
+					# event[1][2] && setdiff!(event[2].remove,itemsNeeded[job]) # cancel remove start
+					# if event[1][2]
+					# 	inter=event[2].remove ∩ itemsNeeded[job]
+					# 	if !isempty(inter)
+					# 		minch=currentBufferSize-bufferSize
+					# 		maxd=length(event[2].remove)-minch
+					# 		rm=Iterators.take(itemsNeeded[job],maxd)
+					# 		setdiff!(event[2].remove,rm)
+					# 	end
+					# end
+					carsAvailable-=length(event[2])*(2Int(event[1][2])-1)
+					@assert 0≤carsAvailable≤carCount "Cars availavle: $carsAvailable"
+					if event[1][2]
+						@assert event[2].remove ⊆ bufferState
+						setdiff!(bufferState,event[2].remove)
+					else
+						@assert isdisjoint(bufferState,event[2].add)
+						union!(bufferState,event[2].add)
+					end
+					if event[1][2]
+						currentStart=event[2]
+					else
+						currentStart=nothing
+					end
+				end
+				availableAtEnd=carsAvailable
+				for event ∈ inUseCars
+					event[1][1]≥availableFromTime+carTravelTime && continue
 					availableAtEnd-=length(event[2])*(2Int(event[1][2])-1)
 					@assert 0≤availableAtEnd≤carCount "Cars availavle at end: $availableAtEnd"
 					availableAtEnd<realAvailable && (realAvailable=availableAtEnd)
 				end
 			end
-			carsUsed=min(realAvailable,length(itemsLeft))
+			carsUsed=min(realAvailable,length(itemsLeft),bufferSize-currentBufferSize)
+			@assert carsUsed>0
 			carsAvailable-=carsUsed
 			items=Iterators.take(itemsLeft,carsUsed)
 			currentStart≢nothing && @assert isdisjoint(currentStart.add,items)
