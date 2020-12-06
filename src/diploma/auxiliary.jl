@@ -2,6 +2,8 @@ using Plots
 import Plots.center
 
 include("common.jl")
+include("structures.jl")
+include("utility.jl")
 
 struct Schedule
 	assignment::Vector{Int}
@@ -87,6 +89,30 @@ function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
 	removesAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),removes)
 	plot!(plt,addsShapes,annotations=addsAnnotations,label="Add")
 	plot!(plt,removesShapes,annotations=removesAnnotations,label="Remove")
+	plt
+end
+
+function plotDetailedBufferUsage(carHistory,carTravelTime,bufferSize,xlims)
+	itemsInBuffer=Tuple{Int,Int,Int}[]
+	for event ∈ carHistory
+		for item ∈ event.items
+			if item[2]
+				upcoming=filter(it->it.time>event.time+carTravelTime,carHistory)
+				endEvent=findfirst(ev->ev.items ∋ (item[1],false),upcoming)
+				endTime=endEvent≢nothing ? upcoming[endEvent].time : xlims[2]
+				push!(itemsInBuffer,(item[1],event.time+carTravelTime,endTime))
+			end
+		end
+	end
+	maxTime=zeros(bufferSize)
+	jobs=map(itemsInBuffer) do item
+		car=findfirst(≤(item[2]),maxTime)
+		job=GanttJob(car,item[2],item[3]-item[2])
+		maxTime[car]=item[3]
+		job,item[1]
+	end
+	plt=plot(label=false,xlims=xlims)
+	foreach(job->plot!(plt,job[1],label=false,annotations=(center(job[1])...,Plots.text(string(job[2]),8))),jobs)
 	plt
 end
 
