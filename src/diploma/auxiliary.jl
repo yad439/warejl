@@ -14,7 +14,8 @@ struct GanttJob
 	duration::Int
 end
 
-@recipe plotGanttJob(::Type{GanttJob},job::GanttJob)=Shape([
+@recipe plotGanttJob(::Type{GanttJob},job::GanttJob)=shape(job)
+shape(job::GanttJob)=Shape([
 	(job.startTime,job.assignment-1),
 	(job.startTime,job.assignment),
 	(job.startTime+job.duration,job.assignment),
@@ -76,9 +77,16 @@ function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
 			maxTime[car]=event.time+carTravelTime
 			job,item
 		end
-	end |> Iterators.flatten
+	end |> Iterators.flatten |> collect
 	plt=plot(label=false,xlims=xlims)
-	foreach(job->plot!(plt,job[1],annotations=(center(job[1])...,Plots.text(string(job[2]),8)),label=false),jobs)
+	adds=filter(job->job[2][2],jobs)
+	removes=filter(job->!job[2][2],jobs)
+	addsShapes=map(shape∘first,adds)
+	addsAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),adds)
+	removesShapes=map(shape∘first,removes)
+	removesAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),removes)
+	plot!(plt,addsShapes,annotations=addsAnnotations,label="Add")
+	plot!(plt,removesShapes,annotations=removesAnnotations,label="Remove")
 	plt
 end
 
