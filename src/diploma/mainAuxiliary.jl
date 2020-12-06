@@ -429,7 +429,6 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	bufferState=BitSet()
 	lockTime=Dict{Int,Int}()
 	for job ∈ timetable.permutation
-		lastDeliverTime=0
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
 		while length(itemsLeft)>0
 			while carsAvailable≤0
@@ -482,7 +481,7 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 		end
 		machine=selectMachine(job,timetable,sums)
 		assignment[job]=machine
-		startTime=max(sums[machine],lastDeliverTime+carTravelTime)
+		startTime=max(sums[machine],availableFromTime+carTravelTime)
 		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 		for item ∈ itemsNeeded[job]
