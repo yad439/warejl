@@ -6,6 +6,7 @@ include("modularTabu.jl");
 include("modularLocal.jl");
 include("modularAnnealing.jl");
 include("modularGenetic.jl");
+include("realDataUtility.jl");
 
 using Random
 ##
@@ -20,6 +21,15 @@ c=6
 k=length.(itemsNeeded)
 bs=4
 @assert bs≥maximum(length.(itemsNeeded))
+##
+rdt=parseRealData("res/benchmark - automatic warehouse",20,1)|>toModerateJobs
+n=length(rdt[1])
+m=6
+p=rdt[1]
+itemsNeeded=rdt[2]
+tt=rdt[3]
+c=10
+bs=maximum(length.(itemsNeeded))
 ##
 sf1(jobs)=maxTimeWithCars(jobs,p,k,m,c,tt)
 sf5(jobs)=maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
