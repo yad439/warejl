@@ -87,7 +87,7 @@ scheduleToEncoding(::Type{PermutationEncoding},schedule)=schedule.times|>sortper
 selectMachine(job,timetable::PermutationEncoding,sums)=argmin(sums)
 selectMachine(job,timetable::TwoVectorEncoding,sums)=timetable.assignment[job]
 
-function normalizeHistory(history,carTravelTime)
+function normalizeHistory(history::AbstractVector{Tuple{Tuple{Int,Bool},EventEntry}},carTravelTime)
 	onlyStart=history |> it->filter(x->!x[1][2],it) |> it->map(x->(x[1][1]-carTravelTime,x[2]),it)
 	map(onlyStart) do event
 		items=Iterators.flatten((
@@ -95,5 +95,14 @@ function normalizeHistory(history,carTravelTime)
 			map(x->(x,false),collect(event[2].remove))
 		))|>collect
 		(time=event[1],items=items)
+	end |> it->filter(x->!isempty(x.items),it)
+end
+function normalizeHistory(history::AbstractVector{Tuple{Int,EventEntry3}},carTravelTime)
+	map(history) do event
+		items=Iterators.flatten((
+			map(x->(x,true),collect(event[2].endAdd)),
+			map(x->(x,false),collect(event[2].endRemove))
+		))|>collect
+		(time=event[1]-carTravelTime,items=items)
 	end |> it->filter(x->!isempty(x.items),it)
 end
