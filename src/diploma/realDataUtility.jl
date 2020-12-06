@@ -1,6 +1,8 @@
 using CSV,DataFrames
 using Dates,Statistics
 
+include("utility.jl")
+
 struct Batch
 	id
 	orders
@@ -82,6 +84,3 @@ function toModerateJobs(batches)
 	carTravelTime=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.transportTime) |> mean |> x->round(Int,x)
 	Int.(jobLengths),itemsForJob,carTravelTime
 end
-
-▷(f,g)=g∘f
-fmap(f)=x->map(f,x)
