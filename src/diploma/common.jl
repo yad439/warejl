@@ -41,7 +41,7 @@ length(timetable::StateEncoding{T}) where{T}=length(timetable.machineEncoding)
 function randomChange(jobs::PermutationEncoding)
 	jobCount=length(jobs.permutation)
 	while true
-		type=rand([PERMUTATION_MOVE,PERMUTATION_SWAP])
+		type=rand((PERMUTATION_MOVE,PERMUTATION_SWAP))
 		arg1=rand(1:jobCount)
 		arg2=rand(1:jobCount)
 		arg1==arg2 && continue
@@ -51,7 +51,7 @@ end
 function randomChange(jobs::TwoVectorEncoding)
 	jobCount=length(jobs.assignment)
 	while true
-		type=rand([TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER])
+		type=rand((TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER))
 		arg1=rand(1:jobCount)
 		arg2=rand(1:(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? jobCount : jobs.machineCount))
 		arg1==arg2 && type≠TWO_VECTOR_MOVE_ASSIGNMENT && continue
@@ -66,7 +66,7 @@ end
 function randomChange!(jobs::TwoVectorEncoding,canDo)
 	jobCount=length(jobs.assignment)
 	while true
-		type=rand([TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER])
+		type=rand((TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER))
 		arg1=rand(1:jobCount)
 		arg2=rand(1:(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? jobCount : jobs.machineCount))
 		arg1==arg2 && type≠TWO_VECTOR_MOVE_ASSIGNMENT && continue
@@ -78,7 +78,7 @@ end
 function randomChange!(jobs::PermutationEncoding,canDo)
 	jobCount=length(jobs.permutation)
 	while true
-		type=rand([PERMUTATION_MOVE,PERMUTATION_SWAP])
+		type=rand((PERMUTATION_MOVE,PERMUTATION_SWAP))
 		arg1=rand(1:jobCount)
 		arg2=rand(1:jobCount)
 		arg1==arg2 && continue
