@@ -496,3 +496,59 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	debug && foreach(event->push!(carHistory,(event[1],event[2])),inUseCars)
 	debug ? (Schedule(assignment,times),maximum(sums),carHistory,bigHistory) : maximum(sums)
 end
+
+function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{false})
+	sums=fill(zero(eltype(jobLengths)),machineCount)
+	inUseCars=EventQueue()
+	carsAvailable=carCount
+	availableFromTime=0 # points at last add travel start
+	bufferState=BitSet()
+	lockTime=Dict{Int,Int}()
+	for (ind,job) ∈ Iterators.enumerate(timetable.permutation)
+		itemsLeft=setdiff(itemsNeeded[job],bufferState)
+		while length(itemsLeft)>0
+			while carsAvailable≤0
+				(availableFromTime,carChange)=popfirst!(inUseCars)
+				carsAvailable+=carChange
+			end
+			if length(bufferState)<bufferSize
+				carsUsed=min(carsAvailable,bufferSize-length(bufferState),length(itemsLeft))
+				toAdd=Iterators.take(itemsLeft,carsUsed)
+				carsAvailable-=carsUsed
+				push!(inUseCars,availableFromTime+carTravelTime,carsUsed)
+				union!(bufferState,toAdd)
+				setdiff!(itemsLeft,toAdd)
+			else
+				activeLocks=Iterators.map(it->(it,lockTime[it]),Iterators.filter(it->it∉itemsNeeded[job],bufferState))
+				minLockTime=minimum(lock[2] for lock ∈ activeLocks)
+				while !isempty(inUseCars) && first(inUseCars)[1]≤minLockTime-carTravelTime
+					(availableFromTime,carChange)=popfirst!(inUseCars)
+					carsAvailable+=carChange
+				end
+				availableFromTime=max(availableFromTime,minLockTime-carTravelTime)
+				minLocks=Iterators.map(first,Iterators.filter(it->it[2]==minLockTime,activeLocks)) |> collect
+				nexts=map(item->findnext(jb->item ∈ itemsNeeded[jb],timetable.permutation,ind+1),minLocks) |> fmap(it->it≡nothing ? typemax(Int) : it)
+				nextsDict=Dict(Iterators.zip(minLocks,nexts))
+				sort!(minLocks,by=it->nextsDict[it],rev=true)
+				changesNum=min(carsAvailable,length(minLocks),length(itemsLeft))
+				toRemove=Iterators.take(minLocks,changesNum)
+				toAdd=Iterators.take(itemsLeft,changesNum)
+				for item ∈ toRemove
+					delete!(lockTime,item)
+				end
+				carsAvailable-=changesNum
+				push!(inUseCars,availableFromTime+2carTravelTime,changesNum)
+				setdiff!(bufferState,toRemove)
+				union!(bufferState,toAdd)
+				setdiff!(itemsLeft,toAdd)
+			end
+		end
+		machine=selectMachine(job,timetable,sums)
+		startTime=max(sums[machine],availableFromTime+carTravelTime)
+		sums[machine]=startTime+jobLengths[job]
+		for item ∈ itemsNeeded[job]
+			lockTime[item]=max(get(lockTime,item,0),startTime+jobLengths[job])
+		end
+	end
+	maximum(sums)
+end
