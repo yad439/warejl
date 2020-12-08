@@ -16,6 +16,7 @@ m=3
 p=rand(5:20,n)
 itemCount=14
 itemsNeeded=[randsubseq(1:itemCount,0.1) for _=1:n]
+itemsNeeded=map(BitSet,itemsNeeded)
 tt=10
 c=6
 k=length.(itemsNeeded)
@@ -27,6 +28,7 @@ n=length(rdt[1])
 m=6
 p=rdt[1]
 itemsNeeded=rdt[2]
+itemsNeeded=map(BitSet,itemsNeeded)
 tt=rdt[3]
 c=10
 bs=maximum(length.(itemsNeeded))
