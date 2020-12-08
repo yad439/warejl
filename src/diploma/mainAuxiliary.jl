@@ -503,7 +503,7 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	carsAvailable=carCount
 	availableFromTime=0 # points at last add travel start
 	bufferState=BitSet()
-	lockTime=Dict{Int,Int}()
+	lockTime=zeros(Int,maximum(Iterators.flatten(itemsNeeded)))
 	for (ind,job) ∈ Iterators.enumerate(timetable.permutation)
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
 		while length(itemsLeft)>0
@@ -533,9 +533,6 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 				changesNum=min(carsAvailable,length(minLocks),length(itemsLeft))
 				toRemove=Iterators.take(minLocks,changesNum)
 				toAdd=Iterators.take(itemsLeft,changesNum)
-				for item ∈ toRemove
-					delete!(lockTime,item)
-				end
 				carsAvailable-=changesNum
 				push!(inUseCars,availableFromTime+2carTravelTime,changesNum)
 				setdiff!(bufferState,toRemove)
@@ -547,7 +544,7 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 		startTime=max(sums[machine],availableFromTime+carTravelTime)
 		sums[machine]=startTime+jobLengths[job]
 		for item ∈ itemsNeeded[job]
-			lockTime[item]=max(get(lockTime,item,0),startTime+jobLengths[job])
+			lockTime[item]=max(lockTime[item],startTime+jobLengths[job])
 		end
 	end
 	maximum(sums)
