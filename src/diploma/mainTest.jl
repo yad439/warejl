@@ -36,7 +36,7 @@ sf5(jobs)=maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
 sf2(jobs)=computeTimeGetOnly(jobs,m,p,itemsNeeded,c,tt)[2]
 sf3(jobs)=computeTimeGetOnlyWaitOne(jobs,m,p,itemsNeeded,c,tt)[2]
 sf4(jobs)=computeTimeCancelReturn(jobs,m,p,itemsNeeded,c,tt,bs)[2]
-sf6(jobs)=computeTimeLazyReturn(jobs,m,p,itemsNeeded,c,tt,bs)[2]
+sf6(jobs)=computeTimeLazyReturn(jobs,m,p,itemsNeeded,c,tt,bs,Val(false))
 sf=sf6
 ##
 st1=rand(EncodingSample{PermutationEncoding}(n,m))
@@ -86,9 +86,9 @@ plr=plot(pl1,pl2,layout=(2,1))
 ##
 plot(tabuRes1[3][1:10],label=false)
 ##
-sol=computeTimeLazyReturn(tabuRes1[2],m,p,itemsNeeded,c,tt,bs)
+sol=computeTimeLazyReturn(tabuRes1[2],m,p,itemsNeeded,c,tt,bs,Val(true))
 ##
-sol=computeTimeLazyReturn(st1,m,p,itemsNeeded,c,tt,bs)
+sol=computeTimeLazyReturn(st1,m,p,itemsNeeded,c,tt,bs,Val(true))
 ##
 cars=normalizeHistory(sol[3],tt)
 pl1=gantt(sol[1],p,false,string.(itemsNeeded))
