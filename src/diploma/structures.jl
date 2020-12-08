@@ -10,11 +10,17 @@ length(queue::EventQueue)=length(queue.data)
 iterate(queue::EventQueue)=iterate(queue.data)
 iterate(queue::EventQueue,state)=iterate(queue.data,state)
 function push!(queue::EventQueue,time,number)
-	queue.data[time]=get(queue.data,time,0)+number;
+	st=searchsortedfirst(queue.data,time)
+	if st==pastendsemitoken(queue.data) || deref_key((queue.data,st))≠time
+		queue.data[time]=number
+	else
+		queue.data[st]=deref_value((queue.data,st))+number;
+	end
 end
 function popfirst!(queue::EventQueue)
-	ret=first(queue.data)
-	pop!(queue.data,ret[1])
+	st=startof(queue.data)
+	ret=deref((queue.data,st))
+	delete!((queue.data,st))
 	ret
 end
 copy(queue::EventQueue)=EventQueue(copy(queue.data))
