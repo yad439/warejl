@@ -2,27 +2,22 @@ using DataStructures
 import Base.eltype,Base.length,Base.iterate,Base.push!,Base.pop!,Base.copy,Base.first,Base.isempty,Base.popfirst!,Base.append!
 
 struct EventQueue
-	data::SortedDict{Int,Int}
+	data::Deque{Tuple{Int,Int}}
 end
-EventQueue()=EventQueue(SortedDict{Int,Int}())
-eltype(::Type{EventQueue})=Pair{Int,Int}
+EventQueue()=EventQueue(Deque{Tuple{Int,Int}}())
+eltype(::Type{EventQueue})=Tuple{Int,Int}
 length(queue::EventQueue)=length(queue.data)
 iterate(queue::EventQueue)=iterate(queue.data)
 iterate(queue::EventQueue,state)=iterate(queue.data,state)
 function push!(queue::EventQueue,time,number)
-	st=searchsortedfirst(queue.data,time)
-	if st==pastendsemitoken(queue.data) || deref_key((queue.data,st))≠time
-		queue.data[time]=number
+	if !isempty(queue.data) && last(queue.data)[1]==time
+		prevNum=pop!(queue.data)[2]
+		push!(queue.data,(time,prevNum+number))
 	else
-		queue.data[st]=deref_value((queue.data,st))+number;
+		push!(queue.data,(time,number))
 	end
 end
-function popfirst!(queue::EventQueue)
-	st=startof(queue.data)
-	ret=deref((queue.data,st))
-	delete!((queue.data,st))
-	ret
-end
+popfirst!(queue::EventQueue)=popfirst!(queue.data)
 copy(queue::EventQueue)=EventQueue(copy(queue.data))
 first(queue::EventQueue)=first(queue.data)
 isempty(queue::EventQueue)=isempty(queue.data)
