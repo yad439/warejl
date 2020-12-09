@@ -41,6 +41,7 @@ sf4(jobs)=computeTimeCancelReturn(jobs,m,p,itemsNeeded,c,tt,bs)[2]
 sf6(jobs)=computeTimeLazyReturn(jobs,m,p,itemsNeeded,c,tt,bs,Val(false))
 sf=sf6
 ##
+Random.seed!(4350)
 st1=rand(EncodingSample{PermutationEncoding}(n,m))
 st2=rand(EncodingSample{TwoVectorEncoding}(n,m))
 ##
@@ -91,6 +92,7 @@ plot(tabuRes1[3][1:10],label=false)
 sol=computeTimeLazyReturn(tabuRes1[2],m,p,itemsNeeded,c,tt,bs,Val(true))
 ##
 sol=computeTimeLazyReturn(st1,m,p,itemsNeeded,c,tt,bs,Val(true))
+@assert sol[2]==computeTimeLazyReturn(st1,m,p,itemsNeeded,c,tt,bs,Val(false))
 ##
 cars=normalizeHistory(sol[3],tt)
 pl1=gantt(sol[1],p,false,string.(itemsNeeded))
