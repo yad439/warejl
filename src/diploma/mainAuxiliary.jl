@@ -505,6 +505,7 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	bufferState=BitSet()
 	lockTime=zeros(Int,maximum(Iterators.flatten(itemsNeeded)))
 	nexts=similar(lockTime)
+	minLocks=Vector{Int}(undef,bufferSize)
 	for (ind,job) ∈ Iterators.enumerate(timetable.permutation)
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
 		while length(itemsLeft)>0
@@ -520,20 +521,31 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 				union!(bufferState,toAdd)
 				setdiff!(itemsLeft,toAdd)
 			else
-				activeLocks=Iterators.map(it->(it,lockTime[it]),Iterators.filter(it->it∉itemsNeeded[job],bufferState))
-				minLockTime=minimum(lock[2] for lock ∈ activeLocks)
+				minLocksLen=0
+				minLockTime=typemax(Int)
+				for item ∈ bufferState
+					item∉itemsNeeded[job] || continue
+					if lockTime[item]<minLockTime
+						minLockTime=lockTime[item]
+						minLocksLen=1
+						minLocks[1]=item
+					elseif lockTime[item]==minLockTime
+						minLocksLen+=1
+						minLocks[minLocksLen]=item
+					end
+				end
+				for i=1:minLocksLen
+					item=minLocks[i]
+					nxt=findnext(jb->item ∈ itemsNeeded[jb],timetable.permutation,ind+1)
+					nexts[item]= nxt≡nothing ? typemax(Int) : nxt
+				end
+				sort!(view(minLocks,1:minLocksLen),by=it->nexts[it],rev=true)
 				while !isempty(inUseCars) && first(inUseCars)[1]≤minLockTime-carTravelTime
 					(availableFromTime,carChange)=popfirst!(inUseCars)
 					carsAvailable+=carChange
 				end
 				availableFromTime=max(availableFromTime,minLockTime-carTravelTime)
-				minLocks=Iterators.map(first,Iterators.filter(it->it[2]==minLockTime,activeLocks)) |> collect
-				for item ∈ minLocks
-					nxt=findnext(jb->item ∈ itemsNeeded[jb],timetable.permutation,ind+1)
-					nexts[item]= nxt≡nothing ? typemax(Int) : nxt
-				end
-				sort!(minLocks,by=it->nexts[it],rev=true)
-				changesNum=min(carsAvailable,length(minLocks),length(itemsLeft))
+				changesNum=min(carsAvailable,minLocksLen,length(itemsLeft))
 				toRemove=Iterators.take(minLocks,changesNum)
 				toAdd=Iterators.take(itemsLeft,changesNum)
 				carsAvailable-=changesNum
