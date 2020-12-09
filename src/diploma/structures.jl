@@ -4,7 +4,7 @@ import Base.eltype,Base.length,Base.iterate,Base.push!,Base.pop!,Base.copy,Base.
 struct EventQueue
 	data::Deque{Tuple{Int,Int}}
 end
-EventQueue()=EventQueue(Deque{Tuple{Int,Int}}())
+EventQueue()=EventQueue(Deque{Tuple{Int,Int}}(128))
 eltype(::Type{EventQueue})=Tuple{Int,Int}
 length(queue::EventQueue)=length(queue.data)
 iterate(queue::EventQueue)=iterate(queue.data)
