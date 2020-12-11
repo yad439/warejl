@@ -1,4 +1,5 @@
 using ProgressMeter
+using ValueHistories
 import Base.isless,Base.isequal,Base.==
 
 include("common.jl")
@@ -17,7 +18,7 @@ function modularGenetic(settings,scoreFunction,startPopulation)
 	population=startPopulation
 	counter=0
 
-	history=Vector{typeof(population[1].score)}(undef,0)
+	history=QHistory(typeof(population[1].score))
 	push!(history,population[1].score)
 	while counter<settings.searchTries
 		parent1=randchoice(population,settings.choiceCount) |> minimum

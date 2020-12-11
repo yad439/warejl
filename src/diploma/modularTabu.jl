@@ -1,5 +1,6 @@
 using DataStructures
 using ProgressMeter
+using ValueHistories
 
 include("common.jl")
 include("utility.jl")
@@ -24,7 +25,7 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable)
 	minsol=copy(timeTable)
 	counter=0
 
-	history=Vector{typeof(minval)}(undef,0)
+	history=QHistory(typeof(minval))
 	push!(history,minval)
 	while counter<settings.searchTries
 		newTimeTableChange=modularTabuImprove(timeTable,tabu,settings.neighbourhoodSize,scoreFunction)

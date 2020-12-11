@@ -1,4 +1,5 @@
 using ProgressMeter
+using ValueHistories
 
 include("common.jl")
 
@@ -19,7 +20,7 @@ function modularAnnealing(settings,scoreFunction,startTimeTable)
 	threshold=settings.startTheshold
 
 	prevScore=minval
-	history=Vector{typeof(minval)}(undef,0)
+	history=QHistory(typeof(minval))
 	push!(history,minval)
 	while counter<settings.searchTries
 		newChange,restoreChange=randomChange!(timeTable,change->true)

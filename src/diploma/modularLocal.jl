@@ -1,6 +1,7 @@
 include("utility.jl")
 
 using ProgressMeter
+using ValueHistories
 
 struct LocalSearchSettings{T}
 	iterator::T
@@ -13,7 +14,7 @@ function modularLocalSearch(settings,scoreFunction,startTimeTable)
 	timeTable=startTimeTable
 	score=scoreFunction(timeTable)
 
-	history=Vector{typeof(score)}(undef,0)
+	history=QHistory(typeof(score))
 	push!(history,score)
 	while true
 		minScore=score
