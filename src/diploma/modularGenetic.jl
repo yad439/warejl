@@ -39,7 +39,7 @@ function modularGenetic(settings,scoreFunction,startPopulation)
 		end
 
 		push!(history,score)
-		ProgressMeter.next!(progress,showvalues=[("Min score",population[1].score)])
+		ProgressMeter.next!(progress,showvalues=(("Min score",population[1].score),))
 	end
 	ProgressMeter.finish!(progress)
 	population[1].score,population[1].jobs,history

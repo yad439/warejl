@@ -33,7 +33,7 @@ function modularLocalSearch(settings,scoreFunction,startTimeTable)
 		change!(timeTable,minChange)
 		score=minScore
 		push!(history,score)
-		ProgressMeter.next!(progress,showvalues=[("Min score",score)])
+		ProgressMeter.next!(progress,showvalues=(("Min score",score),))
 	end
 	score,timeTable,history
 end

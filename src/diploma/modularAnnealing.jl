@@ -39,7 +39,7 @@ function modularAnnealing(settings,scoreFunction,startTimeTable)
 		end
 		threshold=settings.decreasingFunction(threshold)
 		push!(history,prevScore)
-		ProgressMeter.next!(progress,showvalues=[("Min score",minval)])
+		ProgressMeter.next!(progress,showvalues=(("Min score",minval),))
 	end
 	ProgressMeter.finish!(progress)
 	minval,minsol,history
