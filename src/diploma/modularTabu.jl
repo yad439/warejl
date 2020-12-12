@@ -51,7 +51,7 @@ end
 
 function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction)
 	minval=typemax(Int)
-	toApply=(0,0,0)
+	toApply=(defaultChange(timeTable),0,0)
 	for _=1:neighbourhoodSize
 		newChange,restoreChange=randomChange!(timeTable,change->tabuCanChange(timeTable,change,tabu))
 		score=scoreFunction(timeTable)

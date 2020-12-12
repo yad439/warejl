@@ -142,3 +142,6 @@ end
 changeType(::PermutationEncoding)=PermutationChange
 changeType(::TwoVectorEncoding)=TwoVectorChange
 changeType(::StateEncoding)=StateChange
+defaultChange(::PermutationEncoding)=PERMUTATION_MOVE
+defaultChange(::TwoVectorEncoding)=TWO_VECTOR_MOVE_ASSIGNMENT
+defaultChange(::StateEncoding)=STATE_BITFLIP
