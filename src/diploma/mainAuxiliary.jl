@@ -418,13 +418,13 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 	Schedule(assignment,times),maximum(sums),carHistory,bigHistory
 end
 
-function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{debug}) where{debug}
+function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{true})
 	sums=fill(zero(eltype(jobLengths)),machineCount)
-	debug && (times=similar(jobLengths))
-	debug && (assignment=similar(jobLengths,Int))
+	times=similar(jobLengths)
+	assignment=similar(jobLengths,Int)
 	inUseCars=EventQueue3()
-	debug && (carHistory=Tuple{Int,EventEntry3}[])
-	debug && (bigHistory=Vector{Pair{Int,EventEntry3}}[])
+	carHistory=Tuple{Int,EventEntry3}[]
+	bigHistory=Vector{Pair{Int,EventEntry3}}[]
 	carsAvailable=carCount
 	availableFromTime=0 # points at last add travel start
 	bufferState=BitSet()
@@ -433,21 +433,19 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
 		while length(itemsLeft)>0
 			while carsAvailable≤0
-				debug && @assert carsAvailable≥0
+				@assert carsAvailable≥0
 				(availableFromTime,carChange)=popfirst!(inUseCars)
 				carsAvailable+=length(carChange.endAdd)+length(carChange.endRemove)-length(carChange.startRemove)
-				debug && push!(carHistory,(availableFromTime,carChange))
-				# setdiff!(bufferState,carChange.startRemove)
-				# union!(bufferState,carChange.endAdd)
-				debug && @assert carsAvailable≥0
+				push!(carHistory,(availableFromTime,carChange))
+				@assert carsAvailable≥0
 			end
 			if length(bufferState)<bufferSize
 				carsUsed=min(carsAvailable,bufferSize-length(bufferState),length(itemsLeft))
 				toAdd=Iterators.take(itemsLeft,carsUsed)
 				carsAvailable-=carsUsed
 				append!(inUseCars,availableFromTime+carTravelTime,false,true,toAdd)
-				debug && @assert isdisjoint(bufferState,toAdd)
-				debug && @assert toAdd ⊆ itemsLeft
+				@assert isdisjoint(bufferState,toAdd)
+				@assert toAdd ⊆ itemsLeft
 				union!(bufferState,toAdd)
 				setdiff!(itemsLeft,toAdd)
 			else
@@ -456,7 +454,7 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 				while !isempty(inUseCars) && first(inUseCars)[1]≤minLockTime-carTravelTime
 					(availableFromTime,carChange)=popfirst!(inUseCars)
 					carsAvailable+=length(carChange.endAdd)+length(carChange.endRemove)-length(carChange.startRemove)
-					debug && push!(carHistory,(availableFromTime,carChange))
+					push!(carHistory,(availableFromTime,carChange))
 				end
 				availableFromTime=max(availableFromTime,minLockTime-carTravelTime)
 				minLocks=Iterators.map(first,Iterators.filter(it->it[2]==minLockTime,activeLocks)) |> collect
@@ -473,28 +471,28 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 				append!(inUseCars,availableFromTime+carTravelTime,false,true,toAdd)
 				append!(inUseCars,availableFromTime+carTravelTime,true,false,toRemove)
 				append!(inUseCars,availableFromTime+2carTravelTime,false,false,toRemove)
-				debug && @assert toRemove ⊆ bufferState
-				debug && @assert isdisjoint(bufferState,toAdd)
-				debug && @assert toAdd ⊆ itemsLeft
+				@assert toRemove ⊆ bufferState
+				@assert isdisjoint(bufferState,toAdd)
+				@assert toAdd ⊆ itemsLeft
 				setdiff!(bufferState,toRemove)
 				union!(bufferState,toAdd)
 				setdiff!(itemsLeft,toAdd)
 			end
-			debug && @assert length(bufferState)≤bufferSize
-			debug && @assert carsAvailable≥0
+			@assert length(bufferState)≤bufferSize
+			@assert carsAvailable≥0
 		end
 		machine=selectMachine(job,timetable,sums)
-		debug && (assignment[job]=machine)
+		assignment[job]=machine
 		startTime=max(sums[machine],availableFromTime+carTravelTime)
-		debug && (times[job]=startTime)
+		times[job]=startTime
 		sums[machine]=startTime+jobLengths[job]
 		for item ∈ itemsNeeded[job]
 			lockTime[item]=max(get(lockTime,item,0),startTime+jobLengths[job])
 		end
-		debug && push!(bigHistory,deepcopy(inUseCars|>collect))
+		push!(bigHistory,deepcopy(inUseCars|>collect))
 	end
-	debug && foreach(event->push!(carHistory,(event[1],event[2])),inUseCars)
-	debug ? (Schedule(assignment,times),maximum(sums),carHistory,bigHistory) : maximum(sums)
+	foreach(event->push!(carHistory,(event[1],event[2])),inUseCars)
+	Schedule(assignment,times),maximum(sums),carHistory,bigHistory
 end
 
 function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{false})
