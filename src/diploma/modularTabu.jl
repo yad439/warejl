@@ -20,7 +20,7 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable)
 	progress=ProgressUnknown("Local tabu search:")
 
 	timeTable=startTimeTable
-	tabu=Queue{Tuple{Int,Int,Int}}()
+	tabu=Queue{Tuple{changeType(startTimeTable),Int,Int}}()
 	minval=scoreFunction(timeTable)
 	minsol=copy(timeTable)
 	counter=0

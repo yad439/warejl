@@ -136,10 +136,9 @@ function change!(timetable::StateEncoding{T},type,arg1,arg2) where{T}
 	return STATE_BITFLIP,arg1,arg2
 end
 
-const PERMUTATION_MOVE=10
-const PERMUTATION_SWAP=11
-const TWO_VECTOR_MOVE_ASSIGNMENT=12
-const TWO_VECTOR_SWAP_ASSIGNMENT=13
-const TWO_VECTOR_MOVE_ORDER=14
-const TWO_VECTOR_SWAP_ORDER=15
-const STATE_BITFLIP=100
+@enum PermutationChange PERMUTATION_MOVE PERMUTATION_SWAP
+@enum TwoVectorChange TWO_VECTOR_MOVE_ASSIGNMENT TWO_VECTOR_SWAP_ASSIGNMENT TWO_VECTOR_MOVE_ORDER TWO_VECTOR_SWAP_ORDER=15
+@enum StateChange STATE_BITFLIP
+changeType(::PermutationEncoding)=PermutationChange
+changeType(::TwoVectorEncoding)=TwoVectorChange
+changeType(::StateEncoding)=StateChange
