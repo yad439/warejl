@@ -501,10 +501,12 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	carsAvailable=carCount
 	availableFromTime=0 # points at last add travel start
 	bufferState=BitSet()
-	lockTime=zeros(Int,maximum(Iterators.flatten(itemsNeeded)))
+	itemNum=maximum(Iterators.flatten(itemsNeeded))
+	lockTime=zeros(Int,itemNum)
 	nexts=similar(lockTime)
 	minLocks=Vector{Int}(undef,bufferSize)
 	itemsLeft=BitSet()
+	sizehint!(itemsLeft,itemNum)
 	for (ind,job) ∈ Iterators.enumerate(timetable.permutation)
 		setdiff!(itemsLeft,itemsLeft)
 		union!(itemsLeft,itemsNeeded[job])
