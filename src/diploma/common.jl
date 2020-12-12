@@ -87,7 +87,7 @@ function randomChange!(jobs::PermutationEncoding,canDo)
 	end
 end
 function randomChange!(timetable::StateEncoding{T},canDo) where{T}
-	rand()<0.5 && return randomChange!(timetable.machineEncoding)
+	rand()<0.5 && return randomChange!(timetable.machineEncoding,canDo)
 	ax=axes(timetable.states)
 	while true
 		arg1=rand(ax[1])
