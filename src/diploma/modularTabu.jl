@@ -46,7 +46,7 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable)
 		ProgressMeter.next!(progress,showvalues=(("Min score",minval),))
 	end
 	ProgressMeter.finish!(progress)
-	minval,minsol,history
+	(score=minval,solution=minsol,history=history)
 end
 
 function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction)

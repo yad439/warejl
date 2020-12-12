@@ -35,5 +35,5 @@ function modularLocalSearch(settings,scoreFunction,startTimeTable)
 		push!(history,score)
 		ProgressMeter.next!(progress,showvalues=(("Min score",score),))
 	end
-	score,timeTable,history
+	(score=score,solution=timeTable,history=history)
 end

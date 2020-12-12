@@ -492,7 +492,7 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 		push!(bigHistory,deepcopy(inUseCars|>collect))
 	end
 	foreach(event->push!(carHistory,(event[1],event[2])),inUseCars)
-	Schedule(assignment,times),maximum(sums),carHistory,bigHistory
+	(schedule=Schedule(assignment,times),time=maximum(sums),history=carHistory,bigHistory=bigHistory)
 end
 
 function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{false})

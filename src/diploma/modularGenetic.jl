@@ -42,7 +42,7 @@ function modularGenetic(settings,scoreFunction,startPopulation)
 		ProgressMeter.next!(progress,showvalues=(("Min score",population[1].score),))
 	end
 	ProgressMeter.finish!(progress)
-	population[1].score,population[1].jobs,history
+	(score=population[1].score,solution=population[1].jobs,history=history)
 end
 
 struct GeneticEntity{T}
