@@ -116,6 +116,30 @@ function plotDetailedBufferUsage(carHistory,carTravelTime,bufferSize,xlims)
 	plt
 end
 
+function countCars(history,carTravelTime)
+	carChangeHistory=history|>fmap(event->(event.time,length(event.items)))
+	endings=carChangeHistory|>fmap(it->(it[1]+carTravelTime,-it[2]))
+	allEvents=vcat(carChangeHistory,endings)
+	sort!(allEvents,by=first)
+	fixedHistory=[(zero(carChangeHistory[1][1]),0)]
+	curTime=fixedHistory[1][1]
+	for event ∈ allEvents
+		if event[1]==curTime
+			fixedHistory[end]=(curTime,fixedHistory[end][2]+event[2])
+		else
+			curTime=event[1]
+			push!(fixedHistory,event)
+		end
+	end
+	carsInUse=0
+	res=[(0,0)]
+	for event ∈ fixedHistory
+		carsInUse+=event[2]
+		push!(res,(event[1],carsInUse))
+	end
+	res
+end
+
 scheduleToEncoding(::Type{PermutationEncoding},schedule)=schedule.times|>sortperm|>PermutationEncoding
 
 selectMachine(job,timetable::PermutationEncoding,sums)=argmin(sums)
