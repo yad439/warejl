@@ -140,3 +140,4 @@ function normalizeHistory(history::AbstractVector{Tuple{Int,EventEntry3}},carTra
 		(time=event[1]-carTravelTime,items=items)
 	end |> it->filter(x->!isempty(x.items),it)
 end
+separateEvents(history)=map(event->map(it->(time=event.time,item=it[1],isAdd=it[2]),event.items),history)|>Iterators.flatten
