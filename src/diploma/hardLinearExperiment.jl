@@ -7,7 +7,7 @@ m=3
 p=rand(5:20,n)
 itemCount=6
 itemsNeeded=[randsubseq(1:itemCount,0.2) for _=1:n]
-travelTime=40
+travelTime=10
 carNum=4
 storageSize=4
 
@@ -178,8 +178,8 @@ end)
 	[i=1:itemCount,t0=1:T,τ=1:T],addJustBeforeRemoveItem[i,t0,τ]≥addEventItems[i,τ]+addBeforeRemove2[t0,τ]+addJustBeforeRemove[t0,τ]-2
 end)
 @constraints(model,begin
-	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])≤carNum
-	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])≤carNum
+	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])+sum(addEventItems[:,t0])≤carNum
+	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carNum
 end)
 ##
 @variable(model,res)
