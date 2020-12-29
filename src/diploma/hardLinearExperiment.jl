@@ -178,8 +178,64 @@ end)
 	[i=1:itemCount,t0=1:T,τ=1:T],addJustBeforeRemoveItem[i,t0,τ]≥addEventItems[i,τ]+addBeforeRemove2[t0,τ]+addJustBeforeRemove[t0,τ]-2
 end)
 @constraints(model,begin
-	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])+sum(addEventItems[:,t0])≤carNum
+	[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])+sum(addEventItems[:,t0])≤carNum#todo linearize
 	[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carNum
+end)
+##
+@variable(model,eventItems[1:itemCount,1:2T],Bin)
+@variable(model,eventTime[1:2T]≥0)
+@constraint(model,[τ=1:2T-1],eventTime[τ]≤eventTime[τ+1])
+
+@variable(model,isAdd[1:2T],Bin)
+
+@variables(model,begin
+	addEventBefore[1:2T,1:n],Bin
+	removeEventBefore[1:2T,1:n],Bin
+end)
+@constraints(model,begin
+	[τ=1:2T,i=1:n],t[i]≥eventTime[τ]+travelTime-M*(1-addEventBefore[τ,i])
+	[τ=1:2T,i=1:n],t[i]+p[i]≤eventTime[τ]+M*removeEventBefore[τ,i]
+end)
+@variables(model,begin
+	addEventBeforeItem[1:itemCount,1:2T,1:n],Bin
+	removeEventBeforeItem[1:itemCount,1:2T,1:n],Bin
+end)
+@constraints(model,begin
+	[it=1:itemCount,τ=1:2T,i=1:n],addEventBeforeItem[it,τ,i]≤eventItems[it,τ]
+	[it=1:itemCount,τ=1:2T,i=1:n],addEventBeforeItem[it,τ,i]≤addEventBefore[τ,i]
+	[it=1:itemCount,τ=1:2T,i=1:n],addEventBeforeItem[it,τ,i]≤isAdd[τ]
+	[it=1:itemCount,τ=1:2T,i=1:n],removeEventBeforeItem[it,τ,i]≥eventItems[it,τ]+removeEventBefore[τ,i]+(1-isAdd[τ])-2
+end)
+@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[item,:,i])-sum(removeEventBeforeItem[item,:,i])≥1)
+
+@variable(model,itemsBefore[1:2T,1:2T]),Int
+
+@variable(model,justBefore[1:2T,1:2T],Bin)
+@constraint(model,[t0=1:2T,τ=1:t0-1],eventTime[τ]+travelTime≤eventTime[t0]+M*justBefore[t0,τ])
+@constraint(model,[t0=1:2T,τ=1:2T],itemsBefore[t0,τ]≥sum(eventItems[:,τ])-itemCount*(1-justBefore[τ,t0]))
+@constraint(model,[t0=1:2T],sum(itemsBefore[t0,τ] for τ=1:t0-1)+sum(eventItems[:,t0])≤carNum)
+
+@variable(model,startBeforeEnd[1:2T,1:2T],Bin)
+@constraints(model,begin
+	[t0=1:2T,τ=t0+1:2T],eventTime[τ]≤eventTime[t0]+travelTime+M*(1-startBeforeEnd[t0,τ])
+	[t0=1:2T,τ=t0+1:2T],eventTime[τ]≥eventTime[t0]+travelTime+1-M*startBeforeEnd[t0,τ]
+end)
+@variables(model,begin
+	removeItemsBeforeStart[1:itemCount,1:2T,1:2T],Bin
+	addItems[1:itemCount,1:2T],Bin
+end)
+@constraints(model,begin
+	[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≤eventItems[i,τ]
+	[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≤1-isAdd[τ]
+	[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≤startBeforeEnd[t0,τ]
+	[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≥eventItems[i,τ]+(1-isAdd[τ])+startBeforeEnd[t0,τ]-2
+	[i=1:itemCount,τ=1:2T],addItems[i,τ]≤eventItems[i,τ]
+	[i=1:itemCount,τ=1:2T],addItems[i,τ]≤isAdd[τ]
+	[i=1:itemCount,τ=1:2T],addItems[i,τ]≥eventItems[i,τ]*+isAdd[τ]-1
+end)
+@constraints(model,begin
+	[t0=1:2T],sum(addItems[i,τ] for i=1:itemCount,τ=1:t0)-sum(removeItemsBeforeStart[i,t0,τ] for i=1:itemCount,τ=1:2T)≤storageSize
+	[t0=1:2T,i=1:itemCount],sum(addItems[i,τ] for τ=1:t0)-sum(removeItemsBeforeStart[i,t0,τ] for τ=1:2T)≥0
 end)
 ##
 @variable(model,res)
