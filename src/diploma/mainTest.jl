@@ -25,15 +25,16 @@ k=length.(itemsNeeded)
 bs=4
 @assert bs≥maximum(length.(itemsNeeded))
 ##
-rdt=parseRealData("res/benchmark - automatic warehouse",20,10)|>toModerateJobs
+rdata=parseRealData("res/benchmark - automatic warehouse",20,4)
+rdt=toModerateJobs(rdata,box->box.lineType=="A")
 n=length(rdt[1])
 m=6
 p=rdt[1]
 itemsNeeded=rdt[2]
 itemsNeeded=map(BitSet,itemsNeeded)
 tt=rdt[3]
-c=10
-bs=10
+c=20
+bs=6
 @assert bs≥maximum(length.(itemsNeeded))
 ##
 sf1(jobs)=maxTimeWithCars(jobs,p,k,m,c,tt)
