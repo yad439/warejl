@@ -231,7 +231,7 @@ end)
 	[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≥eventItems[i,τ]+(1-isAdd[τ])+startBeforeEnd[t0,τ]-2
 	[i=1:itemCount,τ=1:2T],addItems[i,τ]≤eventItems[i,τ]
 	[i=1:itemCount,τ=1:2T],addItems[i,τ]≤isAdd[τ]
-	[i=1:itemCount,τ=1:2T],addItems[i,τ]≥eventItems[i,τ]*+isAdd[τ]-1
+	[i=1:itemCount,τ=1:2T],addItems[i,τ]≥eventItems[i,τ]+isAdd[τ]-1
 end)
 @constraints(model,begin
 	[t0=1:2T],sum(addItems[i,τ] for i=1:itemCount,τ=1:t0)-sum(removeItemsBeforeStart[i,t0,τ] for i=1:itemCount,τ=1:2T)≤storageSize
