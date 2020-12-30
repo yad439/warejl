@@ -208,7 +208,7 @@ end)
 end)
 @constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[item,:,i])-sum(removeEventBeforeItem[item,:,i])≥1)
 
-@variable(model,itemsBefore[1:2T,1:2T]),Int
+@variable(model,itemsBefore[1:2T,1:2T],Int)
 
 @variable(model,justBefore[1:2T,1:2T],Bin)
 @constraint(model,[t0=1:2T,τ=1:t0-1],eventTime[τ]+travelTime≤eventTime[t0]+M*justBefore[t0,τ])
