@@ -8,8 +8,9 @@ include("utility.jl")
 struct Schedule
 	assignment::Vector{Int}
 	times::Vector{Int}
+	carsTasks::Vector{@NamedTuple{time::Int,isAdd::Bool}}
 end
-
+Schedule(assignment,times)=Schedule(assignment,times,fieldtype(Schedule,:carTasks)[])
 struct GanttJob
 	assignment::Int
 	startTime::Int
