@@ -74,13 +74,13 @@ function parseRealData(directory,instanceSize,instanceNum)
 	parseRealData(data...)
 end
 
-function toModerateJobs(batches)
+function toModerateJobs(batches,boxFilter=_->true)
 	orders=map(batch->batch.orders,batches) |> Iterators.flatten
-	boxes=map(order->order.boxes,orders) |> Iterators.flatten
-	jobLengths=map(box->box.pickingTime+box.packingTime+box.weighingTime,boxes)
+	boxes=map(order->order.boxes,orders) |> Iterators.flatten |> iffilter(boxFilter)
+	jobLengths=map(box->box.packingTime,boxes)
 	itemIds=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.id) |> unique
 	itemMapping=Iterators.enumerate(itemIds) |> fmap(x->(x[2],x[1])) |> Dict
 	itemsForJob=[map(x->itemMapping[x.id],box.items) for box ∈ boxes]
 	carTravelTime=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.transportTime) |> mean |> x->round(Int,x)
-	Int.(jobLengths),itemsForJob,carTravelTime
+	(lengths=Int.(jobLengths),itemsForJob,carTravelTime)
 end
