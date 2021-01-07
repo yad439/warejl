@@ -1,6 +1,9 @@
 using JuMP,Gurobi
 
-function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime)
+@enum MachineModelType ORDER_FIRST
+@enum CarModelType TIME_SLOTS SEPARATE_EVENTS GENERAL_EVENTS
+
+function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
 	jobCount=length(jobLengths)
 	@assert length(itemsNeeded)==jobCount
 
@@ -8,7 +11,15 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime)
 	@variable(model,startTime[1:jobCount]≥0)
 
 	machinesModel(model,jobLengths,machineCount)
-	carsModel1(model,itemsNeeded,carCount,carTravelTime)
+	if carModelType≡TIME_SLOTS
+		carsModel1(model,itemsNeeded,carCount,carTravelTime)
+	elseif carModelType≡SEPARATE_EVENTS
+		carsModel2(model,itemsNeeded,carCount,carTravelTime)
+	elseif carModelType≡GENERAL_EVENTS
+		carsModel2(model,itemsNeeded,carCount,carTravelTime)
+	else
+		@assert false
+	end
 
 	@variable(model,res)
 	@constraint(model,[i=1:jobCount],res≥startTime[i])
