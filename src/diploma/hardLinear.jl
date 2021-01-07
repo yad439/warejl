@@ -3,6 +3,10 @@ using JuMP,Gurobi
 @enum MachineModelType ORDER_FIRST
 @enum CarModelType TIME_SLOTS SEPARATE_EVENTS GENERAL_EVENTS
 
+struct ModelWrapper{machineType,carType}
+	inner
+end
+
 function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
 	jobCount=length(jobLengths)
 	@assert length(itemsNeeded)==jobCount
@@ -25,7 +29,7 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,m
 	@constraint(model,[i=1:jobCount],res≥startTime[i])
 	@objective(model,Min,res)
 
-	model
+	ModelWrapper{machineModelType,carModelType}(model)
 end
 
 function machinesModel(model,jobLengths,machineCount,M=2sum(jobLengths))
