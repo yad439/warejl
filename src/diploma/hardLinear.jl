@@ -32,6 +32,12 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,m
 	ModelWrapper{machineModelType,carModelType}(model)
 end
 
+function runModel(model,timeout=300)
+	timeout!=0 && set_time_limit_sec(model.inner,timeout)
+	optimize!(model.inner)
+	(has_values(model.inner) ? objective_value(model.inner) : missing,objective_bound(model.inner))
+end
+
 function machinesModel(model,jobLengths,machineCount,M=2sum(jobLengths))
 	t=model[:startTime]
 	n=length(jobLengths)
