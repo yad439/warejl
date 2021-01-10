@@ -13,7 +13,7 @@ function machinesModel(model,jobLengths,machineCount,M=2sum(jobLengths))
 	@constraint(model,sum(isFirst)≤machineCount);
 end
 
-function carsModel1(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount))
+function carsModel1(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	t=model[:startTime]
 	n=length(jobLengths)
 	@assert length(t)==n
@@ -83,7 +83,7 @@ function carsModel1(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length
 	@constraint(model,[c0=1:carCount,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0);
 end
 
-function carsModel2(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount))
+function carsModel2(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	t=model[:startTime]
 	n=length(jobLengths)
 	@assert length(t)==n
@@ -166,7 +166,7 @@ function carsModel2(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length
 	end);
 end
 
-function carsModel3(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount))
+function carsModel3(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	t=model[:startTime]
 	n=length(jobLengths)
 	@assert length(t)==n
