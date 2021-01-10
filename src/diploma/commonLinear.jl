@@ -1,9 +1,10 @@
 using JuMP,Gurobi
 
 include("hardLinear.jl")
+include("simplifiedLinears.jl")
 
-@enum MachineModelType ORDER_FIRST
-@enum CarModelType TIME_SLOTS SEPARATE_EVENTS GENERAL_EVENTS
+@enum MachineModelType ORDER_FIRST ASSIGNMENT_ONLY
+@enum CarModelType TIME_SLOTS SEPARATE_EVENTS GENERAL_EVENTS DELIVER_ONLY NO_CARS
 
 struct ModelWrapper{machineType,carType}
 	inner
@@ -15,19 +16,27 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,m
 
 	model=Model(Gurobi.Optimizer)
 	@variable(model,startTime[1:jobCount]≥0)
+	@variable(model,res)
 
-	machinesModel(model,jobLengths,machineCount)
+	if machineModelType≡ORDER_FIRST
+		machinesModel(model,jobLengths,machineCount)
+	elseif machineModelType≡ASSIGNMENT_ONLY
+		simpleMachines(model,jobLengths,machineCount)
+	else
+		@assert false
+	end
 	if carModelType≡TIME_SLOTS
 		carsModel1(model,itemsNeeded,carCount,carTravelTime)
 	elseif carModelType≡SEPARATE_EVENTS
 		carsModel2(model,itemsNeeded,carCount,carTravelTime)
 	elseif carModelType≡GENERAL_EVENTS
 		carsModel2(model,itemsNeeded,carCount,carTravelTime)
+	elseif carModelType≡DELIVER_ONLY
+		moderateCars(model,itemsNeeded,carCount,carTravelTime)
 	else
-		@assert false
+		@assert carModelType≡NO_CARS
 	end
 
-	@variable(model,res)
 	@constraint(model,[i=1:jobCount],res≥startTime[i])
 	@objective(model,Min,res)
 
