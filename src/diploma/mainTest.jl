@@ -7,6 +7,7 @@ include("modularLocal.jl");
 include("modularAnnealing.jl");
 include("modularGenetic.jl");
 include("realDataUtility.jl");
+include("commonLinear.jl");
 
 using Random
 using DataFrames
@@ -144,3 +145,6 @@ Threads.@threads for c ∈ [10,20,30,40,50,60]
 	end
 end
 CSV.write("out/short2.tsv",df,delim='\t')
+##
+model=buildModel(p,m,itemsNeeded,c,tt,bs)
+runModel(model)
