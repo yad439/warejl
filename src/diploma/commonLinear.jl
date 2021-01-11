@@ -10,7 +10,7 @@ struct ModelWrapper{machineType,carType}
 	inner
 end
 
-function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
+function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,bufferSize,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
 	jobCount=length(jobLengths)
 	@assert length(itemsNeeded)==jobCount
 
@@ -26,11 +26,11 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,m
 		@assert false
 	end
 	if carModelType≡TIME_SLOTS
-		carsModel1(model,itemsNeeded,carCount,carTravelTime)
+		carsModel1(model,itemsNeeded,carCount,carTravelTime,bufferSize)
 	elseif carModelType≡SEPARATE_EVENTS
-		carsModel2(model,itemsNeeded,carCount,carTravelTime)
+		carsModel2(model,itemsNeeded,carCount,carTravelTime,bufferSize)
 	elseif carModelType≡GENERAL_EVENTS
-		carsModel2(model,itemsNeeded,carCount,carTravelTime)
+		carsModel2(model,itemsNeeded,carCount,carTravelTime,bufferSize)
 	elseif carModelType≡DELIVER_ONLY
 		moderateCars(model,itemsNeeded,carCount,carTravelTime)
 	else

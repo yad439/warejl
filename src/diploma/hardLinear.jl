@@ -13,9 +13,9 @@ function machinesModel(model,jobLengths,machineCount,M=2sum(jobLengths))
 	@constraint(model,sum(isFirst)≤machineCount);
 end
 
-function carsModel1(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel1(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	t=model[:startTime]
-	n=length(jobLengths)
+	n=length(itemsNeeded)
 	@assert length(t)==n
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
 	T*=2
@@ -83,9 +83,9 @@ function carsModel1(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length
 	@constraint(model,[c0=1:carCount,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0);
 end
 
-function carsModel2(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel2(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	t=model[:startTime]
-	n=length(jobLengths)
+	n=length(itemsNeeded)
 	@assert length(t)==n
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
 
@@ -166,9 +166,9 @@ function carsModel2(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length
 	end);
 end
 
-function carsModel3(model,itemsNeeded,carCount,travelTime,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel3(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	t=model[:startTime]
-	n=length(jobLengths)
+	n=length(itemsNeeded)
 	@assert length(t)==n
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
 
