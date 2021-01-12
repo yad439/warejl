@@ -88,5 +88,5 @@ end
 
 function Problem(batches::AbstractVector{Batch},machineCount,carsCount,bufferSize,boxFilter=_->true)
 	jobs=toModerateJobs(batches,boxFilter)
-	Problem(length(jobs.lengths),machineCount,carsCount,jobs.carTravelTime,bufferSize,jobs.lengths,jobs.itemsForJob)
+	Problem(length(jobs.lengths),machineCount,carsCount,jobs.carTravelTime,maximum(Iterators.flatten(jobs.itemsForJob)),bufferSize,jobs.lengths,jobs.itemsForJob)
 end

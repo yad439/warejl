@@ -10,6 +10,7 @@ struct Problem
 	machineCount::Int
 	carCount::Int
 	carTravelTime::Int
+	itemsCount::Int
 	bufferSize::Int
 	jobLengths::Vector{Int}
 	itemsNeedeed::Vector{BitSet}
