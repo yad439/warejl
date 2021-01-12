@@ -2,6 +2,7 @@ using CSV,DataFrames
 using Dates,Statistics
 
 include("utility.jl")
+include("auxiliary.jl")
 
 struct Batch
 	id
@@ -83,4 +84,9 @@ function toModerateJobs(batches,boxFilter=_->true)
 	itemsForJob=[map(x->itemMapping[x.id],box.items) for box ∈ boxes]
 	carTravelTime=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.transportTime) |> mean |> x->round(Int,x)
 	(lengths=Int.(jobLengths),itemsForJob,carTravelTime)
+end
+
+function Problem(batches::AbstractVector{Batch},machineCount,carsCount,bufferSize,boxFilter=_->true)
+	jobs=toModerateJobs(batches,boxFilter)
+	Problem(length(jobs.lengths),machineCount,carsCount,jobs.carTravelTime,bufferSize,jobs.lengths,jobs.itemsForJob)
 end

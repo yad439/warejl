@@ -10,6 +10,8 @@ struct ModelWrapper{machineType,carType}
 	inner
 end
 
+buildModel(problem,machineModelType,carModelType)=buildModel(problem.jobLengths,problem.machineCount,problem.itemsNeeded,problem.carCount,problem.carTravelTime,problem.bufferSize,machineModelType,carModelType)
+
 function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,bufferSize,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
 	jobCount=length(jobLengths)
 	@assert length(itemsNeeded)==jobCount

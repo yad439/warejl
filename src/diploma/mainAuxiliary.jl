@@ -568,3 +568,5 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	end
 	maximum(sums)
 end
+
+computeTimeLazyReturn(timetable,problem,debug)=computeTimeLazyReturn(timetable,problem.machineCount,problem.jobLengths,problem.itemsNeeded,problem.carCount,problem.carTravelTime,problem.bufferSize,debug)

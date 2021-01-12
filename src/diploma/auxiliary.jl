@@ -5,12 +5,22 @@ include("common.jl")
 include("structures.jl")
 include("utility.jl")
 
+struct Problem
+	jobCount::Int
+	machineCount::Int
+	carCount::Int
+	carTravelTime::Int
+	bufferSize::Int
+	jobLengths::Vector{Int}
+	itemsNeedeed::Vector{BitSet}
+end
+
 struct Schedule
 	assignment::Vector{Int}
 	times::Vector{Int}
 	carsTasks::Vector{@NamedTuple{time::Int,isAdd::Bool}}
 end
-Schedule(assignment,times)=Schedule(assignment,times,fieldtype(Schedule,:carTasks)[])
+
 struct GanttJob
 	assignment::Int
 	startTime::Int
