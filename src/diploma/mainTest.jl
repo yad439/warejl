@@ -7,7 +7,7 @@ include("modularLocal.jl");
 include("modularAnnealing.jl");
 include("modularGenetic.jl");
 include("realDataUtility.jl");
-include("commonLinear.jl");
+include("modularLinear.jl");
 
 using Random
 using DataFrames
