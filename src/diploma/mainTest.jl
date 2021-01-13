@@ -148,3 +148,32 @@ CSV.write("out/short2.tsv",df,delim='\t')
 ##
 model=buildModel(p,m,itemsNeeded,c,tt,bs)
 runModel(model)
+##
+machineCount=6
+carCount=20
+bufferSize=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
+sf=let problem=problem
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
+end
+sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
+sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount)
+##
+exactModel=buildModel(problem,ORDER_FIRST,TIME_SLOTS)
+exactRes=runModel(model)
+##
+st1=rand(sample1)
+st2=rand(sample2)
+##
+tabuSettings=TabuSearchSettings2(250,1000,0.5)
+localSettings=LocalSearchSettings(changeIterator(st1),false)
+
+localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
+tabuRes1=modularTabuSearch(tabuSettings,sf,deepcopy(st1))
+##
+res=[]
+for _=1:10
+	st=rand(sample1)
+	tabuRes=modularTabuSearch(tabuSettings,sf,deepcopy(st))
+	push!(res,tabuRes.score)
+end
