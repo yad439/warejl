@@ -496,13 +496,20 @@ function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,car
 	(schedule=Schedule(assignment,times,normHistory),time=maximum(sums),history=carHistory,bigHistory=bigHistory)
 end
 
-function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{false})
+function computeTimeLazyReturn(timetable,problem,::Val{false})
+	machineCount=problem.machineCount
+	jobLengths=problem.jobLengths
+	itemsNeeded=problem.itemsNeeded
+	carCount=problem.carCount
+	carTravelTime=problem.carTravelTime
+	bufferSize=problem.bufferSize
+
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	inUseCars=EventQueue()
 	carsAvailable=carCount
 	availableFromTime=0 # points at last add travel start
 	bufferState=BitSet()
-	itemNum=maximum(Iterators.flatten(itemsNeeded))
+	itemNum=problem.itemCount
 	lockTime=zeros(Int,itemNum)
 	nexts=similar(lockTime)
 	minLocks=Vector{Int}(undef,bufferSize)

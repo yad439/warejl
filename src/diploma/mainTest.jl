@@ -38,16 +38,21 @@ c=20
 bs=6
 @assert bs≥maximum(length.(itemsNeeded))
 ##
+m=6
+c=20
+bs=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),m,c,bs,box->box.lineType=="A")
+##
 sf1(jobs)=maxTimeWithCars(jobs,p,k,m,c,tt)
 sf5(jobs)=maxTimeWithCarsUnoptimized(jobs,p,k,m,c,tt)
 sf2(jobs)=computeTimeGetOnly(jobs,m,p,itemsNeeded,c,tt)[2]
 sf3(jobs)=computeTimeGetOnlyWaitOne(jobs,m,p,itemsNeeded,c,tt)[2]
 sf4(jobs)=computeTimeCancelReturn(jobs,m,p,itemsNeeded,c,tt,bs)[2]
-sf6(jobs)=computeTimeLazyReturn(jobs,m,p,itemsNeeded,c,tt,bs,Val(false))
+sf6(jobs)=computeTimeLazyReturn(jobs,problem,Val(false))
 sf=sf6
 ##
-sf=let m=m,p=p,itemsNeeded=itemsNeeded,c=c,tt=tt,bs=bs
-	jobs->computeTimeLazyReturn(jobs,m,p,itemsNeeded,c,tt,bs,Val(false))
+sf=let problem=problem
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
 end
 ##
 # Random.seed!(4350)
