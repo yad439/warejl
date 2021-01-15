@@ -16,23 +16,28 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,b
 	jobCount=length(jobLengths)
 	@assert length(itemsNeeded)==jobCount
 
+	itemsCount=itemsNeeded |> Iterators.flatten |> maximum
+	allItemsCount=itemsNeeded |> Iterators.flatten |> length
+	T=2ceil(Int,allItemsCount/carCount)
+	M=carTravelTime+sum(jobLengths)
+
 	model=Model(Gurobi.Optimizer)
 	@variable(model,startTime[1:jobCount]≥0)
 	@variable(model,res)
 
 	if machineModelType≡ORDER_FIRST
-		machinesModel(model,jobLengths,machineCount)
+		machinesModel(model,jobLengths,machineCount,M)
 	elseif machineModelType≡ASSIGNMENT_ONLY
 		simpleMachines(model,jobLengths,machineCount)
 	else
 		@assert false
 	end
 	if carModelType≡TIME_SLOTS
-		carsModel1(model,itemsNeeded,carCount,carTravelTime,bufferSize)
+		carsModel1(model,itemsNeeded,carCount,carTravelTime,bufferSize,T,M)
 	elseif carModelType≡SEPARATE_EVENTS
-		carsModel2(model,itemsNeeded,carCount,carTravelTime,bufferSize)
+		carsModel2(model,itemsNeeded,carCount,carTravelTime,bufferSize,T,M)
 	elseif carModelType≡GENERAL_EVENTS
-		carsModel2(model,itemsNeeded,carCount,carTravelTime,bufferSize)
+		carsModel3(model,itemsNeeded,carCount,carTravelTime,bufferSize,T,M)
 	elseif carModelType≡DELIVER_ONLY
 		moderateCars(model,itemsNeeded,carCount,carTravelTime)
 	else
