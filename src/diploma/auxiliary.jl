@@ -13,7 +13,7 @@ struct Problem
 	itemsCount::Int
 	bufferSize::Int
 	jobLengths::Vector{Int}
-	itemsNeedeed::Vector{BitSet}
+	itemsNeeded::Vector{BitSet}
 end
 
 struct Schedule
