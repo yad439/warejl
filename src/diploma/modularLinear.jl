@@ -17,7 +17,7 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,b
 	@assert length(itemsNeeded)==jobCount
 
 	itemsCount=itemsNeeded |> Iterators.flatten |> maximum
-	allItemsCount=itemsNeeded |> Iterators.flatten |> length
+	allItemsCount=sum(length.(itemsNeeded))
 	T=2ceil(Int,allItemsCount/carCount)
 	M=carTravelTime+sum(jobLengths)
 
