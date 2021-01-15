@@ -28,8 +28,8 @@ struct GanttJob
 	duration::Int
 end
 
-@recipe plotGanttJob(::Type{GanttJob},job::GanttJob)=shape(job)
-shape(job::GanttJob)=Shape([
+@recipe plotGanttJob(::Type{GanttJob},job::GanttJob)=toShape(job)
+toShape(job::GanttJob)=Shape([
 	(job.startTime,job.assignment-1),
 	(job.startTime,job.assignment),
 	(job.startTime+job.duration,job.assignment),
