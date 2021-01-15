@@ -1,8 +1,10 @@
 using JuMP
 
-function machinesModel(model,jobLengths,machineCount,M=2sum(jobLengths))
+function machinesModel(model,problem,M=2sum(jobLengths))
+	jobLengths=problem.jobLengths
+	machineCount=problem.machineCount
 	t=model[:startTime]
-	n=length(jobLengths)
+	n=problem.jobCount
 	@assert length(t)==n
 
 	@variable(model,ord[1:n,1:n],Bin)
@@ -13,9 +15,14 @@ function machinesModel(model,jobLengths,machineCount,M=2sum(jobLengths))
 	@constraint(model,sum(isFirst)≤machineCount);
 end
 
-function carsModel1(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel1(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+	itemsNeeded=problem.itemsNeeded
+	carCount=problem.carCount
+	travelTime=problem.carTravelTime
+	storageSize=problem.bufferSize
 	t=model[:startTime]
-	n=length(itemsNeeded)
+	n=problem.jobCount
+	p=problem.jobLengths
 	@assert length(t)==n
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
 	T*=2
@@ -83,9 +90,14 @@ function carsModel1(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(In
 	@constraint(model,[c0=1:carCount,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0);
 end
 
-function carsModel2(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+	itemsNeeded=problem.itemsNeeded
+	carCount=problem.carCount
+	travelTime=problem.carTravelTime
+	storageSize=problem.bufferSize
 	t=model[:startTime]
 	n=length(itemsNeeded)
+	p=problem.jobLengths
 	@assert length(t)==n
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
 
@@ -166,8 +178,13 @@ function carsModel2(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(In
 	end);
 end
 
-function carsModel3(model,itemsNeeded,carCount,travelTime,storageSize,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel3(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+	itemsNeeded=problem.itemsNeeded
+	carCount=problem.carCount
+	travelTime=problem.carTravelTime
+	storageSize=problem.bufferSize
 	t=model[:startTime]
+	p=problem.jobLengths
 	n=length(itemsNeeded)
 	@assert length(t)==n
 	itemCount=maximum(Iterators.flatten(itemsNeeded))

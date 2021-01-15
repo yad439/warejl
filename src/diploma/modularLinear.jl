@@ -10,36 +10,34 @@ struct ModelWrapper{machineType,carType}
 	inner
 end
 
-buildModel(problem,machineModelType,carModelType)=buildModel(problem.jobLengths,problem.machineCount,problem.itemsNeeded,problem.carCount,problem.carTravelTime,problem.bufferSize,machineModelType,carModelType)
-
-function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,bufferSize,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
-	jobCount=length(jobLengths)
-	@assert length(itemsNeeded)==jobCount
+function buildModel(problem,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
+	jobCount=problem.jobCount
+	itemsNeeded=problem.itemsNeeded
 
 	itemsCount=itemsNeeded |> Iterators.flatten |> maximum
 	allItemsCount=sum(length.(itemsNeeded))
-	T=2ceil(Int,allItemsCount/carCount)
-	M=carTravelTime+sum(jobLengths)
+	T=ceil(Int,allItemsCount/carCount)
+	M=problem.carTravelTime+sum(problem.jobLengths)
 
 	model=Model(Gurobi.Optimizer)
 	@variable(model,startTime[1:jobCount]≥0)
 	@variable(model,res)
 
 	if machineModelType≡ORDER_FIRST
-		machinesModel(model,jobLengths,machineCount,M)
+		machinesModel(model,problem,M)
 	elseif machineModelType≡ASSIGNMENT_ONLY
-		simpleMachines(model,jobLengths,machineCount)
+		simpleMachines(model,problem.jobLengths,problem.machineCount)
 	else
 		@assert false
 	end
 	if carModelType≡TIME_SLOTS
-		carsModel1(model,itemsNeeded,carCount,carTravelTime,bufferSize,T,M)
+		carsModel1(model,problem,T,M)
 	elseif carModelType≡SEPARATE_EVENTS
-		carsModel2(model,itemsNeeded,carCount,carTravelTime,bufferSize,T,M)
+		carsModel2(model,problem,T,M)
 	elseif carModelType≡GENERAL_EVENTS
-		carsModel3(model,itemsNeeded,carCount,carTravelTime,bufferSize,T,M)
+		carsModel3(model,problem,T,M)
 	elseif carModelType≡DELIVER_ONLY
-		moderateCars(model,itemsNeeded,carCount,carTravelTime)
+		moderateCars(model,problem.itemsNeeded,problem.carCount,problem.carTravelTime)
 	else
 		@assert carModelType≡NO_CARS
 	end
@@ -51,7 +49,7 @@ function buildModel(jobLengths,machineCount,itemsNeeded,carCount,carTravelTime,b
 end
 
 function runModel(model,timeout=300)
-	timeout!=0 && set_time_limit_sec(model.inner,timeout)
+	timeout≠0 && set_time_limit_sec(model.inner,timeout)
 	optimize!(model.inner)
 	(has_values(model.inner) ? objective_value(model.inner) : missing,objective_bound(model.inner))
 end
