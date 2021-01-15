@@ -155,20 +155,20 @@ model=buildModel(p,m,itemsNeeded,c,tt,bs)
 runModel(model)
 ##
 machineCount=6
-carCount=20
+carCount=30
 bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
 sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
-sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount)
+sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 ##
 exactModel=buildModel(problem,ORDER_FIRST,TIME_SLOTS)
-exactRes=runModel(model)
+exactRes=runModel(exactModel,100)
 ##
 st1=rand(sample1)
-st2=rand(sample2)
+st2=rand(sample2);
 ##
 tabuSettings=TabuSearchSettings2(250,1000,0.5)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
