@@ -117,15 +117,15 @@ function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 		[τ=1:T,i=1:n],t[i]+p[i]≤removeEventTime[τ]+M*removeEventBefore[τ,i]
 	end)
 	@variables(model,begin
-		addEventBeforeItem[1:itemCount,1:T,1:n],Bin
-		removeEventBeforeItem[1:itemCount,1:T,1:n],Bin
+		addEventBeforeItem[1:T,i=1:n,itemsNeeded[i]],Bin
+		removeEventBeforeItem[1:T,i=1:n,itemsNeeded[i]],Bin
 	end)
 	@constraints(model,begin
-		[it=1:itemCount,τ=1:T,i=1:n],addEventBeforeItem[it,τ,i]≤addEventItems[it,τ]
-		[it=1:itemCount,τ=1:T,i=1:n],addEventBeforeItem[it,τ,i]≤addEventBefore[τ,i]
-		[it=1:itemCount,τ=1:T,i=1:n],removeEventBeforeItem[it,τ,i]≥removeEventItems[it,τ]+removeEventBefore[τ,i]-1
+		[τ=1:T,i=1:n,it in itemsNeeded[i]],addEventBeforeItem[τ,i,it]≤addEventItems[it,τ]
+		[τ=1:T,i=1:n,it in itemsNeeded[i]],addEventBeforeItem[τ,i,it]≤addEventBefore[τ,i]
+		[τ=1:T,i=1:n,it in itemsNeeded[i]],removeEventBeforeItem[τ,i,it]≥removeEventItems[it,τ]+removeEventBefore[τ,i]-1
 	end)
-	@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[item,:,i])-sum(removeEventBeforeItem[item,:,i])≥1)
+	@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[:,i,item])-sum(removeEventBeforeItem[:,i,item])≥1)
 	@variables(model,begin
 		removeBeforeAdd[1:T,1:T],Bin
 		addBeforeRemove[1:T,1:T],Bin
@@ -208,38 +208,39 @@ function carsModel3(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 		[τ=1:2T,i=1:n],t[i]+p[i]≤eventTime[τ]+M*removeEventBefore[τ,i]
 	end)
 	@variables(model,begin
-		addEventBeforeItem[1:itemCount,1:2T,1:n],Bin
-		removeEventBeforeItem[1:itemCount,1:2T,1:n],Bin
+		addEventBeforeItem[1:2T,i=1:n,itemsNeeded[i]],Bin
+		removeEventBeforeItem[1:2T,i=1:n,itemsNeeded[i]],Bin
 	end)
 	@constraints(model,begin
-		[it=1:itemCount,τ=1:2T,i=1:n],addEventBeforeItem[it,τ,i]≤eventItems[it,τ]
-		[it=1:itemCount,τ=1:2T,i=1:n],addEventBeforeItem[it,τ,i]≤addEventBefore[τ,i]
-		[it=1:itemCount,τ=1:2T,i=1:n],addEventBeforeItem[it,τ,i]≤isAdd[τ]
-		[it=1:itemCount,τ=1:2T,i=1:n],removeEventBeforeItem[it,τ,i]≥eventItems[it,τ]+removeEventBefore[τ,i]+(1-isAdd[τ])-2
+		[τ=1:2T,i=1:n,it in itemsNeeded[i]],addEventBeforeItem[τ,i,it]≤eventItems[it,τ]
+		[τ=1:2T,i=1:n,it in itemsNeeded[i]],addEventBeforeItem[τ,i,it]≤addEventBefore[τ,i]
+		[τ=1:2T,i=1:n,it in itemsNeeded[i]],addEventBeforeItem[τ,i,it]≤isAdd[τ]
+		[τ=1:2T,i=1:n,it in itemsNeeded[i]],removeEventBeforeItem[τ,i,it]≥eventItems[it,τ]+removeEventBefore[τ,i]+(1-isAdd[τ])-2
 	end)
-	@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[item,:,i])-sum(removeEventBeforeItem[item,:,i])≥1)
+	@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBeforeItem[:,i,item])-sum(removeEventBeforeItem[:,i,item])≥1)
 
-	@variable(model,itemsBefore[1:2T,1:2T],Int)
+	@variable(model,itemsBefore[τ=1:2T,τ+1:2T],Int)
 
-	@variable(model,justBefore[1:2T,1:2T],Bin)
-	@constraint(model,[t0=1:2T,τ=1:t0-1],eventTime[τ]+travelTime≤eventTime[t0]+M*justBefore[t0,τ])
-	@constraint(model,[t0=1:2T,τ=1:2T],itemsBefore[t0,τ]≥sum(eventItems[:,τ])-itemCount*(1-justBefore[τ,t0]))
-	@constraint(model,[t0=1:2T],sum(itemsBefore[t0,τ] for τ=1:t0-1)+sum(eventItems[:,t0])≤carCount)
+	@variable(model,justBefore[τ=1:2T,τ+1:2T],Bin)
+	@constraint(model,[t0=1:2T,τ=1:t0-1],eventTime[τ]+travelTime≤eventTime[t0]+M*justBefore[τ,t0])
+	@constraint(model,[t0=1:2T,τ=1:t0-1],itemsBefore[τ,t0]≥sum(eventItems[:,τ])-itemCount*(1-justBefore[τ,t0]))
+	@constraint(model,[t0=1:2T],sum(itemsBefore[τ,t0] for τ=1:t0-1)+sum(eventItems[:,t0])≤carCount)
 
-	@variable(model,startBeforeEnd[1:2T,1:2T],Bin)
+	@variable(model,startBeforeEnd[t0=1:2T,t0+1:2T],Bin)
 	@constraints(model,begin
 		[t0=1:2T,τ=t0+1:2T],eventTime[τ]≤eventTime[t0]+travelTime+M*(1-startBeforeEnd[t0,τ])
 		[t0=1:2T,τ=t0+1:2T],eventTime[τ]≥eventTime[t0]+travelTime+1-M*startBeforeEnd[t0,τ]
 	end)
 	@variables(model,begin
-		removeItemsBeforeStart[1:itemCount,1:2T,1:2T],Bin
+		removeItemsBeforeStart[1:itemCount,t0=1:2T,1:2T],Bin
 		addItems[1:itemCount,1:2T],Bin
 	end)
 	@constraints(model,begin
 		[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≤eventItems[i,τ]
 		[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≤1-isAdd[τ]
-		[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≤startBeforeEnd[t0,τ]
-		[i=1:itemCount,t0=1:2T,τ=1:2T],removeItemsBeforeStart[i,t0,τ]≥eventItems[i,τ]+(1-isAdd[τ])+startBeforeEnd[t0,τ]-2
+		[i=1:itemCount,t0=1:2T,τ=t0+1:2T],removeItemsBeforeStart[i,t0,τ]≤startBeforeEnd[t0,τ]
+		[i=1:itemCount,t0=1:2T,τ=1:t0],removeItemsBeforeStart[i,t0,τ]≥eventItems[i,τ]+(1-isAdd[τ])-1
+		[i=1:itemCount,t0=1:2T,τ=t0+1:2T],removeItemsBeforeStart[i,t0,τ]≥eventItems[i,τ]+(1-isAdd[τ])+startBeforeEnd[t0,τ]-2
 		[i=1:itemCount,τ=1:2T],addItems[i,τ]≤eventItems[i,τ]
 		[i=1:itemCount,τ=1:2T],addItems[i,τ]≤isAdd[τ]
 		[i=1:itemCount,τ=1:2T],addItems[i,τ]≥eventItems[i,τ]+isAdd[τ]-1
