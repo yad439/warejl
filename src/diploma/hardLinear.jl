@@ -165,16 +165,20 @@ function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 		[t0=1:T,τ=1:T],addEventTime[τ]≥removeEventTime[t0]+1-M*addBeforeRemove2[t0,τ]
 	end)
 	@variables(model,begin
+		addJustBeforeItem[1:itemCount,1:T,1:T],Bin
+		removeJustBeforeItem[1:itemCount,1:T,1:T],Bin
 		removeJustBeforeAddItem[1:itemCount,1:T,1:T],Bin
 		addJustBeforeRemoveItem[1:itemCount,1:T,1:T],Bin
 	end)
 	@constraints(model,begin
+		[i=1:itemCount,t0=1:T,τ=1:t0-1],addJustBeforeItem[i,t0,τ]≥addEventItems[i,τ]+addJustBefore[t0,τ]-1
+		[i=1:itemCount,t0=1:T,τ=1:t0-1],removeJustBeforeItem[i,t0,τ]≥removeEventItems[i,τ]+removeJustBefore[t0,τ]-1
 		[i=1:itemCount,t0=1:T,τ=1:T],removeJustBeforeAddItem[i,t0,τ]≥removeEventItems[i,τ]+removeBeforeAdd2[t0,τ]+removeJustBeforeAdd[t0,τ]-2
 		[i=1:itemCount,t0=1:T,τ=1:T],addJustBeforeRemoveItem[i,t0,τ]≥addEventItems[i,τ]+addBeforeRemove2[t0,τ]+addJustBeforeRemove[t0,τ]-2
 	end)
 	@constraints(model,begin
-		[t0=1:T],sum(addEventItems[it,τ]*addJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])+sum(addEventItems[:,t0])≤carCount#todo linearize
-		[t0=1:T],sum(removeEventItems[it,τ]*removeJustBefore[t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carCount
+		[t0=1:T],sum(addJustBeforeItem[it,t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(removeJustBeforeAddItem[:,t0,:])+sum(addEventItems[:,t0])≤carCount
+		[t0=1:T],sum(removeJustBeforeItem[it,t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carCount
 	end);
 end
 
