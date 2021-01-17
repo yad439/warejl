@@ -10,15 +10,15 @@ struct ModelWrapper{machineType,carType}
 	inner
 end
 
-function buildModel(problem,machineModelType,carModelType)
+function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 	jobCount=problem.jobCount
 	itemsNeeded=problem.itemsNeeded
 
 	itemsCount=itemsNeeded |> Iterators.flatten |> maximum
 	allItemsCount=sum(length.(itemsNeeded))
-	TR=ceil(Int,allItemsCount/carCount)
-	TE=max(TR,jobCount,ceil(Int,allItemsCount/problem.bufferSize))
-	M=problem.carTravelTime+sum(problem.jobLengths)
+	TR=T==0 ? ceil(Int,allItemsCount/carCount) : T
+	TE=T==0 ? max(TR,jobCount,ceil(Int,allItemsCount/problem.bufferSize)) : T
+	M=M==0 ? problem.carTravelTime+sum(problem.jobLengths) : M
 
 	model=Model(Gurobi.Optimizer)
 	@variable(model,startTime[1:jobCount]≥0)
