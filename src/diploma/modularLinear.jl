@@ -10,7 +10,7 @@ struct ModelWrapper{machineType,carType}
 	inner
 end
 
-function buildModel(problem,machineModelType=ORDER_FIRST,carModelType=TIME_SLOTS)
+function buildModel(problem,machineModelType,carModelType)
 	jobCount=problem.jobCount
 	itemsNeeded=problem.itemsNeeded
 
