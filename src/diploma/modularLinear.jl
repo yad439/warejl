@@ -16,7 +16,8 @@ function buildModel(problem,machineModelType,carModelType)
 
 	itemsCount=itemsNeeded |> Iterators.flatten |> maximum
 	allItemsCount=sum(length.(itemsNeeded))
-	T=ceil(Int,allItemsCount/carCount)
+	TR=ceil(Int,allItemsCount/carCount)
+	TE=max(TR,jobCount,ceil(Int,allItemsCount/problem.bufferSize))
 	M=problem.carTravelTime+sum(problem.jobLengths)
 
 	model=Model(Gurobi.Optimizer)
@@ -31,11 +32,11 @@ function buildModel(problem,machineModelType,carModelType)
 		@assert false
 	end
 	if carModelType≡TIME_SLOTS
-		carsModel1(model,problem,T,M)
+		carsModel1(model,problem,TR,M)
 	elseif carModelType≡SEPARATE_EVENTS
-		carsModel2(model,problem,T,M)
+		carsModel2(model,problem,TE,M)
 	elseif carModelType≡GENERAL_EVENTS
-		carsModel3(model,problem,T,M)
+		carsModel3(model,problem,TE,M)
 	elseif carModelType≡DELIVER_ONLY
 		moderateCars(model,problem.itemsNeeded,problem.carCount,problem.carTravelTime)
 	else
