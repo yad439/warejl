@@ -1,4 +1,4 @@
-#include("mainAuxiliary.jl");
+include("mainAuxiliary.jl");
 #include("moderateAuxiliary.jl");
 #include("utility.jl");
 #include("auxiliary.jl")
@@ -9,7 +9,7 @@
 include("realDataUtility.jl");
 include("modularLinear.jl");
 
-#using Random
+using Random
 #using DataFrames
 #using CSV
 
@@ -21,7 +21,11 @@ problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machin
 #	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
 #end
 #sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
-#sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
+sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 
-exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
+st1=rand(sample2)
+sol=computeTimeLazyReturn(st1,problem,Val(true))
+T=sol.schedule.carsTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+
+exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS,T)
 exactRes=runModel(exactModel,1800)
