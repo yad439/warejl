@@ -19,7 +19,7 @@ end
 struct Schedule
 	assignment::Vector{Int}
 	times::Vector{Int}
-	carsTasks::Vector{@NamedTuple{time::Int,isAdd::Bool}}
+	carsTasks::Vector{@NamedTuple{time::Int,item::Int,isAdd::Bool}}
 end
 
 struct GanttJob
