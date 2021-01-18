@@ -151,8 +151,8 @@ Threads.@threads for c ∈ [10,20,30,40,50,60]
 end
 CSV.write("out/short2.tsv",df,delim='\t')
 ##
-model=buildModel(p,m,itemsNeeded,c,tt,bs)
-runModel(model)
+# model=buildModel(p,m,itemsNeeded,c,tt,bs)
+# runModel(model)
 ##
 machineCount=6
 carCount=30
@@ -170,11 +170,11 @@ exactRes=runModel(exactModel,100)
 st1=rand(sample1)
 st2=rand(sample2);
 ##
-tabuSettings=TabuSearchSettings2(250,1000,0.5)
+tabuSettings=TabuSearchSettings(600,20,2*problem.jobCount^2)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
 
 localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
-tabuRes1=modularTabuSearch(tabuSettings,sf,deepcopy(st1))
+tabuRes1=modularTabuSearch2(tabuSettings,sf,deepcopy(st1))
 ##
 res=[]
 for _=1:10
