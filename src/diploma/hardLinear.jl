@@ -14,6 +14,49 @@ function machinesModel(model,problem,M=2sum(jobLengths))
 	@constraint(model,[i=1:n,j=1:n,k=1:n; i≠j],ord[i,j]+ord[j,i]≥ord[k,i]+ord[k,j]-1)
 	@constraint(model,sum(isFirst)≤machineCount);
 end
+function fromMachinesModel(model)
+	isFirst=Bool.(round.(Int,value.(model[:isFirst])))
+	n=length(model[:startTime])
+	m=sum(isFirst)
+	assignment=Vector{Union{Int,Missing}}(missing,n)
+	assignment[filter(i->isFirst[i],1:m)]=1:m
+	ord=Bool.(round.(Int,value.(model[:ord])))
+	for _=1:n
+		for i=1:n
+			if ismissing(assignment[i])
+				for j=1:n
+					if i≠j && ord[j,i] && !ismissing(assignment[j])
+						assignment[i]=assignment[j]
+						break
+					end
+				end
+			end
+		end
+	end
+	convert(Vector{Int},assignment)
+end
+function toMachinesModel(model,schedule)
+	n=length(schedule.assignment)
+	m=maximum(schedule.assignment)
+
+	chains=[Int[] for _=1:m]
+	foreach(i->push!(chains[schedule.assignment[i]],i),schedule.permuration)
+
+	isFirst=model[:isFirst]
+	ord=model[:ord]
+	firsts=map(first,chains)
+	foreach(i->set_start_value(isFirst[i],i ∈ firsts),1:n)
+	for i=1:n,j=1:n
+		i==j && continue
+		if schedule.assignment[i]≠schedule.assignment[j]
+			set_start_value(ord[i,j],0)
+			continue
+		end
+		posi=findfirst(==(i),chains[schedule.assignment[i]])
+		posj=findfirst(==(j),chains[schedule.assignment[j]])
+		set_start_value(ord[i,j],posi==posj-1)
+	end
+end
 
 function carsModel1(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	itemsNeeded=problem.itemsNeeded
