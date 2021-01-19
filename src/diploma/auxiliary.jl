@@ -177,3 +177,12 @@ function normalizeHistory(history::AbstractVector{Tuple{Int,EventEntry3}},carTra
 	end |> it->filter(x->!isempty(x.items),it)
 end
 separateEvents(history)=map(event->map(it->(time=event.time,item=it[1],isAdd=it[2]),event.items),history)|>Iterators.flatten
+function generalEvents(history)
+	eventDict=Dict()
+	foreach(history) do event
+		entry=get!(_->(Int[],Int[]),eventDict,event.time)
+		list=event.isAdd ? entry[1] : entry[2]
+		push!(list,event.item)
+	end
+	map(entry->(time=entry[1],add=entry[2][1],remove=entry[2][2]),eventDict)
+end
