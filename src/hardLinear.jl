@@ -10,7 +10,7 @@ function machinesModel(model,problem,M=2sum(jobLengths))
 	@variable(model,ord[i=1:n,j=1:n;i≠j],Bin)
 	@constraint(model,[i=1:n,j=1:n;i≠j],t[i]≥t[j]+jobLengths[j]-M*(1-ord[j,i]))
 	@variable(model,isFirst[1:n],Bin)
-	@constraint(model,[i=1:n],sum(ord[:,i])≥1-isFirst[i])
+	@constraint(model,[i=1:n],sum(ord[j,i] for j=1:n if i≠j)≥1-isFirst[i])
 	@constraint(model,[i=1:n,j=1:n,k=1:n; i≠j && i≠k && j≠k],ord[i,j]+ord[j,i]≥ord[k,i]+ord[k,j]-1)
 	@constraint(model,sum(isFirst)≤machineCount);
 end
