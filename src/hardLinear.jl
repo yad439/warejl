@@ -1,5 +1,8 @@
 using JuMP
 
+include("auxiliary.jl")
+include("utility.jl")
+
 function machinesModel(model,problem,M=2sum(jobLengths))
 	jobLengths=problem.jobLengths
 	machineCount=problem.machineCount
@@ -224,7 +227,84 @@ function carsModel2(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/
 		[t0=1:T],sum(removeJustBeforeItem[it,t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carCount
 	end);
 end
+function fromCarsModel2(model)
+	addEventItems=Bool.(round.(Int,value.(model[:addEventItems])))
+	removeEventItems=Bool.(round.(Int,value.(model[:removeEventItems])))
+	addEventTime=value.(model[:addEventTime])
+	removeEventTime=value.(model[:removeEventTime])
 
+	@assert all(x->isapprox(x,round(x),atol=0.01),addEventTime)
+	@assert all(x->isapprox(x,round(x),atol=0.01),removeEventTime)
+
+	events=@NamedTuple(time::Int,item::Int,isAdd::Bool)[]
+	for t ∈ eachindex(addEventTime)
+		for i ∈ eachindex(addEventItems[:,t])
+			if addEventItems[i,t]
+				push!(events,(time=round(Int,addEventTime[t]),item=i,isAdd=true))
+			end
+			if removeEventItems[i,t]
+				push!(events,(time=round(Int,removeEventTime[t]),item=i,isAdd=false))
+			end
+		end
+	end
+	sort(events,by=first)
+end
+function toCarsModel2(model,schedule,problem)
+	addEvents,removeEvents=generalEvents(schedule.carTasks) |> fmap(e->((e.time,e.add),(e.time,e.remove))) |> unzip
+	filter!(e->!isempty(e[2]),addEvents)
+	filter!(e->!isempty(e[2]),removeEvents)
+	w=problem.carTravelTime
+
+	addEventItems=model[:addEventItems]
+	removeEventItems=model[:removeEventItems]
+	addEventTime=model[:addEventTime]
+	removeEventTime=model[:removeEventTime]
+
+	eta=map(t->get(addEvents,t,0),eachindex(addEventTime))
+	etr=map(t->get(removeEvents,t,0),eachindex(removeEventTime))
+	eia=[get(addEvents,t,[]) ∋ it for (it,t) ∈ CartesianIndices(addEventItems)]
+	eir=[get(removeEvents,t,[]) ∋ it for (it,t) ∈ CartesianIndices(removeEventItems)]
+	set_start_value.(addEventTime,eta)
+	set_start_value.(removeEventTime,etr)
+	set_start_value.(addEventItems,eia)
+	set_start_value.(removeEventItems,eir)
+
+	ba=map(((t,i),)->schedule.times[i]≥eta[t]+w,CartesianIndices(model[:addEventBefore]))
+	set_start_value.(model[:addEventBefore],ba)
+	br=map(((t,i),)->schedule.times[i]≥etr[t]+w,CartesianIndices(model[:removeEventBefore]))
+	set_start_value.(model[:removeEventBefore],br)
+
+	foreach(((t,i,it),)->set_start_value(model[:addEventBeforeItem][t,i,it],eia[it,t]&&ba[t,i]),CartesianIndices(model[:addEventBeforeItem]))
+	foreach(((t,i,it),)->set_start_value(model[:removeEventBeforeItem][t,i,it],eir[it,t]&&br[t,i]),CartesianIndices(model[:removeEventBeforeItem]))
+
+	ar=map(((t1,t2),)->eta[t1]+w≤etr[t2],CartesianIndices(model[:addBeforeRemove]))
+	ra=map(((t1,t2),)->etr[t1]≤eta[t2]+w,CartesianIndices(model[:removeBeforeAdd]))
+	set_start_value.(model[:addBeforeRemove],ar)
+	set_start_value.(model[:removeBeforeAdd],ra)
+
+	ari=map(((i,t1,t2),)->eia[i,t1]&&ar[t1,t2],CartesianIndices(model[:addBeforeRemoveItem]))
+	rai=map(((i,t1,t2),)->eir[i,t1]&&ra[t1,t2],CartesianIndices(model[:removeBeforeAddItem]))
+	set_start_value.(model[:addBeforeRemoveItem],ari)
+	set_start_value.(model[:removeBeforeAddItem],rai)
+
+	ξa=map(((t0,t),)->eta[t]>eta[t0]-w,CartesianIndices(model[:addJustBefore]))
+	ξr=map(((t0,t),)->etr[t]>etr[t0]-w,CartesianIndices(model[:removeJustBefore]))
+	ξar=map(((t0,t),)->etr[t0]-w<eta[t]≤etr[t0],CartesianIndices(model[:addJustBeforeRemove]))
+	ξra=map(((t0,t),)->eta[t0]-w<etr[t]≤eta[t0],CartesianIndices(model[:removeJustBeforeAdd]))
+	ηar=map(((t1,t2),)->eta[t1]≤etr[t2],CartesianIndices(model[:addBeforeRemove2]))
+	ηra=map(((t1,t2),)->etr[t1]≤eta[t2],CartesianIndices(model[:removeBeforeAdd2]))
+	set_start_value.(model[:addJustBefore],ξa)
+	set_start_value.(model[:removeJustBefore],ξr)
+	set_start_value.(model[:addJustBeforeRemove],ξar)
+	set_start_value.(model[:removeJustBeforeAdd],ξra)
+	set_start_value.(model[:addBeforeRemove2],ηar)
+	set_start_value.(model[:removeBeforeAdd2],ηra)
+
+	foreach(((i,t0,t),)->set_start_value(model[:addJustBeforeItem][i,t0,t],ξa[t0,t]&&eta[i,t]),CartesianIndices(model[:addJustBeforeItem]))
+	foreach(((i,t0,t),)->set_start_value(model[:removeJustBeforeItem][i,t0,t],ξr[t0,t]&&etr[i,t]),CartesianIndices(model[:removeJustBeforeItem]))
+	foreach(((i,t0,t),)->set_start_value(model[:removeJustBeforeAddItem][i,t0,t],ξra[t0,t]&&etr[i,t]),CartesianIndices(model[:removeJustBeforeAddItem]))
+	foreach(((i,t0,t),)->set_start_value(model[:addJustBeforeRemoveItem][i,t0,t],ξar[t0,t]&&eta[i,t]),CartesianIndices(model[:addJustBeforeRemoveItem]))
+end
 function carsModel2Q(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/carCount),M=T*problem.travelTime)
 	itemsNeeded=problem.itemsNeeded
 	carCount=problem.carCount
