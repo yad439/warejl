@@ -58,7 +58,7 @@ function toMachinesModel(model,schedule)
 	end
 end
 
-function carsModel1(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel1(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/carCount),M=T*problem.travelTime)
 	itemsNeeded=problem.itemsNeeded
 	carCount=problem.carCount
 	travelTime=problem.carTravelTime
@@ -133,7 +133,7 @@ function carsModel1(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 	@constraint(model,[c0=1:carCount,i=1:T,it=1:itemCount],sum(doneItemAdd3[c0,i,:,:,it])-sum(doneItemRemove3[c0,i,:,:,it])≥0);
 end
 
-function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel2(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/carCount),M=T*problem.travelTime)
 	itemsNeeded=problem.itemsNeeded
 	carCount=problem.carCount
 	travelTime=problem.carTravelTime
@@ -224,7 +224,8 @@ function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 		[t0=1:T],sum(removeJustBeforeItem[it,t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carCount
 	end);
 end
-function carsModel2Q(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+
+function carsModel2Q(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/carCount),M=T*problem.travelTime)
 	itemsNeeded=problem.itemsNeeded
 	carCount=problem.carCount
 	travelTime=problem.carTravelTime
@@ -293,7 +294,7 @@ function carsModel2Q(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCoun
 	end);
 end
 
-function carsModel3(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+function carsModel3(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/carCount),M=T*problem.travelTime)
 	itemsNeeded=problem.itemsNeeded
 	carCount=problem.carCount
 	travelTime=problem.carTravelTime
