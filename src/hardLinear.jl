@@ -224,6 +224,74 @@ function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 		[t0=1:T],sum(removeJustBeforeItem[it,t0,τ] for it=1:itemCount,τ=1:t0-1)+sum(addJustBeforeRemoveItem[:,t0,:])+sum(removeEventItems[:,t0])≤carCount
 	end);
 end
+function carsModel2Q(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
+	itemsNeeded=problem.itemsNeeded
+	carCount=problem.carCount
+	travelTime=problem.carTravelTime
+	storageSize=problem.bufferSize
+	t=model[:startTime]
+	n=length(itemsNeeded)
+	p=problem.jobLengths
+	@assert length(t)==n
+	itemCount=maximum(Iterators.flatten(itemsNeeded))
+
+	@variable(model,addEventItems[1:itemCount,1:T],Bin)
+	@variable(model,removeEventItems[1:itemCount,1:T],Bin)
+	@variable(model,addEventTime[1:T]≥0)
+	@variable(model,removeEventTime[1:T]≥0)
+	@constraint(model,[τ=1:T-1],addEventTime[τ]≤addEventTime[τ+1])
+	@constraint(model,[τ=1:T-1],removeEventTime[τ]≤removeEventTime[τ+1])
+
+	@variables(model,begin
+		addEventBefore[1:T,1:n],Bin
+		removeEventBefore[1:T,1:n],Bin
+	end)
+	@constraints(model,begin
+		[τ=1:T,i=1:n],t[i]≥addEventTime[τ]+travelTime-M*(1-addEventBefore[τ,i])
+		[τ=1:T,i=1:n],t[i]+p[i]≤removeEventTime[τ]+M*removeEventBefore[τ,i]
+	end)
+	@constraint(model,[i=1:n,item in itemsNeeded[i]],sum(addEventBefore[:,i].*addEventItems[item,:])-sum(removeEventBefore[:,i].*removeEventItems[item,:])≥1)
+	@variables(model,begin
+		removeBeforeAdd[1:T,1:T],Bin
+		addBeforeRemove[1:T,1:T],Bin
+	end)
+	@constraints(model,begin
+		[τ=1:T,t0=1:T],removeEventTime[τ]≤addEventTime[t0]+travelTime+M*(1-removeBeforeAdd[τ,t0])
+		[τ=1:T,t0=1:T],addEventTime[τ]+travelTime≤removeEventTime[t0]+M*(1-addBeforeRemove[τ,t0])
+	end)
+	@constraints(model,begin
+		[t0=1:T],sum(addEventItems[:,1:t0])-sum(removeBeforeAdd[τ,t0]*removeEventItems[i,τ] for i=1:itemCount,τ=1:T)≤storageSize
+		[t0=1:T,it=1:itemCount],sum(addBeforeRemove[:,t0].*addEventItems[it,:])-sum(removeEventItems[it,1:t0])≥0
+	end)
+	@variables(model,begin
+		addJustBefore[t0=1:T,1:t0-1],Bin
+		removeJustBefore[t0=1:T,1:t0-1],Bin
+		removeBeforeAdd2[1:T,1:T],Bin
+		addBeforeRemove2[1:T,1:T],Bin
+		removeJustBeforeOrAfterAdd[1:T,1:T],Bin
+		addJustBeforeOrAfterRemove[1:T,1:T],Bin
+	end)
+	@constraints(model,begin
+		[t0=1:T,τ=1:t0-1],addEventTime[τ]+travelTime≤addEventTime[t0]+M*addJustBefore[t0,τ]
+		[t0=1:T,τ=1:t0-1],removeEventTime[τ]+travelTime≤removeEventTime[t0]+M*removeJustBefore[t0,τ]
+		[t0=1:T,τ=1:T],removeEventTime[τ]+travelTime≤addEventTime[t0]+M*removeJustBeforeOrAfterAdd[t0,τ]
+		[t0=1:T,τ=1:T],addEventTime[τ]+travelTime≤removeEventTime[t0]+M*addJustBeforeOrAfterRemove[t0,τ]
+		[t0=1:T,τ=1:T],removeEventTime[τ]≥addEventTime[t0]+1-M*removeBeforeAdd2[t0,τ]
+		[t0=1:T,τ=1:T],addEventTime[τ]≥removeEventTime[t0]+1-M*addBeforeRemove2[t0,τ]
+	end)
+	@variables(model,begin
+		removeJustBeforeAdd[1:T,1:T],Bin
+		addJustBeforeRemove[1:T,1:T],Bin
+	end)
+	@constraints(model,begin
+		[t0=1:T,τ=1:T],removeJustBeforeAdd[t0,τ]≥removeBeforeAdd2[t0,τ]+removeJustBeforeOrAfterAdd[t0,τ]-1
+		[t0=1:T,τ=1:T],addJustBeforeRemove[t0,τ]≥addBeforeRemove2[t0,τ]+addJustBeforeOrAfterRemove[t0,τ]-1
+	end)
+	@constraints(model,begin
+		[t0=1:T],sum(addEventItems[i,τ]addJustBefore[t0,τ] for i=1:itemCount,τ=1:t0-1)+sum(removeEventItems[i,τ]removeJustBeforeAdd[t0,τ] for i=1:itemCount,τ=1:T)+sum(addEventItems[:,t0])≤carCount
+		[t0=1:T],sum(removeEventItems[i,τ]removeJustBefore[t0,τ] for i=1:itemCount,τ=1:t0-1)+sum(addEventItems[i,τ]addJustBeforeRemove[t0,τ] for i=1:itemCount,τ=1:T)+sum(removeEventItems[:,t0])≤carCount
+	end);
+end
 
 function carsModel3(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount),M=T*travelTime)
 	itemsNeeded=problem.itemsNeeded

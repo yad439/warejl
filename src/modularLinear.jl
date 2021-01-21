@@ -4,7 +4,7 @@ include("hardLinear.jl")
 include("simplifiedLinears.jl")
 
 @enum MachineModelType ORDER_FIRST ASSIGNMENT_ONLY
-@enum CarModelType TIME_SLOTS SEPARATE_EVENTS GENERAL_EVENTS DELIVER_ONLY NO_CARS
+@enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS DELIVER_ONLY NO_CARS
 
 struct ModelWrapper{machineType,carType}
 	inner
@@ -35,6 +35,8 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 		carsModel1(model,problem,TR,M)
 	elseif carModelType≡SEPARATE_EVENTS
 		carsModel2(model,problem,TE,M)
+	elseif carModelType≡SEPARATE_EVENTS_QUAD
+		carsModel2Q(model,problem,TE,M)
 	elseif carModelType≡GENERAL_EVENTS
 		carsModel3(model,problem,TE,M)
 	elseif carModelType≡DELIVER_ONLY
