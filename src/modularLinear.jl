@@ -45,7 +45,7 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 		@assert carModelType≡NO_CARS
 	end
 
-	@constraint(model,[i=1:jobCount],res≥startTime[i])
+	@constraint(model,[i=1:jobCount],res≥startTime[i]+problem.jobLengths[i])
 	@objective(model,Min,res)
 
 	ModelWrapper{machineModelType,carModelType}(model)
