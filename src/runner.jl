@@ -27,5 +27,5 @@ st1=rand(sample2)
 sol=computeTimeLazyReturn(st1,problem,Val(true))
 T=sol.schedule.carsTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
 
-exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS,T)
+exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS_QUAD,T)
 exactRes=runModel(exactModel,1800)
