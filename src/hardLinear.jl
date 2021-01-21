@@ -189,7 +189,7 @@ function carsModel2(model,problem,T=2ceil(Int,sum(length.(itemsNeeded))/carCount
 	end)
 	@constraints(model,begin
 		[t0=1:T],sum(addEventItems[:,1:t0])-sum(removeBeforeAddItem[:,:,t0])≤storageSize
-		[t0=1:T],sum(addBeforeRemoveItem[:,:,t0])-sum(removeEventItems[:,1:t0])≥0
+		[t0=1:T,it=1:itemCount],sum(addBeforeRemoveItem[it,:,t0])-sum(removeEventItems[it,1:t0])≥0
 	end)
 	@variables(model,begin
 		addJustBefore[t0=1:T,1:t0-1],Bin
