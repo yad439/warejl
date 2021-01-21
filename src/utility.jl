@@ -130,3 +130,4 @@ ffilter(f)=x->filter(f,x)
 ifmap(f)=x->Iterators.map(f,x)
 iffilter(f)=x->Iterators.filter(f,x)
 secondElement(x)=x[2]
+unzip(a)=map(x->getfield.(a, x), fieldnames(eltype(a)))
