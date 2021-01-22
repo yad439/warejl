@@ -19,7 +19,7 @@ end
 struct Schedule
 	assignment::Vector{Int}
 	times::Vector{Int}
-	carsTasks::Vector{@NamedTuple{time::Int,item::Int,isAdd::Bool}}
+	carTasks::Vector{@NamedTuple{time::Int,item::Int,isAdd::Bool}}
 end
 
 struct GanttJob
@@ -180,9 +180,9 @@ separateEvents(history)=map(event->map(it->(time=event.time,item=it[1],isAdd=it[
 function generalEvents(history)
 	eventDict=Dict()
 	foreach(history) do event
-		entry=get!(_->(Int[],Int[]),eventDict,event.time)
+		entry=get!(()->(Int[],Int[]),eventDict,event.time)
 		list=event.isAdd ? entry[1] : entry[2]
 		push!(list,event.item)
 	end
-	map(entry->(time=entry[1],add=entry[2][1],remove=entry[2][2]),eventDict)
+	map(entry->(time=entry[1],add=entry[2][1],remove=entry[2][2]),collect(eventDict))
 end
