@@ -43,7 +43,7 @@ function toMachinesModel(model,schedule)
 	m=maximum(schedule.assignment)
 
 	chains=[Int[] for _=1:m]
-	foreach(i->push!(chains[schedule.assignment[i]],i),schedule.permuration)
+	foreach(i->push!(chains[schedule.assignment[i]],i),sortperm(schedule.times))
 
 	isFirst=model[:isFirst]
 	ord=model[:ord]
