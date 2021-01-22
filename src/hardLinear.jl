@@ -260,10 +260,10 @@ function toCarsModel2(model,schedule,problem)
 	addEventTime=model[:addEventTime]
 	removeEventTime=model[:removeEventTime]
 
-	eta=map(t->get(addEvents,t,(0,))[1],eachindex(addEventTime))
-	etr=map(t->get(removeEvents,t,(0,))[1],eachindex(removeEventTime))
-	eia=[get(addEvents,t,[]) ∋ it for (it,t) ∈ Tuple.(CartesianIndices(addEventItems))]
-	eir=[get(removeEvents,t,[]) ∋ it for (it,t) ∈ Tuple.(CartesianIndices(removeEventItems))]
+	eta=map(t->get(addEvents,t,(addEvents[end][1],))[1],eachindex(addEventTime))
+	etr=map(t->get(removeEvents,t,(removeEvents[end][1],))[1],eachindex(removeEventTime))
+	eia=[get(addEvents,t,(nothing,[]))[2] ∋ it for (it,t) ∈ Tuple.(CartesianIndices(addEventItems))]
+	eir=[get(removeEvents,t,(nothing,[]))[2] ∋ it for (it,t) ∈ Tuple.(CartesianIndices(removeEventItems))]
 	set_start_value.(addEventTime,eta)
 	set_start_value.(removeEventTime,etr)
 	set_start_value.(addEventItems,eia)
@@ -271,7 +271,7 @@ function toCarsModel2(model,schedule,problem)
 
 	ba=map(((t,i),)->schedule.times[i]≥eta[t]+w,Tuple.(CartesianIndices(model[:addEventBefore])))
 	set_start_value.(model[:addEventBefore],ba)
-	br=map(((t,i),)->schedule.times[i]≥etr[t]+w,Tuple.(CartesianIndices(model[:removeEventBefore])))
+	br=map(((t,i),)->schedule.times[i]+problem.jobLengths[i]>etr[t],Tuple.(CartesianIndices(model[:removeEventBefore])))
 	set_start_value.(model[:removeEventBefore],br)
 
 	foreach(((t,i,it),)->set_start_value(model[:addEventBeforeItem][t,i,it],eia[it,t]&&ba[t,i]),eachindex(model[:addEventBeforeItem]))
@@ -292,10 +292,10 @@ function toCarsModel2(model,schedule,problem)
 	ξr=zeros(Bool,1:T,1:T)
 	foreach(((t0,t),)->ξa[t0,t]=eta[t]>eta[t0]-w,eachindex(model[:addJustBefore]))
 	foreach(((t0,t),)->ξr[t0,t]=etr[t]>etr[t0]-w,eachindex(model[:removeJustBefore]))
-	ξar=map(((t0,t),)->etr[t0]-w<eta[t]≤etr[t0],Tuple.(CartesianIndices(model[:addJustBeforeRemove])))
-	ξra=map(((t0,t),)->eta[t0]-w<etr[t]≤eta[t0],Tuple.(CartesianIndices(model[:removeJustBeforeAdd])))
-	ηar=map(((t1,t2),)->eta[t1]≤etr[t2],Tuple.(CartesianIndices(model[:addBeforeRemove2])))
-	ηra=map(((t1,t2),)->etr[t1]≤eta[t2],Tuple.(CartesianIndices(model[:removeBeforeAdd2])))
+	ξar=map(((t0,t),)->etr[t0]-w<eta[t],Tuple.(CartesianIndices(model[:addJustBeforeRemove])))
+	ξra=map(((t0,t),)->eta[t0]-w<etr[t],Tuple.(CartesianIndices(model[:removeJustBeforeAdd])))
+	ηar=map(((t0,t),)->eta[t]≤etr[t0],Tuple.(CartesianIndices(model[:addBeforeRemove2])))
+	ηra=map(((t0,t),)->etr[t]≤eta[t0],Tuple.(CartesianIndices(model[:removeBeforeAdd2])))
 	foreach(((t0,t),)->set_start_value(model[:addJustBefore][t0,t],ξa[t0,t]),eachindex(model[:addJustBefore]))
 	foreach(((t0,t),)->set_start_value(model[:removeJustBefore][t0,t],ξr[t0,t]),eachindex(model[:removeJustBefore]))
 	set_start_value.(model[:addJustBeforeRemove],ξar)
