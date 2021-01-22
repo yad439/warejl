@@ -182,3 +182,20 @@ for _=1:10
 	tabuRes=modularTabuSearch(tabuSettings,sf,deepcopy(st))
 	push!(res,tabuRes.score)
 end
+##
+exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
+setStartValues(exactModel,sol.schedule,problem)
+exactRes=runModel(exactModel,10)
+##
+cars=normalizeHistory(sol[3],problem.carTravelTime)
+pl1=gantt(sol[1],problem.jobLengths,false,string.(collect.(problem.itemsNeeded)))
+pl2=plotDetailedCarUsage(cars,problem.carTravelTime,problem.carCount,(0,sol[2]))
+pl3=plotDetailedBufferUsage(cars,problem.carTravelTime,problem.bufferSize,(0,sol[2]))
+plr=plot(pl1,pl3,pl2,layout=(3,1),size=(1500,400))
+##
+addEventBeforeItem=start_value.(exactModel.inner[:addEventBeforeItem])
+removeEventBeforeItem=start_value.(exactModel.inner[:removeEventBeforeItem])
+T=length(exactModel.inner[:addEventTime])
+for i=1:problem.jobCount,item in problem.itemsNeeded[i]
+	@assert sum(addEventBeforeItem[τ,i,item] for τ=1:T)-sum(removeEventBeforeItem[τ,i,item] for τ=1:T)≥1 (i,item)
+end
