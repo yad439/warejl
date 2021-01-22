@@ -6,7 +6,9 @@ include("simplifiedLinears.jl")
 @enum MachineModelType ORDER_FIRST ASSIGNMENT_ONLY
 @enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS DELIVER_ONLY NO_CARS
 
-struct ModelWrapper{machineType,carType}
+struct ModelWrapper
+	machineType
+	carType
 	inner
 end
 
@@ -48,7 +50,7 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 	@constraint(model,[i=1:jobCount],res≥startTime[i]+problem.jobLengths[i])
 	@objective(model,Min,res)
 
-	ModelWrapper{machineModelType,carModelType}(model)
+	ModelWrapper(machineModelType,carModelType,model)
 end
 
 function runModel(model,timeout=0)
