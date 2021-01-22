@@ -58,3 +58,18 @@ function runModel(model,timeout=0)
 	optimize!(model.inner)
 	(has_values(model.inner) ? objective_value(model.inner) : missing,objective_bound(model.inner))
 end
+
+function setStartValues(model,schedule,problem)
+	set_start_value.(model.inner[:startTime],schedule.times)
+	set_start_value(model.inner[:res],maximum(schedule.times.+problem.jobLengths))
+	if model.machineType≡ORDER_FIRST
+		toMachinesModel(model.inner,schedule)
+	else
+		@assert false
+	end
+	if model.carType≡SEPARATE_EVENTS
+		toCarsModel2(model.inner,schedule,problem)
+	else
+		@assert false
+	end
+end
