@@ -164,7 +164,7 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 ##
-exactModel=buildModel(problem,ORDER_FIRST,TIME_SLOTS)
+exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
 exactRes=runModel(exactModel,100)
 ##
 st1=rand(sample1)
