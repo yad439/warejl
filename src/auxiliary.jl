@@ -184,5 +184,5 @@ function generalEvents(history)
 		list=event.isAdd ? entry[1] : entry[2]
 		push!(list,event.item)
 	end
-	map(entry->(time=entry[1],add=entry[2][1],remove=entry[2][2]),collect(eventDict))
+	sort(map(entry->(time=entry[1],add=entry[2][1],remove=entry[2][2]),collect(eventDict)),by=e->e.time)
 end
