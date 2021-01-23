@@ -183,6 +183,8 @@ for _=1:10
 	push!(res,tabuRes.score)
 end
 ##
+sol=computeTimeLazyReturn(st1,problem,Val(true));
+##
 exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
 setStartValues(exactModel,sol.schedule,problem)
 exactRes=runModel(exactModel,10)
