@@ -305,8 +305,8 @@ function toCarsModel2(model,schedule,problem)
 
 	foreach(((i,t0,t),)->set_start_value(model[:addJustBeforeItem][i,t0,t],ξa[t0,t]&&eia[i,t]),eachindex(model[:addJustBeforeItem]))
 	foreach(((i,t0,t),)->set_start_value(model[:removeJustBeforeItem][i,t0,t],ξr[t0,t]&&eir[i,t]),eachindex(model[:removeJustBeforeItem]))
-	foreach(((i,t0,t),)->set_start_value(model[:removeJustBeforeAddItem][i,t0,t],ξra[t0,t]&&eir[i,t]),Tuple.(CartesianIndices(model[:removeJustBeforeAddItem])))
-	foreach(((i,t0,t),)->set_start_value(model[:addJustBeforeRemoveItem][i,t0,t],ξar[t0,t]&&eia[i,t]),Tuple.(CartesianIndices(model[:addJustBeforeRemoveItem])))
+	foreach(((i,t0,t),)->set_start_value(model[:removeJustBeforeAddItem][i,t0,t],ξra[t0,t]&&ηra[t0,t]&&eir[i,t]),Tuple.(CartesianIndices(model[:removeJustBeforeAddItem])))
+	foreach(((i,t0,t),)->set_start_value(model[:addJustBeforeRemoveItem][i,t0,t],ξar[t0,t]&&ηar[t0,t]&&eia[i,t]),Tuple.(CartesianIndices(model[:addJustBeforeRemoveItem])))
 end
 function carsModel2Q(model,problem,T=2ceil(Int,sum(length.(problem.itemsNeeded))/carCount),M=T*problem.travelTime)
 	itemsNeeded=problem.itemsNeeded
