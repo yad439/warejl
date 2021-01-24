@@ -77,7 +77,7 @@ end
 
 function toModerateJobs(batches,boxFilter=_->true)
 	orders=map(batch->batch.orders,batches) |> Iterators.flatten
-	boxes=map(order->order.boxes,orders) |> Iterators.flatten |> iffilter(boxFilter)
+	boxes=map(order->order.boxes,orders) |> Iterators.flatten |> iffilter(boxFilter) |> collect
 	jobLengths=map(box->box.packingTime,boxes)
 	itemIds=map(box->box.items,boxes) |> Iterators.flatten |> fmap(i->i.id) |> unique
 	itemMapping=Iterators.enumerate(itemIds) |> fmap(x->(x[2],x[1])) |> Dict
