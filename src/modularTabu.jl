@@ -18,6 +18,8 @@ end
 
 modularTabuSearch(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange)
 modularTabuSearch2(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Int}(),tabuAdd2!,tabuCanChange2)
+modularTabuSearch3(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Int,Int}}(),tabuAdd3!,tabuCanChange3)
+modularTabuSearch3(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Bool,Int,Int}}(),tabuAdd3!,tabuCanChange3)
 
 function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange)
 	progress=ProgressUnknown("Local tabu search:")
@@ -95,6 +97,31 @@ function tabuAdd2!(tabu,newChange,restoreChange,solution)
 			enqueue!(tabu,newChange[3])
 	end
 end
+function tabuAdd3!(tabu,newChange,restoreChange,solution::PermutationEncoding)
+	if restoreChange[1]≡PERMUTATION_MOVE
+		enqueue!(tabu,(solution.permutation[restoreChange[2]],restoreChange[3]))
+	elseif restoreChange[1]≡PERMUTATION_SWAP
+		enqueue!(tabu,(solution.permutation[restoreChange[2]],restoreChange[3]))
+		enqueue!(tabu,(solution.permutation[restoreChange[3]],restoreChange[2]))
+	else
+		@assert false
+	end
+end
+function tabuAdd3!(tabu,newChange,restoreChange,solution::TwoVectorEncoding)
+	if restoreChange[1]≡TWO_VECTOR_MOVE_ORDER
+		enqueue!(tabu,(true,solution.permutation[restoreChange[2]],restoreChange[3]))
+	elseif restoreChange[1]≡TWO_VECTOR_SWAP_ORDER
+		enqueue!(tabu,(true,solution.permutation[restoreChange[2]],restoreChange[3]))
+		enqueue!(tabu,(true,solution.permutation[restoreChange[3]],restoreChange[2]))
+	elseif restoreChange[1]≡TWO_VECTOR_MOVE_ASSIGNMENT
+		enqueue!(tabu,(false,restoreChange[2],restoreChange[3]))
+	elseif restoreChange[1]≡TWO_VECTOR_SWAP_ASSIGNMENT
+		enqueue!(tabu,(false,restoreChange[2],solution.assignment[restoreChange[3]]))
+		enqueue!(tabu,(false,restoreChange[3],solution.assignment[restoreChange[2]]))
+	else
+		@assert false
+	end
+end
 function tabuCanChange(::TwoVectorEncoding,change,tabu)
 	if change[1]==TWO_VECTOR_MOVE_ORDER || change[1]==TWO_VECTOR_MOVE_ASSIGNMENT
 		return change ∉ tabu
@@ -118,6 +145,26 @@ function tabuCanChange2(::PermutationEncoding,change,tabu)
 		return change[2] ∉ tabu
 	elseif change[1]==PERMUTATION_SWAP
 		return change[2] ∉ tabu && change[3] ∉ tabu
+	end
+	@assert(false)
+end
+function tabuCanChange3(solution::PermutationEncoding,change,tabu)
+	if change[1]≡PERMUTATION_MOVE
+		return (solution.permutation[change[2]],change[3]) ∉ tabu
+	elseif change[1]≡PERMUTATION_SWAP
+		return (solution.permutation[change[2]],change[3]) ∉ tabu && (solution.permutation[change[3]],change[2]) ∉ tabu
+	end
+	@assert(false)
+end
+function tabuCanChange3(solution::TwoVectorEncoding,change,tabu)
+	if change[1]≡TWO_VECTOR_MOVE_ORDER
+		return (true,solution.permutation[change[2]],change[3]) ∉ tabu
+	elseif change[1]≡TWO_VECTOR_SWAP_ORDER
+		return (true,solution.permutation[change[2]],change[3]) ∉ tabu && (solution.permutation[change[3]],change[2]) ∉ tabu
+	elseif change[1]≡TWO_VECTOR_MOVE_ASSIGNMENT
+		return (false,change[2],change[3]) ∉ tabu
+	elseif change[1]≡TWO_VECTOR_SWAP_ASSIGNMENT
+		return (false,change[2],solution.assignment[change[3]]) ∉ tabu && (false,change[3],solution.assignment[change[2]]) ∉ tabu
 	end
 	@assert(false)
 end
