@@ -154,6 +154,20 @@ CSV.write("out/short2.tsv",df,delim='\t')
 # model=buildModel(p,m,itemsNeeded,c,tt,bs)
 # runModel(model)
 ##
+cnt=0
+function flt(box)
+	if box.lineType!="A"
+		return false
+	end
+	global cnt+=1
+	if cnt<=5
+		return true
+	else
+		return false
+	end
+	return false
+end
+##
 machineCount=6
 carCount=30
 bufferSize=6
@@ -170,11 +184,11 @@ exactRes=runModel(exactModel,100)
 st1=rand(sample1)
 st2=rand(sample2);
 ##
-tabuSettings=TabuSearchSettings(600,20,2*problem.jobCount^2)
+tabuSettings=TabuSearchSettings(1000,problem.jobCount^2,2*problem.jobCount^2)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
 
 localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
-tabuRes1=modularTabuSearch2(tabuSettings,sf,deepcopy(st1))
+tabuRes1=modularTabuSearch3(tabuSettings,sf,deepcopy(st1))
 ##
 res=[]
 for _=1:10
