@@ -16,11 +16,14 @@ struct TabuSearchSettings2
 	neighbourhoodSize::Float64
 end
 
-function modularTabuSearch(settings,scoreFunction,startTimeTable)
+modularTabuSearch(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange)
+modularTabuSearch2(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Int}(),tabuAdd2!,tabuCanChange2)
+
+function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange)
 	progress=ProgressUnknown("Local tabu search:")
 
 	timeTable=startTimeTable
-	tabu=Queue{Tuple{changeType(startTimeTable),Int,Int}}()
+	tabu=tabuInit
 	minval=scoreFunction(timeTable)
 	minsol=copy(timeTable)
 	counter=0
@@ -28,9 +31,9 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable)
 	history=QHistory(typeof(minval))
 	push!(history,minval)
 	while counter<settings.searchTries
-		newTimeTableChange=modularTabuImprove(timeTable,tabu,settings.neighbourhoodSize,scoreFunction)
+		newTimeTableChange=modularTabuImprove(timeTable,tabu,settings.neighbourhoodSize,scoreFunction,tabuCanChange)
 		restoreChange=change!(timeTable,newTimeTableChange)
-		enqueue!(tabu,restoreChange)
+		tabuAdd!(tabu,newTimeTableChange,restoreChange,timeTable)
 		score=scoreFunction(timeTable)
 		push!(history,score)
 		if score<minval
@@ -49,49 +52,11 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable)
 	(score=minval,solution=minsol,history=history)
 end
 
-function modularTabuSearch2(settings,scoreFunction,startTimeTable)
-	progress=ProgressUnknown("Local tabu search:")
-
-	timeTable=startTimeTable
-	tabu=Queue{Int}()
-	minval=scoreFunction(timeTable)
-	minsol=copy(timeTable)
-	counter=0
-
-	history=QHistory(typeof(minval))
-	push!(history,minval)
-	while counter<settings.searchTries
-		newTimeTableChange=modularTabuImprove2(timeTable,tabu,settings.neighbourhoodSize,scoreFunction)
-		restoreChange=change!(timeTable,newTimeTableChange)
-		if newTimeTableChange[1]≡PERMUTATION_MOVE
-			enqueue!(tabu,newTimeTableChange[2])
-		elseif newTimeTableChange[1]≡PERMUTATION_SWAP
-			enqueue!(tabu,newTimeTableChange[2])
-			enqueue!(tabu,newTimeTableChange[3])
-		end
-		score=scoreFunction(timeTable)
-		push!(history,score)
-		if score<minval
-			counter=0
-			minval=score
-			copy!(minsol,timeTable)
-		else
-			counter+=1
-		end
-		while length(tabu)>settings.tabuSize
-			dequeue!(tabu)
-		end
-		ProgressMeter.next!(progress,showvalues=(("Score",score),))
-	end
-	ProgressMeter.finish!(progress)
-	(score=minval,solution=minsol,history=history)
-end
-
-function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction)
+function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction,canChange)
 	minval=typemax(Int)
 	toApply=(defaultChange(timeTable),0,0)
 	for _=1:neighbourhoodSize
-		newChange,restoreChange=randomChange!(timeTable,change->tabuCanChange(timeTable,change,tabu))
+		newChange,restoreChange=randomChange!(timeTable,change->canChange(timeTable,change,tabu))
 		score=scoreFunction(timeTable)
 		change!(timeTable,restoreChange)
 		if score<minval
@@ -102,12 +67,12 @@ function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction)
 	toApply
 end
 
-function modularTabuImprove(timetable,tabu,neighbourhoodProbability::Float64,scoreFunction)
+function modularTabuImprove(timetable,tabu,neighbourhoodProbability::Float64,scoreFunction,canChange)
 	minval=typemax(Int)
 	toApply=(0,0,0)
 	for change ∈ changeIterator(timetable)
 		rand() > neighbourhoodProbability && continue
-		tabuCanChange(timetable,change,tabu) || continue
+		canChange(timetable,change,tabu) || continue
 		restoreChange=change!(timetable,change)
 		score=scoreFunction(timetable)
 		change!(timetable,restoreChange)
@@ -119,38 +84,17 @@ function modularTabuImprove(timetable,tabu,neighbourhoodProbability::Float64,sco
 	toApply
 end
 
-function modularTabuImprove2(timeTable,tabu,neighbourhoodSize::Int,scoreFunction)
-	minval=typemax(Int)
-	toApply=(defaultChange(timeTable),0,0)
-	for _=1:neighbourhoodSize
-		newChange,restoreChange=randomChange!(timeTable,change->tabuCanChange2(timeTable,change,tabu))
-		score=scoreFunction(timeTable)
-		change!(timeTable,restoreChange)
-		if score<minval
-			minval=score
-			toApply=newChange
-		end
-	end
-	toApply
+function tabuAdd!(tabu,newChange,restoreChange,solution)
+	enqueue!(tabu,restoreChange)
 end
-
-function modularTabuImprove2(timetable,tabu,neighbourhoodProbability::Float64,scoreFunction)
-	minval=typemax(Int)
-	toApply=(0,0,0)
-	for change ∈ changeIterator(timetable)
-		rand() > neighbourhoodProbability && continue
-		tabuCanChange2(timetable,change,tabu) || continue
-		restoreChange=change!(timetable,change)
-		score=scoreFunction(timetable)
-		change!(timetable,restoreChange)
-		if score<minval
-			minval=score
-			toApply=change
-		end
+function tabuAdd2!(tabu,newChange,restoreChange,solution)
+	if newChange[1]≡PERMUTATION_MOVE
+			enqueue!(tabu,newChange[2])
+	elseif newChange[1]≡PERMUTATION_SWAP
+			enqueue!(tabu,newChange[2])
+			enqueue!(tabu,newChange[3])
 	end
-	toApply
 end
-
 function tabuCanChange(::TwoVectorEncoding,change,tabu)
 	if change[1]==TWO_VECTOR_MOVE_ORDER || change[1]==TWO_VECTOR_MOVE_ASSIGNMENT
 		return change ∉ tabu
