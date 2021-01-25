@@ -48,12 +48,12 @@ center(job::GanttJob)=(job.startTime+job.duration/2,job.assignment-0.5)
 	shapes
 end
 
-function gantt(jobs,jobLengths,useLabel=length(jobLengths)≤10,text=nothing)
+function gantt(jobs,jobLengths,useLabel=length(jobLengths)≤10,text=nothing;bw=false)
 	pl=plot(xlims=(0,:auto))
 	for i=1:length(jobLengths)
 		job=GanttJob(jobs.assignment[i],jobs.times[i],jobLengths[i])
 		cent=center(job)
-		plot!(pl,job,label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? (cent...,Plots.text(text[i],8)) : nothing))
+		plot!(pl,job,label=(useLabel ? "job $i" : nothing),annotations=(text≢nothing ? (cent...,Plots.text(text[i],8)) : nothing),fillalpha=(bw ? 0 : 1))
 	end
 	pl
 end
@@ -82,7 +82,7 @@ function plotCarUsage(carHistory,carTravelTime,xlims=:auto)
 	plot(line,label=false,xlims=xlims)
 end
 
-function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
+function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto;text=true)
 	maxTime=zeros(carNumber)
 	jobs=map(carHistory) do event
 		map(event.items) do item
@@ -99,12 +99,12 @@ function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto)
 	addsAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),adds)
 	removesShapes=map(toShape∘first,removes)
 	removesAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),removes)
-	plot!(plt,addsShapes,annotations=addsAnnotations,label="Add")
-	plot!(plt,removesShapes,annotations=removesAnnotations,label="Remove")
+	plot!(plt,addsShapes,annotations=(text ? addsAnnotations : nothing),label="Add")
+	plot!(plt,removesShapes,annotations=(text ? removesAnnotations : nothing),label="Remove")
 	plt
 end
 
-function plotDetailedBufferUsage(carHistory,carTravelTime,bufferSize,xlims)
+function plotDetailedBufferUsage(carHistory,carTravelTime,bufferSize,xlims;bw=false)
 	itemsInBuffer=Tuple{Int,Int,Int}[]
 	for event ∈ carHistory
 		for item ∈ event.items
@@ -124,7 +124,7 @@ function plotDetailedBufferUsage(carHistory,carTravelTime,bufferSize,xlims)
 		job,item[1]
 	end
 	plt=plot(label=false,xlims=xlims)
-	foreach(job->plot!(plt,job[1],label=false,annotations=(center(job[1])...,Plots.text(string(job[2]),8))),jobs)
+	foreach(job->plot!(plt,job[1],label=false,annotations=(center(job[1])...,Plots.text(string(job[2]),8)),fillalpha=(bw ? 0 : 1)),jobs)
 	plt
 end
 
