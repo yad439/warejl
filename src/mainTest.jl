@@ -171,22 +171,23 @@ end
 machineCount=6
 carCount=30
 bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
 sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 ##
-exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
-exactRes=runModel(exactModel,100)
+exactModel=buildModel(problem,ORDER_FIRST,DELIVER_ONLY)
+exactRes=runModel(exactModel,300)
 ##
 st1=rand(sample1)
 st2=rand(sample2);
 ##
-tabuSettings=TabuSearchSettings(1000,900,500)
+# tabuSettings=TabuSearchSettings(1000,900,500)
+tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
-annealingSettings=AnnealingSettings(100000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+annealingSettings=AnnealingSettings(1000000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
 # localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
 tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
