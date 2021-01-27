@@ -3,7 +3,7 @@ using JuMP
 include("auxiliary.jl")
 include("utility.jl")
 
-function machinesModel(model,problem,M=2sum(jobLengths))
+function machinesModel(model,problem,M=2sum(problem.jobLengths))
 	jobLengths=problem.jobLengths
 	machineCount=problem.machineCount
 	t=model[:startTime]
