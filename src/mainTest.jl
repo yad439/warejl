@@ -178,8 +178,8 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 ##
-exactModel=buildModel(problem,ORDER_FIRST,DELIVER_ONLY)
-exactRes=runModel(exactModel,300)
+exactModel=buildModel(problem,ASSIGNMENT_ONLY_SHARED,NO_CARS)
+exactRes=runModel(exactModel,30*60)
 ##
 st1=rand(sample1)
 st2=rand(sample2);
@@ -187,17 +187,22 @@ st2=rand(sample2);
 # tabuSettings=TabuSearchSettings(1000,900,500)
 tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
-annealingSettings=AnnealingSettings(1000000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+annealingSettings=AnnealingSettings(500000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
 # localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
 tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
 annealingRes=modularAnnealing(annealingSettings,sf,deepcopy(st1))
 ##
-res=[]
-for _=1:10
+res=map(1:10) do _
 	st=rand(sample1)
-	tabuRes=modularTabuSearch(tabuSettings,sf,deepcopy(st))
-	push!(res,tabuRes.score)
+	tabuRes=modularTabuSearch5(tabuSettings,sf,deepcopy(st))
+	tabuRes.score
+end
+##
+res=map(1:10) do _
+	st=rand(sample1)
+	tabuRes=modularAnnealing(annealingSettings,sf,deepcopy(st))
+	tabuRes.score
 end
 ##
 sol=computeTimeLazyReturn(st1,problem,Val(true));
