@@ -3,7 +3,7 @@ using JuMP,Gurobi
 include("hardLinear.jl")
 include("simplifiedLinears.jl")
 
-@enum MachineModelType ORDER_FIRST ASSIGNMENT_ONLY
+@enum MachineModelType ORDER_FIRST ASSIGNMENT_ONLY ASSIGNMENT_ONLY_SHARED
 @enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS DELIVER_ONLY NO_CARS
 
 struct ModelWrapper
@@ -30,6 +30,8 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 		machinesModel(model,problem,M)
 	elseif machineModelType≡ASSIGNMENT_ONLY
 		simpleMachines(model,problem.jobLengths,problem.machineCount)
+	elseif machineModelType≡ASSIGNMENT_ONLY_SHARED
+		sharedTimesMachines(model,problem.jobLengths,problem.machineCount)
 	else
 		@assert false
 	end
