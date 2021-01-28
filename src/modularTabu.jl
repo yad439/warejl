@@ -59,7 +59,7 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAd
 		while length(tabu)>settings.tabuSize
 			dequeue!(tabu)
 		end
-		ProgressMeter.next!(progress,showvalues=(("Score",score),))
+		ProgressMeter.next!(progress,showvalues=(("Score",score),("Min score",minval)))
 	end
 	ProgressMeter.finish!(progress)
 	(score=minval,solution=minsol,history=history)
