@@ -1,8 +1,8 @@
 using Test
 using Random
 
-include("../src/diploma/utility.jl")
-include("../src/diploma/mainAuxiliary.jl")
+include("../src/utility.jl")
+include("../src/mainAuxiliary.jl")
 
 Random.seed!(1234)
 
