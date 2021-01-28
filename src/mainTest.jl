@@ -194,15 +194,12 @@ tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
 annealingRes=modularAnnealing(annealingSettings,sf,deepcopy(st1))
 ##
 res=map(1:10) do _
-	st=rand(sample1)
-	tabuRes=modularTabuSearch5(tabuSettings,sf,deepcopy(st))
-	tabuRes.score
+	modularTabuSearch5(tabuSettings,sf,rand(sample1)).score
 end
 ##
 res=map(1:10) do _
 	st=rand(sample1)
-	tabuRes=modularAnnealing(annealingSettings,sf,deepcopy(st))
-	tabuRes.score
+	modularAnnealing(annealingSettings,sf,st).score
 end
 ##
 sol=computeTimeLazyReturn(st1,problem,Val(true));
