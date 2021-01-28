@@ -23,3 +23,23 @@ Random.seed!(1234)
 		end
 	end
 end
+
+@testset "Distance tests" begin
+	@testset "Damerau–Levenshtein distance" begin
+		@test abs(damerauLevenshteinDistance(1:10,1:10))<0.01
+		@test abs(damerauLevenshteinDistance([2,7,1,5,9,3,8,6,4,10],[2,7,1,5,9,3,8,6,4,10]))<0.01
+		@test damerauLevenshteinDistance(1:10,[1,9,3,4,5,6,7,8,2,10])≈1
+		@test damerauLevenshteinDistance(1:10,[1,3,4,5,6,7,8,2,9,10])≈1
+		@test damerauLevenshteinDistance(1:10,[1,9,3,10,5,6,7,8,2,4])≈2
+		@test damerauLevenshteinDistance(1:10,[1,3,4,6,7,8,5,2,9,10])≈2
+	end
+	@testset "Permutation distance" begin
+		ord=PermutationEncoding(1:10)
+		@test abs(distance(ord,ord))<0.01
+		@test abs(distance(PermutationEncoding([2,7,1,5,9,3,8,6,4,10]),PermutationEncoding([2,7,1,5,9,3,8,6,4,10])))<0.01
+		@test distance(ord,PermutationEncoding([1,9,3,4,5,6,7,8,2,10]))≈1
+		@test distance(ord,PermutationEncoding([1,3,4,5,6,7,8,2,9,10]))≈1
+		@test distance(ord,PermutationEncoding([1,9,3,10,5,6,7,8,2,4]))≈2
+		@test distance(ord,PermutationEncoding([1,3,4,6,7,8,5,2,9,10]))≈2
+	end
+end
