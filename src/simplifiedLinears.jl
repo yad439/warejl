@@ -1,4 +1,5 @@
 using JuMP
+using LinearAlgebra
 
 function moderateCars(model,itemsNeeded,carCount,carTravelTime,T=ceil(Int,maximum(Iterators.flatten(itemsNeeded))/carCount))
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
@@ -40,6 +41,6 @@ function sharedTimesMachines(model,jobLengths,machineCount)
 	end
 
 	@variable(model,x[1:m,times]≥0,Int)
-	@constraint(model,[i in times],sum(x[:,i])≤numbers[i])
+	@constraint(model,[i in times],sum(x[:,i])≥numbers[i])
 	@constraint(model,[i=1:m],res≥sum(j*x[i,j] for j in times));
 end
