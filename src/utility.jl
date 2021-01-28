@@ -46,7 +46,7 @@ randomChangeIterator(jobs,probability::Float64)=Iterators.filter(_->rand()<proba
 distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
 distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=assignmentDistance(jobs1.assignment,jobs2.assignment,jobs1.machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
 distance(timetable1::StateEncoding{T},timetable2::StateEncoding{T}) where{T}=distance(timetable1.machineEncoding,timetable2.machineEncoding)+hammingDistance(timetable1.states,timetable2.states)
-normalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=distance(jobs1,jobs2)/length(jobs1)
+normalizedDistance(jobs1::PermutationEncoding,jobs2::PermutationEncoding)=2distance(jobs1,jobs2)/length(jobs1)
 normalizedDistance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=distance(jobs1,jobs2)/2length(jobs1)
 normalizedDistance(timetable1::StateEncoding{T},timetable2::StateEncoding{T}) where{T}=normalizedDistance(timetable1.machineEncoding,timetable2.machineEncoding)/2+hammingDistance(timetable1.states,timetable2.states)/2length(timetable1.states)
 
@@ -95,7 +95,7 @@ function damerauLevenshteinDistance(a,b)
 				cost = 0
 				db = j
 			else
-				cost = maxdist
+				cost = 0.5
 			end
 			d[i, j] = min(d[i-1, j-1] + cost,#substitution
 							d[i,   j-1] + 0.5,#insertion
