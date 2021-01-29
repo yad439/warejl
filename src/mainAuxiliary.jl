@@ -503,7 +503,7 @@ function computeTimeLazyReturn(timetable,problem,::Val{true})
 	(schedule=Schedule(assignment,times,normHistory),time=maximum(sums),history=carHistory,bigHistory=bigHistory)
 end
 
-function computeTimeLazyReturn(timetable,problem,::Val{false})
+function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 	machineCount=problem.machineCount
 	jobLengths=problem.jobLengths
 	itemsNeeded=problem.itemsNeeded
@@ -552,12 +552,14 @@ function computeTimeLazyReturn(timetable,problem,::Val{false})
 						minLocks[minLocksLen]=item
 					end
 				end
-				for i=1:minLocksLen
-					item=minLocks[i]
-					nxt=findnext(jb->item ∈ itemsNeeded[jb],timetable.permutation,ind+1)
-					nexts[item]= nxt≡nothing ? typemax(Int) : nxt
+				if sortRemoves
+					for i=1:minLocksLen
+						item=minLocks[i]
+						nxt=findnext(jb->item ∈ itemsNeeded[jb],timetable.permutation,ind+1)
+						nexts[item]= nxt≡nothing ? typemax(Int) : nxt
+					end
+					sort!(view(minLocks,1:minLocksLen),by=it->nexts[it],rev=true)
 				end
-				sort!(view(minLocks,1:minLocksLen),by=it->nexts[it],rev=true)
 				while !isempty(inUseCars) && first(inUseCars)[1]≤minLockTime-carTravelTime
 					(availableFromTime,carChange)=popfirst!(inUseCars)
 					carsAvailable+=carChange
