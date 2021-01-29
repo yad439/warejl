@@ -12,6 +12,7 @@ include("modularLinear.jl");
 using Random
 using DataFrames
 using CSV
+using ThreadsX
 ##
 Random.seed!(4350)
 n=10
@@ -168,13 +169,13 @@ function flt(box)
 	return false
 end
 ##
-machineCount=4
-carCount=40
-bufferSize=9
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",500,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+machineCount=6
+carCount=30
+bufferSize=5
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length.(problem.itemsNeeded))
 sf=let problem=problem
-	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
@@ -182,25 +183,33 @@ sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount)
 exactModel=buildModel(problem,ASSIGNMENT_ONLY_SHARED,NO_CARS)
 exactRes=runModel(exactModel,30*60)
 ##
+exactModel=buildModel(problem,ORDER_FIRST,DELIVER_ONLY)
+exactRes=runModel(exactModel,30*60)
+##
+exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
+exactRes=runModel(exactModel,30*60)
+##
 exactRes[2]+problem.carTravelTime
 ##
 st1=rand(sample1)
 st2=rand(sample2);
 ##
-tabuSettings=TabuSearchSettings(1000,600,1000)
+tabuSettings=TabuSearchSettings(700,600,1500)
 # tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
-annealingSettings=AnnealingSettings(500000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+annealingSettings=AnnealingSettings(700000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
 # localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
-tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
+tabuRes1=modularTabuSearch3(tabuSettings,sf,deepcopy(st1))
 annealingRes=modularAnnealing(annealingSettings,sf,deepcopy(st1))
 ##
-rest=map(1:10) do _
+tmap=Threads.nthreads()>1 ? (f,x)->ThreadsX.map(f,10÷Threads.nthreads(),x) : map
+##
+rest=tmap(1:10) do _
 	modularTabuSearch5(tabuSettings,sf,rand(sample1)).score
 end
 ##
-resa=map(1:10) do _
+resa=tmap(1:10) do _
 	st=rand(sample1)
 	modularAnnealing(annealingSettings,sf,st).score
 end
