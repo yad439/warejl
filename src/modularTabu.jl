@@ -23,14 +23,14 @@ struct TabuSearchSettings3
 	waveMultiplier::Float64
 end
 
-modularTabuSearch(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange)
-modularTabuSearch2(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Int}(),tabuAdd2!,tabuCanChange2)
-modularTabuSearch3(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Int,Int}}(),tabuAdd3!,tabuCanChange3)
-modularTabuSearch3(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Bool,Int,Int}}(),tabuAdd3!,tabuCanChange3)
-modularTabuSearch4(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Int,Int}}(),tabuAdd4!,tabuCanChange3)
-modularTabuSearch4(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Bool,Int,Int}}(),tabuAdd4!,tabuCanChange3)
-modularTabuSearch5(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Int,Int}}(),tabuAdd5!,tabuCanChange3)
-modularTabuSearch5(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,Queue{Tuple{Bool,Int,Int}}(),tabuAdd5!,tabuCanChange3)
+modularTabuSearch(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange)
+modularTabuSearch2(settings,scoreFunction,startTimeTable)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Int}(),tabuAdd2!,tabuCanChange2)
+modularTabuSearch3(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd3!,tabuCanChange3)
+modularTabuSearch3(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd3!,tabuCanChange3)
+modularTabuSearch4(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd4!,tabuCanChange3)
+modularTabuSearch4(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd4!,tabuCanChange3)
+modularTabuSearch5(settings,scoreFunction,startTimeTable::PermutationEncoding)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd5!,tabuCanChange3)
+modularTabuSearch5(settings,scoreFunction,startTimeTable::TwoVectorChange)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd5!,tabuCanChange3)
 
 function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange)
 	progress=ProgressUnknown("Local tabu search:")
@@ -57,7 +57,7 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAd
 			counter+=1
 		end
 		while length(tabu)>settings.tabuSize
-			dequeue!(tabu)
+			delete!(tabu.dict,first(tabu))
 		end
 		ProgressMeter.next!(progress,showvalues=(("Score",score),("Min score",minval)))
 	end
@@ -91,7 +91,7 @@ function modularTabuSearch(settings::TabuSearchSettings3,scoreFunction,startTime
 			counter+=1
 		end
 		while length(tabu)>settings.tabuSize
-			dequeue!(tabu)
+			delete!(tabu.dict,first(tabu))
 		end
 		if waveCounter<settings.wavePeriod
 			waveCounter+=1
@@ -153,62 +153,62 @@ function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction,
 end
 
 function tabuAdd!(tabu,newChange,restoreChange,solution)
-	enqueue!(tabu,restoreChange)
+	push!(tabu,restoreChange)
 end
 function tabuAdd2!(tabu,newChange,restoreChange,solution)
 	if newChange[1]≡PERMUTATION_MOVE
-			enqueue!(tabu,newChange[2])
+			push!(tabu,newChange[2])
 	elseif newChange[1]≡PERMUTATION_SWAP
-			enqueue!(tabu,newChange[2])
-			enqueue!(tabu,newChange[3])
+			push!(tabu,newChange[2])
+			push!(tabu,newChange[3])
 	end
 end
 function tabuAdd3!(tabu,newChange,restoreChange,solution::PermutationEncoding)
 	if restoreChange[1]≡PERMUTATION_MOVE
-		enqueue!(tabu,(solution.permutation[restoreChange[2]],restoreChange[3]))
+		push!(tabu,(solution.permutation[restoreChange[2]],restoreChange[3]))
 	elseif restoreChange[1]≡PERMUTATION_SWAP
-		enqueue!(tabu,(solution.permutation[restoreChange[2]],restoreChange[3]))
-		enqueue!(tabu,(solution.permutation[restoreChange[3]],restoreChange[2]))
+		push!(tabu,(solution.permutation[restoreChange[2]],restoreChange[3]))
+		push!(tabu,(solution.permutation[restoreChange[3]],restoreChange[2]))
 	else
 		@assert false
 	end
 end
 function tabuAdd3!(tabu,newChange,restoreChange,solution::TwoVectorEncoding)
 	if restoreChange[1]≡TWO_VECTOR_MOVE_ORDER
-		enqueue!(tabu,(true,solution.permutation[restoreChange[2]],restoreChange[3]))
+		push!(tabu,(true,solution.permutation[restoreChange[2]],restoreChange[3]))
 	elseif restoreChange[1]≡TWO_VECTOR_SWAP_ORDER
-		enqueue!(tabu,(true,solution.permutation[restoreChange[2]],restoreChange[3]))
-		enqueue!(tabu,(true,solution.permutation[restoreChange[3]],restoreChange[2]))
+		push!(tabu,(true,solution.permutation[restoreChange[2]],restoreChange[3]))
+		push!(tabu,(true,solution.permutation[restoreChange[3]],restoreChange[2]))
 	elseif restoreChange[1]≡TWO_VECTOR_MOVE_ASSIGNMENT
-		enqueue!(tabu,(false,restoreChange[2],restoreChange[3]))
+		push!(tabu,(false,restoreChange[2],restoreChange[3]))
 	elseif restoreChange[1]≡TWO_VECTOR_SWAP_ASSIGNMENT
-		enqueue!(tabu,(false,restoreChange[2],solution.assignment[restoreChange[3]]))
-		enqueue!(tabu,(false,restoreChange[3],solution.assignment[restoreChange[2]]))
+		push!(tabu,(false,restoreChange[2],solution.assignment[restoreChange[3]]))
+		push!(tabu,(false,restoreChange[3],solution.assignment[restoreChange[2]]))
 	else
 		@assert false
 	end
 end
 function tabuAdd4!(tabu,newChange,restoreChange,solution::PermutationEncoding)
 	if newChange[1]≡PERMUTATION_MOVE
-		enqueue!(tabu,(solution.permutation[newChange[2]],newChange[3]))
+		push!(tabu,(solution.permutation[newChange[2]],newChange[3]))
 	elseif newChange[1]≡PERMUTATION_SWAP
-		enqueue!(tabu,(solution.permutation[newChange[2]],newChange[3]))
-		enqueue!(tabu,(solution.permutation[newChange[3]],newChange[2]))
+		push!(tabu,(solution.permutation[newChange[2]],newChange[3]))
+		push!(tabu,(solution.permutation[newChange[3]],newChange[2]))
 	else
 		@assert false
 	end
 end
 function tabuAdd4!(tabu,newChange,restoreChange,solution::TwoVectorEncoding)
 	if newChange[1]≡TWO_VECTOR_MOVE_ORDER
-		enqueue!(tabu,(true,solution.permutation[newChange[2]],newChange[3]))
+		push!(tabu,(true,solution.permutation[newChange[2]],newChange[3]))
 	elseif newChange[1]≡TWO_VECTOR_SWAP_ORDER
-		enqueue!(tabu,(true,solution.permutation[newChange[2]],newChange[3]))
-		enqueue!(tabu,(true,solution.permutation[newChange[3]],newChange[2]))
+		push!(tabu,(true,solution.permutation[newChange[2]],newChange[3]))
+		push!(tabu,(true,solution.permutation[newChange[3]],newChange[2]))
 	elseif newChange[1]≡TWO_VECTOR_MOVE_ASSIGNMENT
-		enqueue!(tabu,(false,newChange[2],newChange[3]))
+		push!(tabu,(false,newChange[2],newChange[3]))
 	elseif newChange[1]≡TWO_VECTOR_SWAP_ASSIGNMENT
-		enqueue!(tabu,(false,newChange[2],solution.assignment[newChange[3]]))
-		enqueue!(tabu,(false,newChange[3],solution.assignment[newChange[2]]))
+		push!(tabu,(false,newChange[2],solution.assignment[newChange[3]]))
+		push!(tabu,(false,newChange[3],solution.assignment[newChange[2]]))
 	else
 		@assert false
 	end
