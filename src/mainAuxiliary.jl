@@ -418,7 +418,14 @@ function computeTimeCancelReturn(timetable,machineCount,jobLengths,itemsNeeded,c
 	Schedule(assignment,times),maximum(sums),carHistory,bigHistory
 end
 
-function computeTimeLazyReturn(timetable,machineCount,jobLengths,itemsNeeded,carCount,carTravelTime,bufferSize,::Val{true})
+function computeTimeLazyReturn(timetable,problem,::Val{true})
+	machineCount=problem.machineCount
+	jobLengths=problem.jobLengths
+	itemsNeeded=problem.itemsNeeded
+	carCount=problem.carCount
+	carTravelTime=problem.carTravelTime
+	bufferSize=problem.bufferSize
+
 	sums=fill(zero(eltype(jobLengths)),machineCount)
 	times=similar(jobLengths)
 	assignment=similar(jobLengths,Int)
@@ -575,5 +582,3 @@ function computeTimeLazyReturn(timetable,problem,::Val{false})
 	end
 	maximum(sums)
 end
-
-computeTimeLazyReturn(timetable,problem,debug)=computeTimeLazyReturn(timetable,problem.machineCount,problem.jobLengths,problem.itemsNeeded,problem.carCount,problem.carTravelTime,problem.bufferSize,debug)
