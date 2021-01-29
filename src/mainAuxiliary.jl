@@ -541,7 +541,7 @@ function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 			else
 				minLocksLen=0
 				minLockTime=typemax(Int)
-				for item ∈ bufferState
+				@inbounds for item ∈ bufferState
 					item∉itemsNeeded[job] || continue
 					if lockTime[item]<minLockTime
 						minLockTime=lockTime[item]
@@ -549,7 +549,7 @@ function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 						minLocks[1]=item
 					elseif lockTime[item]==minLockTime
 						minLocksLen+=1
-						minLocks[minLocksLen]=item
+						@inbounds minLocks[minLocksLen]=item
 					end
 				end
 				if sortRemoves
@@ -578,8 +578,8 @@ function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 		machine=selectMachine(job,timetable,sums)
 		startTime=max(sums[machine],availableFromTime+carTravelTime)
 		sums[machine]=startTime+jobLengths[job]
-		for item ∈ itemsNeeded[job]
-			lockTime[item]=max(lockTime[item],startTime+jobLengths[job])
+		@inbounds for item ∈ itemsNeeded[job]
+			@inbounds lockTime[item]=max(lockTime[item],startTime+jobLengths[job])
 		end
 	end
 	maximum(sums)
