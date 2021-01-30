@@ -44,3 +44,27 @@ function sharedTimesMachines(model,jobLengths,machineCount)
 	@constraint(model,[i in times],sum(x[:,i])≥numbers[i])
 	@constraint(model,[i=1:m],res≥sum(j*x[i,j] for j in times));
 end
+
+function bufferOnlyCars(model,problem,M)
+	t=model[:startTime]
+	p=problem.jobLengths
+	n=problem.jobCount
+	ic=problem.itemCount
+	ineed=problem.itemsNeeded
+	bs=problem.bufferSize
+
+	@variables(model,begin
+		later[i=1:n,j=1:n;i≠j],Bin
+		beforeEnd[i=1:n,j=1:n;i≠j],Bin
+	end)
+	@constraints(model,begin
+		[i=1:n,j=1:n;i≠j],t[i]≤t[j]-1+M*later[i,j]
+		[i=1:n,j=1:n;i≠j],t[i]≥t[j]+p[j]-M*beforeEnd[i,j]
+	end)
+	@variable(model,bufferItem[1:n,1:ic])
+	@constraints(model,begin
+		[i=1:n,l in ineed[i]],bufferItem[i,l]≥1
+		[i=1:n,j=1:n,l in ineed[j];i≠j],bufferItem[i,l]≥later[i,j]+beforeEnd[i,j]-1
+		[i=1:n],sum(bufferItem[i,:])≤bs
+	end);
+end

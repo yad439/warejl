@@ -4,7 +4,7 @@ include("hardLinear.jl")
 include("simplifiedLinears.jl")
 
 @enum MachineModelType ORDER_FIRST ASSIGNMENT_ONLY ASSIGNMENT_ONLY_SHARED
-@enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS DELIVER_ONLY NO_CARS
+@enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS DELIVER_ONLY BUFFER_ONLY NO_CARS
 
 struct ModelWrapper
 	machineType
@@ -45,6 +45,8 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 		carsModel3(model,problem,TE,M)
 	elseif carModelType≡DELIVER_ONLY
 		moderateCars(model,problem.itemsNeeded,problem.carCount,problem.carTravelTime)
+	elseif carModelType≡BUFFER_ONLY
+		bufferOnlyCars(model,problem,M)
 	else
 		@assert carModelType≡NO_CARS
 	end
