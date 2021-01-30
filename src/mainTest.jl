@@ -171,9 +171,10 @@ end
 ##
 machineCount=6
 carCount=30
-bufferSize=5
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length.(problem.itemsNeeded))
+@assert isValid(problem)
 sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
 end
@@ -186,10 +187,13 @@ exactRes=runModel(exactModel,30*60)
 exactModel=buildModel(problem,ORDER_FIRST,DELIVER_ONLY)
 exactRes=runModel(exactModel,30*60)
 ##
+exactModel=buildModel(problem,ORDER_FIRST,BUFFER_ONLY)
+exactRes=runModel(exactModel,30*60)
+##
 exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
 exactRes=runModel(exactModel,30*60)
 ##
-exactRes[2]+problem.carTravelTime
+exactRes[1]+problem.carTravelTime,exactRes[2]+problem.carTravelTime
 ##
 st1=rand(sample1)
 st2=rand(sample2);
