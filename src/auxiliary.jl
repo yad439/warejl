@@ -214,6 +214,7 @@ function isValid(solution::Schedule,problem)
 			delete!(items,event.item)
 		end
 	end
+	all(state->length(state[2])≤problem.bufferSize,bufferStates) || return false
 	order = sortperm(solution.times)
 	sums = zeros(Int,problem.machineCount)
 	for job ∈ order
