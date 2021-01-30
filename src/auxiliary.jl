@@ -186,3 +186,41 @@ function generalEvents(history)
 	end
 	sort(map(entry->(time=entry[1],add=entry[2][1],remove=entry[2][2]),collect(eventDict)),by=e->e.time)
 end
+
+function isValid(problem::Problem)
+	res = length(problem.jobLengths) == problem.jobCount && length(problem.itemsNeeded) == problem.jobCount
+	res &= Set(Iterators.flatten(problem.itemsNeeded)) == Set(1:problem.itemCount)
+	for items ∈ problem.itemsNeeded
+		res &= length(items) ≤ problem.bufferSize
+	end
+	res
+end
+
+function isValid(solution::Schedule,problem)
+	bufferEvents = map(solution.carTasks) do task
+		task.isAdd ? (time=task.time+problem.carTravelTime,task.item,task.isAdd) : task
+	end
+	sort!(bufferEvents;by=event->event.time)
+	bufferStates = [(0,Set{Int}())]
+	for event ∈ bufferEvents
+		@assert event.time ≥ bufferStates[end][1]
+		event.time > bufferStates[end][1] && push!(bufferStates,(event.time,copy(bufferStates[end][2])))
+		items=bufferStates[end][2]
+		if event.isAdd
+			event.item ∉ items || return false
+			push!(items,event.item)
+		else
+			event.item ∈ items || return false
+			delete!(items,event.item)
+		end
+	end
+	order = sortperm(solution.times)
+	sums = zeros(Int,problem.machineCount)
+	for job ∈ order
+		sums[solution.assignment[job]] ≤ solution.times[job] || return false
+		stateInd = searchsortedlast(bufferStates,solution.times[job]; by = first)
+		problem.itemsNeeded[job] ⊆ bufferStates[stateInd][2] || return false
+		sums[solution.assignment[job]] = solution.times[job] + problem.jobLengths[job]
+	end
+	true
+end
