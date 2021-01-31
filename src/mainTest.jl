@@ -161,7 +161,7 @@ function flt(box)
 		return false
 	end
 	global cnt+=1
-	if cnt<=5
+	if cnt<=10
 		return true
 	else
 		return false
@@ -169,10 +169,11 @@ function flt(box)
 	return false
 end
 ##
-machineCount=6
+limitCounter=Counter(10)
+machineCount=4
 carCount=30
 bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A" && limitCounter())
 @assert bufferSize≥maximum(length.(problem.itemsNeeded))
 @assert isValid(problem)
 sf=let problem=problem
@@ -223,15 +224,17 @@ println(minimum(resa),' ',maximum(resa),' ',mean(resa))
 ##
 sol=computeTimeLazyReturn(st1,problem,Val(true));
 ##
+sol=computeTimeLazyReturn(annealingRes.solution,problem,Val(true));
+##
 exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
 setStartValues(exactModel,sol.schedule,problem)
 exactRes=runModel(exactModel,10)
 ##
 cars=normalizeHistory(sol[3],problem.carTravelTime)
-pl1=gantt(sol[1],problem.jobLengths,false,string.(collect.(problem.itemsNeeded)))
-pl2=plotDetailedCarUsage(cars,problem.carTravelTime,problem.carCount,(0,sol[2]))
-pl3=plotDetailedBufferUsage(cars,problem.carTravelTime,problem.bufferSize,(0,sol[2]))
-plr=plot(pl1,pl3,pl2,layout=(3,1),size=(1500,400))
+pl1=gantt(sol[1],problem.jobLengths,false,string.(collect.(problem.itemsNeeded)),bw=false)
+pl2=plotDetailedCarUsage(cars,problem.carTravelTime,problem.carCount,(0,sol[2]),bw=false,text=false)
+pl3=plotDetailedBufferUsage(cars,problem.carTravelTime,problem.bufferSize,(0,sol[2]),bw=false)
+plr=plot(pl1,pl3,pl2,layout=(3,1),size=(640,360))
 ##
 addEventBeforeItem=start_value.(exactModel.inner[:addEventBeforeItem])
 removeEventBeforeItem=start_value.(exactModel.inner[:removeEventBeforeItem])
