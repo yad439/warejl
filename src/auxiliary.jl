@@ -82,7 +82,7 @@ function plotCarUsage(carHistory,carTravelTime,xlims=:auto)
 	plot(line,label=false,xlims=xlims)
 end
 
-function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto;text=true)
+function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto;bw=false,text=true)
 	maxTime=zeros(carNumber)
 	jobs=map(carHistory) do event
 		map(event.items) do item
@@ -99,8 +99,8 @@ function plotDetailedCarUsage(carHistory,carTravelTime,carNumber,xlims=:auto;tex
 	addsAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),adds)
 	removesShapes=map(toShape∘first,removes)
 	removesAnnotations=map(job->(center(job[1])...,Plots.text(string(job[2][1]),8)),removes)
-	plot!(plt,addsShapes,annotations=(text ? addsAnnotations : nothing),label="Add")
-	plot!(plt,removesShapes,annotations=(text ? removesAnnotations : nothing),label="Remove")
+	plot!(plt,addsShapes,annotations=(text ? addsAnnotations : []),label="Add",fillalpha=(bw ? 0 : 1))
+	plot!(plt,removesShapes,annotations=(text ? removesAnnotations : []),label="Remove",fillalpha=(bw ? 0 : 1))
 	plt
 end
 
