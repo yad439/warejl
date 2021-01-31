@@ -10,7 +10,7 @@ struct AnnealingSettings
 	applyChange::Function
 end
 
-function modularAnnealing(settings,scoreFunction,startTimeTable)
+function modularAnnealing(settings,scoreFunction,startTimeTable,progress=true)
 	progress=ProgressUnknown("Annealing:")
 
 	timeTable=startTimeTable
@@ -39,7 +39,7 @@ function modularAnnealing(settings,scoreFunction,startTimeTable)
 		end
 		threshold=settings.decreasingFunction(threshold)
 		push!(history,prevScore)
-		ProgressMeter.next!(progress,showvalues=(("Min score",minval),))
+		progress && ProgressMeter.next!(progress,showvalues=(("Min score",minval),))
 	end
 	ProgressMeter.finish!(progress)
 	(score=minval,solution=minsol,history=history)
