@@ -8,7 +8,7 @@ struct LocalSearchSettings{T}
 	acceptFirst::Bool
 end
 
-function modularLocalSearch(settings,scoreFunction,startTimeTable,progress=true)
+function modularLocalSearch(settings,scoreFunction,startTimeTable,showProgress=true)
 	progress=ProgressUnknown("Local search:")
 
 	timeTable=startTimeTable
@@ -33,7 +33,7 @@ function modularLocalSearch(settings,scoreFunction,startTimeTable,progress=true)
 		change!(timeTable,minChange)
 		score=minScore
 		push!(history,score)
-		progress && ProgressMeter.next!(progress,showvalues=(("Min score",score),))
+		showProgress && ProgressMeter.next!(progress,showvalues=(("Min score",score),))
 	end
 	(score=score,solution=timeTable,history=history)
 end

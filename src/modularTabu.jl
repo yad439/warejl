@@ -23,16 +23,16 @@ struct TabuSearchSettings3
 	waveMultiplier::Float64
 end
 
-modularTabuSearch(settings,scoreFunction,startTimeTable,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange,progress)
-modularTabuSearch2(settings,scoreFunction,startTimeTable,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Int}(),tabuAdd2!,tabuCanChange2,progress)
-modularTabuSearch3(settings,scoreFunction,startTimeTable::PermutationEncoding,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd3!,tabuCanChange3,progress)
-modularTabuSearch3(settings,scoreFunction,startTimeTable::TwoVectorChange,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd3!,tabuCanChange3,progress)
-modularTabuSearch4(settings,scoreFunction,startTimeTable::PermutationEncoding,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd4!,tabuCanChange3,progress)
-modularTabuSearch4(settings,scoreFunction,startTimeTable::TwoVectorChange,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd4!,tabuCanChange3,progress)
-modularTabuSearch5(settings,scoreFunction,startTimeTable::PermutationEncoding,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd5!,tabuCanChange3,progress)
-modularTabuSearch5(settings,scoreFunction,startTimeTable::TwoVectorChange,progress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd5!,tabuCanChange3,progress)
+modularTabuSearch(settings,scoreFunction,startTimeTable,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange,showProgress)
+modularTabuSearch2(settings,scoreFunction,startTimeTable,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Int}(),tabuAdd2!,tabuCanChange2,showProgress)
+modularTabuSearch3(settings,scoreFunction,startTimeTable::PermutationEncoding,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd3!,tabuCanChange3,showProgress)
+modularTabuSearch3(settings,scoreFunction,startTimeTable::TwoVectorChange,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd3!,tabuCanChange3,showProgress)
+modularTabuSearch4(settings,scoreFunction,startTimeTable::PermutationEncoding,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd4!,tabuCanChange3,showProgress)
+modularTabuSearch4(settings,scoreFunction,startTimeTable::TwoVectorChange,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd4!,tabuCanChange3,showProgress)
+modularTabuSearch5(settings,scoreFunction,startTimeTable::PermutationEncoding,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Int,Int}}(),tabuAdd5!,tabuCanChange3,showProgress)
+modularTabuSearch5(settings,scoreFunction,startTimeTable::TwoVectorChange,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{Bool,Int,Int}}(),tabuAdd5!,tabuCanChange3,showProgress)
 
-function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange,progress=true)
+function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange,showProgress=true)
 	progress=ProgressUnknown("Local tabu search:")
 
 	timeTable=startTimeTable
@@ -59,12 +59,12 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAd
 		while length(tabu)>settings.tabuSize
 			delete!(tabu.dict,first(tabu))
 		end
-		progress && ProgressMeter.next!(progress,showvalues=(("Score",score),("Min score",minval)))
+		showProgress && ProgressMeter.next!(progress,showvalues=(("Score",score),("Min score",minval)))
 	end
 	ProgressMeter.finish!(progress)
 	(score=minval,solution=minsol,history=history)
 end
-function modularTabuSearch(settings::TabuSearchSettings3,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange,progress=true)
+function modularTabuSearch(settings::TabuSearchSettings3,scoreFunction,startTimeTable,tabuInit,tabuAdd!,tabuCanChange,showProgress=true)
 	progress=ProgressUnknown("Local tabu search:")
 
 	timeTable=startTimeTable
@@ -99,7 +99,7 @@ function modularTabuSearch(settings::TabuSearchSettings3,scoreFunction,startTime
 			waveCenter=deepcopy(timeTable)
 			waveCounter=1
 		end
-		progress && ProgressMeter.next!(progress,showvalues=(("Score",score),("Min score",minval)))
+		showProgress && ProgressMeter.next!(progress,showvalues=(("Score",score),("Min score",minval)))
 	end
 	ProgressMeter.finish!(progress)
 	(score=minval,solution=minsol,history=history)
