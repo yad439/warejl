@@ -20,7 +20,7 @@ using Statistics
 machineCount=6
 carCount=30
 bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
@@ -36,18 +36,18 @@ st1=rand(sample1)
 #exactRes=runModel(exactModel,1800)
 df=CSV.File("test/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
-sizes=[10,25,50,100,200,400,800]
+sizes=[50,100,200,400,800,1200,1400,1600]
 prog=Progress(10*length(sizes))
 res=map(sizes) do tabuSize
 	#println("Size: ",tabuSize)
-	tabuSettings=TabuSearchSettings(1000,tabuSize,2*problem.jobCount^2)
+	tabuSettings=TabuSearchSettings(1500,tabuSize,1000)
 	ress=ThreadsX.map(1:10) do i
 		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),false).score
 		ProgressMeter.next!(prog)
 		sc
 	end
-	push!(df,(20,4,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,5,1000,tabuSize,2*problem.jobCount^2,minimum(ress),maximum(ress),mean(ress)))
-	minimum(ress),maximum(ress),mean(ress)
+	push!(df,(50,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,5,1500,tabuSize,1000,minimum(ress),maximum(ress),mean(ress)))
+	tabuSize,minimum(ress),maximum(ress),mean(ress)
 end
 ProgressMeter.finish!(prog);
 #println(minimum(res),' ',maximum(res),' ',mean(res))
