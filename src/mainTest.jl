@@ -170,10 +170,10 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-machineCount=4
+machineCount=6
 carCount=30
 bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A" && limitCounter())
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length.(problem.itemsNeeded))
 @assert isValid(problem)
 sf=let problem=problem
@@ -190,6 +190,9 @@ exactRes=runModel(exactModel,30*60)
 ##
 exactModel=buildModel(problem,ORDER_FIRST,BUFFER_ONLY)
 exactRes=runModel(exactModel,30*60)
+##
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,BUFFER_ONLY)
+exactRes=runModel(exactModel,30*60).+problem.carTravelTime
 ##
 exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
 exactRes=runModel(exactModel,30*60)
