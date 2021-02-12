@@ -464,17 +464,17 @@ function carsModel4Q(model,problem,T,M)
 	n=problem.jobCount
 	p=problem.jobLengths
 	ic=problem.itemCount
-	tt=problem.travelTime
+	tt=problem.carTravelTime
 	t=model[:startTime]
 	@variables(model,begin
 		eventTime[1:T]≥0
 		beforeStart[1:T,1:n],Bin
 		beforeEnd[1:T,1:n],Bin
 	end)
-	@constraint(model,[τ=1:T-1],eventTime[τ]≤eventTime[τ+1]-1)
+	@constraint(model,[τ=1:T-1],eventTime[τ]+1≤eventTime[τ+1])
 	@constraints(model,begin
 		[τ=1:T,i=1:n],t[i]≥eventTime[τ]-M*(1-beforeStart[τ,i])
-		[τ=1:T,i=1:n],t[i]+p[i]≤eventTime[τ]-M*beforeEnd[τ,i]
+		[τ=1:T,i=1:n],t[i]+p[i]≤eventTime[τ]+M*beforeEnd[τ,i]
 	end)
 	@variables(model,begin
 		addItems[1:T,1:ic],Bin
@@ -493,7 +493,7 @@ function carsModel4Q(model,problem,T,M)
 	@constraints(model,begin
 		[τ₀=1:T,τ=1:τ₀-1],eventTime[τ]≤eventTime[τ₀]-tt+M*in1[τ₀,τ]
 		[τ₀=1:T,τ=1:τ₀-1],eventTime[τ]≤eventTime[τ₀]-2tt+M*in2[τ₀,τ]
-		[τ₀=1:T,τ=1:τ₀-1],in1[τ₀,τ]==(1-in1[τ₀,τ])in2[τ₀,τ]
+		[τ₀=1:T,τ=1:τ₀-1],in12[τ₀,τ]==(1-in1[τ₀,τ])in2[τ₀,τ]
 	end)
 	@constraints(model,begin
 		[τ₀=1:T],sum(addItems[τ₀,:])+sum(addItems[τ,it]in1[τ₀,τ] for τ=1:τ₀-1,it=1:ic)+sum(addItems[τ,it]in12[τ₀,τ] for τ=1:τ₀-1,it=1:ic)≤problem.carCount
