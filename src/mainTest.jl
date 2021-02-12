@@ -182,6 +182,11 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 ##
+sol=computeTimeLazyReturn(rand(sample1),problem,Val(true))
+T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+T=max(T,problem.jobCount)
+M=sol.time
+##
 exactModel=buildModel(problem,ASSIGNMENT_ONLY_SHARED,NO_CARS)
 exactRes=runModel(exactModel,30*60)
 ##
@@ -194,8 +199,14 @@ exactRes=runModel(exactModel,30*60)
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,BUFFER_ONLY)
 exactRes=runModel(exactModel,30*60).+problem.carTravelTime
 ##
-exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SEPARATE_EVENTS,T,M)
 exactRes=runModel(exactModel,30*60)
+##
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
+exactRes=runModel(exactModel,10)
+##
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS_QUAD,T,M)
+exactRes=runModel(exactModel,10)
 ##
 exactRes[1]+problem.carTravelTime,exactRes[2]+problem.carTravelTime
 ##
