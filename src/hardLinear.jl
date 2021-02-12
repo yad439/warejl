@@ -500,3 +500,62 @@ function carsModel4Q(model,problem,T,M)
 		[τ₀=1:T],sum(addItems[τ,it]in1[τ,τ₀] for τ=τ₀+1:T,it=1:ic)+sum(removeItems[τ₀,:])+sum(removeItems[τ,it]in1[τ₀,τ] for τ=1:τ₀-1,it=1:ic)≤problem.carCount
 	end);
 end
+function carsModel4(model,problem,T,M)
+	n=problem.jobCount
+	p=problem.jobLengths
+	ic=problem.itemCount
+	tt=problem.carTravelTime
+	t=model[:startTime]
+	@variables(model,begin
+		eventTime[1:T]≥0
+		beforeStart[1:T,1:n],Bin
+		beforeEnd[1:T,1:n],Bin
+	end)
+	@constraint(model,[τ=1:T-1],eventTime[τ]≤eventTime[τ+1]-1)
+	@constraints(model,begin
+		[τ=1:T,i=1:n],t[i]≥eventTime[τ]-M*(1-beforeStart[τ,i])
+		[τ=1:T,i=1:n],t[i]+p[i]≤eventTime[τ]+M*beforeEnd[τ,i]
+	end)
+	@variables(model,begin
+		addItems[1:T,1:ic],Bin
+		removeItems[1:T,1:ic],Bin
+	end)
+	@variables(model,begin
+		beforeStartItem[1:T,i=1:n,problem.itemsNeeded[i]],Bin
+		beforeEndItem[1:T,i=1:n,problem.itemsNeeded[i]],Bin
+	end)
+	@constraints(model,begin
+		[τ=1:T,i=1:n,q in problem.itemsNeeded[i]],beforeStartItem[τ,i,q]≤beforeStart[τ,i]
+		[τ=1:T,i=1:n,q in problem.itemsNeeded[i]],beforeStartItem[τ,i,q]≤addItems[τ,q]
+		[τ=1:T,i=1:n,q in problem.itemsNeeded[i]],beforeEndItem[τ,i,q]≥beforeEnd[τ,i]+removeItems[τ,q]-1
+	end)
+	@constraint(model,[i=1:n,q in problem.itemsNeeded[i]],sum(beforeStartItem[τ,i,q] for τ=1:T)-sum(beforeEndItem[τ,i,q] for τ=1:T)≥1)
+	@constraints(model,begin
+		[τ₀=1:T,it=1:ic],sum(addItems[1:τ₀,it])-sum(removeItems[1:τ₀,it])≥0
+		[τ₀=1:T],sum(addItems[1:τ₀,:])-sum(removeItems[1:τ₀,:])≤problem.bufferSize
+	end)
+	@variables(model,begin
+		in1[τ₀=1:T,1:τ₀-1],Bin
+		in2[τ₀=1:T,1:τ₀-1],Bin
+	end)
+	@constraints(model,begin
+		[τ₀=1:T,τ=1:τ₀-1],eventTime[τ]≤eventTime[τ₀]-tt+M*in1[τ₀,τ]
+		[τ₀=1:T,τ=1:τ₀-1],eventTime[τ]≤eventTime[τ₀]-2tt+M*in2[τ₀,τ]
+	end)
+	@variables(model,begin
+		addItemsIn1[τ₀=1:T,1:τ₀-1],Int
+		addItemsIn1R[τ₀=1:T,1:τ₀-1],Int
+		addItemsIn2[τ₀=1:T,1:τ₀-1],Int
+		removeItemsIn1[τ₀=1:T,1:τ₀-1],Int
+	end)
+	@constraints(model,begin
+		[τ₀=1:T,τ=1:τ₀-1],addItemsIn1[τ₀,τ]≥sum(addItems[τ,:])-(1-in1[τ₀,τ])ic
+		[τ₀=1:T,τ=1:τ₀-1],addItemsIn1R[τ₀,τ]≥sum(addItems[τ₀,:])-(1-in1[τ₀,τ])ic
+		[τ₀=1:T,τ=1:τ₀-1],addItemsIn2[τ₀,τ]≥sum(addItems[τ,:])-in1[τ₀,τ]ic-(1-in2[τ₀,τ])ic
+		[τ₀=1:T,τ=1:τ₀-1],removeItemsIn1[τ₀,τ]≥sum(removeItems[τ,:])-(1-in1[τ₀,τ])ic
+	end)
+	@constraints(model,begin
+		[τ₀=1:T],sum(addItems[τ₀,:])+sum(addItemsIn1[τ₀,τ] for τ=1:τ₀-1)+sum(addItemsIn2[τ₀,τ] for τ=1:τ₀-1)≤problem.carCount
+		[τ₀=1:T],sum(addItemsIn1R[τ,τ₀] for τ=τ₀+1:T)+sum(removeItems[τ₀,:])+sum(removeItemsIn1[τ₀,τ] for τ=1:τ₀-1)≤problem.carCount
+	end);
+end

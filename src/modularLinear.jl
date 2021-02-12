@@ -4,7 +4,7 @@ include("hardLinear.jl")
 include("simplifiedLinears.jl")
 
 @enum MachineModelType ORDER_FIRST ORDER_FIRST_STRICT ASSIGNMENT_ONLY ASSIGNMENT_ONLY_SHARED
-@enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS SHARED_EVENTS_QUAD DELIVER_ONLY BUFFER_ONLY NO_CARS
+@enum CarModelType TIME_SLOTS SEPARATE_EVENTS SEPARATE_EVENTS_QUAD GENERAL_EVENTS SHARED_EVENTS SHARED_EVENTS_QUAD DELIVER_ONLY BUFFER_ONLY NO_CARS
 
 struct ModelWrapper
 	machineType
@@ -45,6 +45,8 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 		carsModel2Q(model,problem,TE,M)
 	elseif carModelType≡GENERAL_EVENTS
 		carsModel3(model,problem,TE,M)
+	elseif carModelType≡SHARED_EVENTS
+		carsModel4(model,problem,TE,M)
 	elseif carModelType≡SHARED_EVENTS_QUAD
 		carsModel4Q(model,problem,TE,M)
 	elseif carModelType≡DELIVER_ONLY
