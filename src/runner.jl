@@ -35,7 +35,7 @@ T=max(T,problem.jobCount)
 M=sol.time
 println(M,' ',T)
 
-exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS_QUAD,T,M)
 exactRes=runModel(exactModel,30*60)
 #df=CSV.File("test/tabuRes.tsv") |> DataFrame
 #starts=rand(sample1,10)
