@@ -28,29 +28,29 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 
-st1=rand(sample1)
-sol=computeTimeLazyReturn(st1,problem,Val(true))
-T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
-T=max(T,problem.jobCount)
-M=sol.time
-println(M,' ',T)
+#st1=rand(sample1)
+#sol=computeTimeLazyReturn(st1,problem,Val(true))
+#T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+#T=max(T,problem.jobCount)
+#M=sol.time
+#println(M,' ',T)
 
-exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS_QUAD,T,M)
-exactRes=runModel(exactModel,30*60)
-#df=CSV.File("test/tabuRes.tsv") |> DataFrame
-#starts=rand(sample1,10)
-#sizes=[50,100,200,400,800,1200,1400,1600]
-#prog=Progress(10*length(sizes))
-#res=map(sizes) do tabuSize
+#exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS_QUAD,T,M)
+#exactRes=runModel(exactModel,30*60)
+df=CSV.File("test/tabuRes.tsv") |> DataFrame
+starts=rand(sample1,10)
+sizes=[10,100,500,1000,1400]
+prog=Progress(10*length(sizes))
+res=map(sizes) do neiSize
 	#println("Size: ",tabuSize)
-#	tabuSettings=TabuSearchSettings(1500,tabuSize,1000)
-#	ress=ThreadsX.map(1:10) do i
-#		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),false).score
-#		ProgressMeter.next!(prog)
-#		sc
-#	end
-#	push!(df,(50,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,5,1500,tabuSize,1000,minimum(ress),maximum(ress),mean(ress)))
-#	tabuSize,minimum(ress),maximum(ress),mean(ress)
-#end
-#ProgressMeter.finish!(prog);
+	tabuSettings=TabuSearchSettings(1500,100,neiSize)
+	ress=ThreadsX.map(1:10) do i
+		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),false).score
+		ProgressMeter.next!(prog)
+		sc
+	end
+	push!(df,(20,4,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,5,1500,100,neiSize,minimum(ress),maximum(ress),mean(ress)))
+	neiSize,minimum(ress),maximum(ress),mean(ress)
+end
+ProgressMeter.finish!(prog);
 #println(minimum(res),' ',maximum(res),' ',mean(res))
