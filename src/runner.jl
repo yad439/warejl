@@ -41,18 +41,19 @@ println(problem.jobCount)
 df=CSV.File("test/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 sizes=[50,100,500,1000,2000]
-prog=Progress(10*length(sizes))
+#prog=Progress(10*length(sizes))
 res=map(sizes) do tabuSize
 	println("Size: ",tabuSize)
 	tabuSettings=TabuSearchSettings(2000,tabuSize,1000)
 	ress=ThreadsX.map(1:10) do i
-		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),false).score
-		ProgressMeter.next!(prog)
-		println(i)
+		println("Start $i")
+		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1).score
+		#ProgressMeter.next!(prog)
+		println("End $i")
 		sc
 	end
 	push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,5,2000,tabuSize,1000,minimum(ress),maximum(ress),mean(ress)))
 	tabuSize,minimum(ress),maximum(ress),mean(ress)
 end
-ProgressMeter.finish!(prog);
+#ProgressMeter.finish!(prog);
 #println(minimum(res),' ',maximum(res),' ',mean(res))
