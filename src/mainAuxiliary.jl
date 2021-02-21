@@ -438,7 +438,7 @@ function computeTimeLazyReturn(timetable,problem,::Val{true})
 	lockTime=Dict{Int,Int}()
 	for (ind,job) ∈ Iterators.enumerate(timetable.permutation)
 		itemsLeft=setdiff(itemsNeeded[job],bufferState)
-		while length(itemsLeft)>0
+		while !isempty(itemsLeft)
 			while carsAvailable≤0
 				@assert carsAvailable≥0
 				(availableFromTime,carChange)=popfirst!(inUseCars)
@@ -526,7 +526,7 @@ function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 		setdiff!(itemsLeft,itemsLeft)
 		union!(itemsLeft,itemsNeeded[job])
 		setdiff!(itemsLeft,bufferState)
-		while length(itemsLeft)>0
+		while !isempty(itemsLeft)
 			while carsAvailable≤0
 				(availableFromTime,carChange)=popfirst!(inUseCars)
 				carsAvailable+=carChange
