@@ -177,7 +177,7 @@ problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machin
 @assert bufferSize≥maximum(length.(problem.itemsNeeded))
 @assert isValid(problem)
 sf=let problem=problem
-	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
@@ -215,7 +215,7 @@ st2=rand(sample2);
 ##
 # tabuSettings=TabuSearchSettings(700,600,1500)
 # tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
-tabuSettings=TabuSearchSettings4(700,100,cd->randomChangeIterator(st1,1000,cd))
+tabuSettings=TabuSearchSettings4(1000,100,cd->randomChangeIterator(st1,1458,cd))
 localSettings=LocalSearchSettings(changeIterator(st1),false)
 annealingSettings=AnnealingSettings(700000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
@@ -224,6 +224,10 @@ tabuRes1=modularTabuSearch3(tabuSettings,sf,deepcopy(st1))
 annealingRes=modularAnnealing(annealingSettings,sf,deepcopy(st1))
 ##
 tmap=Threads.nthreads()>1 ? (f,x)->ThreadsX.map(f,10÷Threads.nthreads(),x) : map
+##
+df=CSV.File("exp/tabuRes.tsv") |> DataFrame
+##
+CSV.write("exp/tabuRes.tsv",df,delim='\t')
 ##
 rest=tmap(1:10) do _
 	modularTabuSearch5(tabuSettings,sf,rand(sample1)).score
@@ -236,6 +240,18 @@ end
 ##
 println(minimum(rest),' ',maximum(rest),' ',mean(rest))
 println(minimum(resa),' ',maximum(resa),' ',mean(resa))
+##
+starts=rand(sample1,10);
+##
+ress=ThreadsX.map(1:10) do i
+		println("Start $i")
+		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1).score
+		#ProgressMeter.next!(prog)
+		println("End $i")
+		sc
+	end
+push!(df,(20,4,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,1458,minimum(ress),maximum(ress),mean(ress)))
+println((minimum(ress),maximum(ress),mean(ress)))
 ##
 sol=computeTimeLazyReturn(st1,problem,Val(true));
 ##

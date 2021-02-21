@@ -24,7 +24,7 @@ problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machi
 @assert isValid(problem)
 @assert problem.bufferSize>=maximum(length,problem.itemsNeeded)
 sf=let problem=problem
-	jobs->computeTimeLazyReturn(jobs,problem,Val(false))
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
@@ -38,22 +38,33 @@ println(problem.jobCount)
 
 #exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
 #exactRes=runModel(exactModel,30*60)
-df=CSV.File("test/tabuRes.tsv") |> DataFrame
+df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 sizes=[50,100,500,1000,2000]
 #prog=Progress(10*length(sizes))
-res=map(sizes) do tabuSize
-	println("Size: ",tabuSize)
-	tabuSettings=TabuSearchSettings(2000,tabuSize,1000)
-	ress=ThreadsX.map(1:10) do i
-		println("Start $i")
-		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1).score
-		#ProgressMeter.next!(prog)
-		println("End $i")
-		sc
-	end
-	push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,2000,tabuSize,1000,minimum(ress),maximum(ress),mean(ress)))
-	tabuSize,minimum(ress),maximum(ress),mean(ress)
+#res=map(sizes) do tabuSize
+#	println("Size: ",tabuSize)
+#	tabuSettings=TabuSearchSettings(2000,tabuSize,1000)
+#	ress=ThreadsX.map(1:10) do i
+#		println("Start $i")
+#		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1).score
+#		#ProgressMeter.next!(prog)
+#		println("End $i")
+#		sc
+#	end
+#	push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,tabuSettings.neighbourhoodSize,minimum(ress),maximum(ress),mean(ress)))
+#	tabuSize,minimum(ress),maximum(ress),mean(ress)
+#end
+tabuSettings=TabuSearchSettings(2000,500,1000)
+ress=ThreadsX.map(1:10) do i
+	println("Start $i")
+	sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1).score
+	#ProgressMeter.next!(prog)
+	println("End $i")
+	sc
 end
+push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,tabuSettings.neighbourhoodSize,minimum(ress),maximum(ress),mean(ress)))
+CSV.write("exp/tabuRes.tsv",df,delim='\t')
+println((minimum(ress),maximum(ress),mean(ress)))
 #ProgressMeter.finish!(prog);
 #println(minimum(res),' ',maximum(res),' ',mean(res))
