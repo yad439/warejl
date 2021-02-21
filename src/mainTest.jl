@@ -213,8 +213,9 @@ exactRes[1]+problem.carTravelTime,exactRes[2]+problem.carTravelTime
 st1=rand(sample1)
 st2=rand(sample2);
 ##
-tabuSettings=TabuSearchSettings(700,600,1500)
+# tabuSettings=TabuSearchSettings(700,600,1500)
 # tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
+tabuSettings=TabuSearchSettings4(700,100,cd->randomChangeIterator(st1,1000,cd))
 localSettings=LocalSearchSettings(changeIterator(st1),false)
 annealingSettings=AnnealingSettings(700000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
