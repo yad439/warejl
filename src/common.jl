@@ -63,6 +63,29 @@ function randomChange(timetable::StateEncoding{T}) where{T}
 	sz=size(timetable.states)
 	return rand<0.5 ? randomChange(timetable.machineEncoding) : (STATE_BITFLIP,rand(1:sz[1]),rand(1:sz[2]))
 end
+function randomChange(jobs::TwoVectorEncoding,canDo)
+	jobCount=length(jobs.assignment)
+	while true
+		type=rand((TWO_VECTOR_MOVE_ASSIGNMENT,TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER))
+		arg1=rand(1:jobCount)
+		arg2=rand(1:(type≠TWO_VECTOR_MOVE_ASSIGNMENT ? jobCount : jobs.machineCount))
+		arg1==arg2 && type≠TWO_VECTOR_MOVE_ASSIGNMENT && continue
+		type==TWO_VECTOR_MOVE_ASSIGNMENT && jobs.assignment[arg1]==arg2 && continue
+		canDo((type,arg1,arg2)) || continue
+		return type,arg1,arg2
+	end
+end
+function randomChange(jobs::PermutationEncoding,canDo)
+	jobCount=length(jobs.permutation)
+	while true
+		type=rand((PERMUTATION_MOVE,PERMUTATION_SWAP))
+		arg1=rand(1:jobCount)
+		arg2=rand(1:jobCount)
+		arg1==arg2 && continue
+		canDo((type,arg1,arg2)) || continue
+		return type,arg1,arg2
+	end
+end
 function randomChange!(jobs::TwoVectorEncoding,canDo)
 	jobCount=length(jobs.assignment)
 	while true

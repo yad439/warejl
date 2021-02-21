@@ -42,6 +42,7 @@ changeIterator(timetable::StateEncoding{T}) where{T}=Iterators.flatten((
 ))
 randomChangeIterator(jobs,count::Int)=(randomChange(jobs) for _=1:count)
 randomChangeIterator(jobs,probability::Float64)=Iterators.filter(_->rand()<probability,changeIterator(jobs))
+randomChangeIterator(jobs,count::Int,canDo)=(randomChange(jobs,canDo) for _=1:count)
 
 distance(jobs1::PermutationEncoding,jobs2::PermutationEncoding,)=damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)
 distance(jobs1::TwoVectorEncoding,jobs2::TwoVectorEncoding)=assignmentDistance(jobs1.assignment,jobs2.assignment,jobs1.machineCount)+damerauLevenshteinDistance(jobs1.permutation,jobs2.permutation)

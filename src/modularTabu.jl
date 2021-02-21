@@ -22,6 +22,11 @@ struct TabuSearchSettings3
 	wavePeriod::Int
 	waveMultiplier::Float64
 end
+struct TabuSearchSettings4{T}
+	searchTries::Int
+	tabuSize::Int
+	neighbourhoodIterator::T
+end
 
 modularTabuSearch(settings,scoreFunction,startTimeTable,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Tuple{changeType(startTimeTable),Int,Int}}(),tabuAdd!,tabuCanChange,showProgress)
 modularTabuSearch2(settings,scoreFunction,startTimeTable,showProgress=true)=modularTabuSearch(settings,scoreFunction,startTimeTable,OrderedSet{Int}(),tabuAdd2!,tabuCanChange2,showProgress)
@@ -44,7 +49,7 @@ function modularTabuSearch(settings,scoreFunction,startTimeTable,tabuInit,tabuAd
 	history=QHistory(typeof(minval))
 	push!(history,minval)
 	while counter<settings.searchTries
-		newTimeTableChange=modularTabuImprove(timeTable,tabu,settings.neighbourhoodSize,scoreFunction,tabuCanChange)
+		newTimeTableChange=modularTabuImprove(timeTable,tabu,settings,scoreFunction,tabuCanChange)
 		restoreChange=change!(timeTable,newTimeTableChange)
 		tabuAdd!(tabu,newTimeTableChange,restoreChange,timeTable)
 		score=scoreFunction(timeTable)
@@ -105,10 +110,10 @@ function modularTabuSearch(settings::TabuSearchSettings3,scoreFunction,startTime
 	(score=minval,solution=minsol,history=history)
 end
 
-function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction,canChange)
+function modularTabuImprove(timeTable,tabu,settings::TabuSearchSettings,scoreFunction,canChange)
 	minval=typemax(Int)
 	toApply=(defaultChange(timeTable),0,0)
-	for _=1:neighbourhoodSize
+	for _=1:settings.neighbourhoodSize
 		newChange,restoreChange=randomChange!(timeTable,change->canChange(timeTable,change,tabu))
 		score=scoreFunction(timeTable)
 		change!(timeTable,restoreChange)
@@ -120,11 +125,11 @@ function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction,
 	toApply
 end
 
-function modularTabuImprove(timetable,tabu,neighbourhoodProbability::Float64,scoreFunction,canChange)
+function modularTabuImprove(timetable,tabu,settings::TabuSearchSettings2,scoreFunction,canChange)
 	minval=typemax(Int)
 	toApply=(0,0,0)
 	for change ∈ changeIterator(timetable)
-		rand() > neighbourhoodProbability && continue
+		rand() > settings.neighbourhoodSize && continue
 		canChange(timetable,change,tabu) || continue
 		restoreChange=change!(timetable,change)
 		score=scoreFunction(timetable)
@@ -137,12 +142,27 @@ function modularTabuImprove(timetable,tabu,neighbourhoodProbability::Float64,sco
 	toApply
 end
 
-function modularTabuImprove(timeTable,tabu,neighbourhoodSize::Int,scoreFunction,canChange,center,coef)
+function modularTabuImprove(timeTable,tabu,settings::TabuSearchSettings3,scoreFunction,canChange,center,coef)
 	minval=typemax(Float64)
 	toApply=(defaultChange(timeTable),0,0)
-	for _=1:neighbourhoodSize
+	for _=1:settings.neighbourhoodSize
 		newChange,restoreChange=randomChange!(timeTable,change->canChange(timeTable,change,tabu))
 		score=scoreFunction(timeTable)+coef/distance(center,timeTable)
+		change!(timeTable,restoreChange)
+		if score<minval
+			minval=score
+			toApply=newChange
+		end
+	end
+	toApply
+end
+
+function modularTabuImprove(timeTable,tabu,settings::TabuSearchSettings4{T},scoreFunction,canChange) where {T}
+	minval=typemax(Int)
+	toApply=(defaultChange(timeTable),0,0)
+	for newChange ∈ settings.neighbourhoodIterator(change->canChange(timeTable,change,tabu))
+		restoreChange=change!(timeTable,newChange)
+		score=scoreFunction(timeTable)
 		change!(timeTable,restoreChange)
 		if score<minval
 			minval=score
