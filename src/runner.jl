@@ -52,7 +52,7 @@ res=map(sizes) do tabuSize
 		println("End $i")
 		sc
 	end
-	push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,5,2000,tabuSize,1000,minimum(ress),maximum(ress),mean(ress)))
+	push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,2000,tabuSize,1000,minimum(ress),maximum(ress),mean(ress)))
 	tabuSize,minimum(ress),maximum(ress),mean(ress)
 end
 #ProgressMeter.finish!(prog);
