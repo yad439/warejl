@@ -12,7 +12,7 @@ function moderateCars(model,itemsNeeded,carCount,carTravelTime,T=ceil(Int,maximu
 	end)
 	@constraints(model,begin
 		[t=1:T,i=1:itemCount],delivered[t,i]≤sum(timeSlot[1:t,i])
-		[i=1:jobCount,j in itemsNeeded[i],t=1:T],time[i]≥(1-delivered[t,j])*t*carTravelTime+carTravelTime
+		[i=1:jobCount,j in itemsNeeded[i]],time[i]≥sum(1 .- delivered[:,j])carTravelTime+carTravelTime
 		[i=1:carCount,t=1:T],sum(timeSlot[t,:])≤carCount
 	end);
 end
