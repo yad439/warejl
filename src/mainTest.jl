@@ -171,10 +171,10 @@ end
 ##
 limitCounter=Counter(10)
 machineCount=6
-carCount=30
-bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
-@assert bufferSize≥maximum(length.(problem.itemsNeeded))
+carCount=40
+bufferSize=12
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",200,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+@assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
@@ -273,3 +273,11 @@ T=length(exactModel.inner[:addEventTime])
 for i=1:problem.jobCount,item in problem.itemsNeeded[i]
 	@assert sum(addEventBeforeItem[τ,i,item] for τ=1:T)-sum(removeEventBeforeItem[τ,i,item] for τ=1:T)≥1 (i,item)
 end
+##
+res=map(prm->(computeTimeLazyReturn(prm,problem,Val(false),false),computeTimeLazyReturn(prm,problem,Val(false),true)),rand(sample1,100000))
+res2=map(r->r[1]/r[2],res)
+println((maximum(res2),minimum(res2),mean(res2)))
+mn1=argmin(map(first,res))
+mn2=argmin(map(secondElement,res))
+println(mn1==mn2)
+println((res[mn1],res[mn2]))
