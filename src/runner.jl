@@ -18,11 +18,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=200
+probSize=500
 probNum=1
 machineCount=8
 carCount=20
-bufferSize=8
+bufferSize=9
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
