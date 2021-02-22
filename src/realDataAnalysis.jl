@@ -1,6 +1,8 @@
 using CSV,DataFrames
 using Statistics
 
+include("realDataUtility.jl")
+##
 instanceSize=500
 instanceNum=1
 folder="G:\\test\\benchmark - automatic warehouse\\$instanceSize\\$instanceNum"
@@ -51,3 +53,25 @@ println("orders for item")
 println(minimum(itemCountInOrder))
 println(maximum(itemCountInOrder))
 println(mean(itemCountInOrder))
+##
+MInt=Union{Missing,Int}
+MFloat=Union{Missing,Float64}
+df=DataFrame(problemSize=Int[],problemNum=Int[],lineType=String[],jobCount=Int[],minLen=MInt[],maxLen=MInt[],meanLen=MFloat[],minItems=MInt[],maxItems=MInt[],meanItems=MFloat[])
+for batchSize ∈ [20,50,100,200,500],batchNum=1:10
+	try
+		batches=parseRealData("res/benchmark - automatic warehouse",batchSize,batchNum)
+		orders=map(batch->batch.orders,batches) |> Iterators.flatten
+		boxes=map(order->order.boxes,orders) |> Iterators.flatten |> collect
+		@assert all(box->box.lineType ∈ ["A","B","E","T"],boxes)
+		for lineType ∈ ["A","B","E","T"]
+			fboxes=filter(box->box.lineType==lineType,boxes)
+			jobLengths=map(box->box.packingTime,fboxes)
+			items=map(box->length(box.items),fboxes)
+			isempty(jobLengths) && (jobLengths=[missing])
+			isempty(items) && (items=[missing])
+			push!(df,(batchSize,batchNum,lineType,length(fboxes),minimum(jobLengths),maximum(jobLengths),mean(jobLengths),minimum(items),maximum(items),mean(items)))
+		end
+	catch e
+		println(stderr,"Problem $batchSize/$batchNum is invalid: $e")
+	end
+end
