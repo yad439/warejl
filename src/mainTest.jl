@@ -8,6 +8,7 @@ include("modularAnnealing.jl");
 include("modularGenetic.jl");
 include("realDataUtility.jl");
 include("modularLinear.jl");
+include("extendedRandoms.jl");
 
 using Random
 using DataFrames
@@ -170,10 +171,10 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-machineCount=6
-carCount=40
-bufferSize=12
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",200,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+machineCount=8
+carCount=20
+bufferSize=5
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -184,11 +185,11 @@ sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount)
 ##
 sol=computeTimeLazyReturn(rand(sample1),problem,Val(true))
 T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
-T=max(T,problem.jobCount)
+# T=max(T,problem.jobCount)
 M=sol.time
 ##
 exactModel=buildModel(problem,ASSIGNMENT_ONLY_SHARED,NO_CARS)
-exactRes=runModel(exactModel,30*60)
+exactRes=runModel(exactModel,30*60).+problem.carTravelTime
 ##
 exactModel=buildModel(problem,ORDER_FIRST,DELIVER_ONLY)
 exactRes=runModel(exactModel,30*60)
@@ -215,12 +216,14 @@ st2=rand(sample2);
 ##
 # tabuSettings=TabuSearchSettings(700,600,1500)
 # tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
-tabuSettings=TabuSearchSettings4(1000,100,cd->randomChangeIterator(st1,1458,cd))
+rdm=PermutationRandomIterable(problem.jobCount,100,0.5,jobDistance(problem.itemsNeeded))
+tabuSettings=TabuSearchSettings4(1000,100,(_,cd)->randomChangeIterator(st1,100,cd))
+tabuSettings=TabuSearchSettings4(1000,100,rdm)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
 annealingSettings=AnnealingSettings(700000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
 # localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
-tabuRes1=modularTabuSearch3(tabuSettings,sf,deepcopy(st1))
+tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
 annealingRes=modularAnnealing(annealingSettings,sf,deepcopy(st1))
 ##
 tmap=Threads.nthreads()>1 ? (f,x)->ThreadsX.map(f,10÷Threads.nthreads(),x) : map
@@ -281,3 +284,14 @@ mn1=argmin(map(first,res))
 mn2=argmin(map(secondElement,res))
 println(mn1==mn2)
 println((res[mn1],res[mn2]))
+##
+prob=Problem(9,3,2,2,8,3,[12,11,9,5,5,4,2,1,1],BitSet.([[6],[8],[7],[4],[5],[1],[1,2],[1,2,3],[8]]))
+@assert isValid(prob)
+##
+model=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,10,20)
+res=runModel(model,5*60)
+##
+res=minimum(1:2factorial(9)) do _
+	enc=PermutationEncoding(shuffle(1:9))
+	min(computeTimeLazyReturn(enc,prob,Val(false),false),computeTimeLazyReturn(enc,prob,Val(false),true))
+end
