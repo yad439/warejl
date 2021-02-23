@@ -125,6 +125,8 @@ function assignmentDistance(list1,list2,machineCount)
 end
 hammingDistance(vec1,vec2)=count(it->it[1]≠it[2],Iterators.zip(vec1,vec2))
 
+jobDistance(itemsNeeded)=map(((i,j),)->length(symdiff(i,j)),Iterators.product(itemsNeeded,itemsNeeded))
+
 ▷(f,g)=g∘f
 fmap(f)=x->map(f,x)
 ffilter(f)=x->filter(f,x)

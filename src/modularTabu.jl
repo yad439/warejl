@@ -160,7 +160,7 @@ end
 function modularTabuImprove(timeTable,tabu,settings::TabuSearchSettings4{T},scoreFunction,canChange) where {T}
 	minval=typemax(Int)
 	toApply=(defaultChange(timeTable),0,0)
-	for newChange ∈ settings.neighbourhoodIterator(change->canChange(timeTable,change,tabu))
+	for newChange ∈ settings.neighbourhoodIterator(timeTable,change->canChange(timeTable,change,tabu))
 		restoreChange=change!(timeTable,newChange)
 		score=scoreFunction(timeTable)
 		change!(timeTable,restoreChange)
