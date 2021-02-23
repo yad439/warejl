@@ -40,7 +40,7 @@ function sharedTimesMachines(model,jobLengths,machineCount)
 		numbers[time]+=1
 	end
 
-	@variable(model,x[1:m,times]≥0,Int)
+	@variable(model,0≤x[1:m,i in times]≤numbers[i],Int)
 	@constraint(model,[i in times],sum(x[:,i])≥numbers[i])
 	@constraint(model,[i=1:m],res≥sum(j*x[i,j] for j in times));
 end
