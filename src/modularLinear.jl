@@ -63,8 +63,11 @@ function buildModel(problem,machineModelType,carModelType,T=0,M=0)
 	ModelWrapper(machineModelType,carModelType,model)
 end
 
-function runModel(model,timeout=0)
+function runModel(model,timeout=0;attributes=[])
 	timeout≠0 && set_time_limit_sec(model.inner,timeout)
+	for attr ∈ attributes
+		set_optimizer_attribute(model.inner,attr[1],attr[2])
+	end
 	optimize!(model.inner)
 	(has_values(model.inner) ? objective_value(model.inner) : missing,objective_bound(model.inner))
 end
