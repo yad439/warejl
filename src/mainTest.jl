@@ -9,6 +9,7 @@ include("modularGenetic.jl");
 include("realDataUtility.jl");
 include("modularLinear.jl");
 include("extendedRandoms.jl");
+include("io.jl");
 
 using Random
 using DataFrames
@@ -171,10 +172,10 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-machineCount=8
-carCount=20
-bufferSize=5
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+machineCount=6
+carCount=30
+bufferSize=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -295,3 +296,5 @@ res=minimum(1:2factorial(9)) do _
 	enc=PermutationEncoding(shuffle(1:9))
 	min(computeTimeLazyReturn(enc,prob,Val(false),false),computeTimeLazyReturn(enc,prob,Val(false),true))
 end
+##
+toJson("out/problem.json",problem)
