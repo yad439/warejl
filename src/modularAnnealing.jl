@@ -5,6 +5,7 @@ include("common.jl")
 
 struct AnnealingSettings
 	searchTries::Int
+	sameTemperatureTries::Int
 	startTheshold::Float64
 	decreasingFunction::Function
 	applyChange::Function
@@ -22,6 +23,7 @@ function modularAnnealing(settings,scoreFunction,startTimeTable,showProgress=tru
 	prevScore=minval
 	history=QHistory(typeof(minval))
 	push!(history,minval)
+	scounter=1
 	while counter<settings.searchTries
 		newChange,restoreChange=randomChange!(timeTable,change->true)
 		score=scoreFunction(timeTable)
@@ -37,7 +39,12 @@ function modularAnnealing(settings,scoreFunction,startTimeTable,showProgress=tru
 		else
 			counter+=1
 		end
-		threshold=settings.decreasingFunction(threshold)
+		if scounter≥settings.sameTemperatureTries
+			threshold=settings.decreasingFunction(threshold)
+			scounter=1
+		else
+			scounter+=1
+		end
 		push!(history,prevScore)
 		showProgress && ProgressMeter.next!(progress,showvalues=(("Min score",minval),))
 	end
