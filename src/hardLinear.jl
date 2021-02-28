@@ -543,10 +543,10 @@ function carsModel4(model,problem,T,M)
 		[τ₀=1:T,τ=1:τ₀-1],eventTime[τ]≤eventTime[τ₀]-2tt+M*in2[τ₀,τ]
 	end)
 	@variables(model,begin
-		addItemsIn1[τ₀=1:T,1:τ₀-1],Int
-		addItemsIn1R[τ₀=1:T,1:τ₀-1],Int
-		addItemsIn2[τ₀=1:T,1:τ₀-1],Int
-		removeItemsIn1[τ₀=1:T,1:τ₀-1],Int
+		addItemsIn1[τ₀=1:T,1:τ₀-1]≥0,Int
+		addItemsIn1R[τ₀=1:T,1:τ₀-1]≥0,Int
+		addItemsIn2[τ₀=1:T,1:τ₀-1]≥0,Int
+		removeItemsIn1[τ₀=1:T,1:τ₀-1]≥0,Int
 	end)
 	@constraints(model,begin
 		[τ₀=1:T,τ=1:τ₀-1],addItemsIn1[τ₀,τ]≥sum(addItems[τ,:])-(1-in1[τ₀,τ])ic
