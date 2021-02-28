@@ -221,7 +221,7 @@ rdm=PermutationRandomIterable(problem.jobCount,100,0.5,jobDistance(problem.items
 tabuSettings=TabuSearchSettings4(1000,100,(_,cd)->randomChangeIterator(st1,100,cd))
 tabuSettings=TabuSearchSettings4(1000,100,rdm)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
-annealingSettings=AnnealingSettings(700000,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+annealingSettings=AnnealingSettings(700000,1,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
 # localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
 tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
@@ -286,11 +286,11 @@ mn2=argmin(map(secondElement,res))
 println(mn1==mn2)
 println((res[mn1],res[mn2]))
 ##
-prob=Problem(9,3,2,2,8,3,[12,11,9,5,5,4,2,1,1],BitSet.([[6],[8],[7],[4],[5],[1],[1,2],[1,2,3],[8]]))
+prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,5,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
 @assert isValid(prob)
 ##
-model=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,10,20)
-res=runModel(model,5*60)
+model=buildModel(prob,ORDER_FIRST_STRICT,SHARED_EVENTS,12,20)
+res=runModel(model,15*60)
 ##
 res=minimum(1:2factorial(9)) do _
 	enc=PermutationEncoding(shuffle(1:9))
