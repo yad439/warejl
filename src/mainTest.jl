@@ -15,6 +15,7 @@ using Random
 using DataFrames
 using CSV
 using ThreadsX
+using JuMP
 ##
 Random.seed!(4350)
 n=10
@@ -286,11 +287,14 @@ mn2=argmin(map(secondElement,res))
 println(mn1==mn2)
 println((res[mn1],res[mn2]))
 ##
-prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,5,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
+prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,4,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
 @assert isValid(prob)
 ##
 model=buildModel(prob,ORDER_FIRST_STRICT,SHARED_EVENTS,12,20)
-res=runModel(model,15*60)
+addItems=model.inner[:addItems]
+removeItems=model.inner[:removeItems]
+@constraint(model.inner,[τ=1:12],sum(addItems[τ,:])≥sum(removeItems[τ,:]))
+res=runModel(model,60*60)
 ##
 res=minimum(1:2factorial(9)) do _
 	enc=PermutationEncoding(shuffle(1:9))
