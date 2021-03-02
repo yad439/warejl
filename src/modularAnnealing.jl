@@ -5,6 +5,7 @@ include("common.jl")
 
 struct AnnealingSettings
 	searchTries::Int
+	isDynamic::Bool
 	sameTemperatureTries::Int
 	startTheshold::Float64
 	decreasingFunction::Function
@@ -33,7 +34,11 @@ function modularAnnealing(settings,scoreFunction,startTimeTable,showProgress=tru
 			change!(timeTable,restoreChange)
 		end
 		if score<minval
-			counter=0
+			if settings.isDynamic
+				counter=0
+			else
+				counter+=1
+			end
 			minval=score
 			copy!(minsol,timeTable)
 		else
