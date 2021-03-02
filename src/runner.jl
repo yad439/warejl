@@ -18,11 +18,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=20
-probNum=4
+probSize=50
+probNum=1
 machineCount=6
 carCount=20
-bufferSize=6
+bufferSize=5
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -95,14 +95,19 @@ savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCou
 
 df=CSV.File("exp/annRes.tsv") |> DataFrame
 starts=rand(sample1,10)
-pows=[0.99,0.999,0.9999,0.99999,0.999999]
+#power=1-10^-4
 # prog=Progress(10*length(pows))
 dif=maxDif(rand(sample1),sf)
 dyn=false
-same=1
-res=map(pows) do power
-	println("Power: ",power)
-	steps=round(Int,-log(power,-2dif*log(10^-3)))
+sames=[1,2,10,50,101,202,404]
+#same=1
+steps=10^6
+res=map(sames) do same
+	#println("Same: ",same)
+	@show same
+	#steps=round(Int,-log(power,-2dif*log(10^-3)))
+	#steps=round(Int,stepsBase/)
+	power=(-2dif*log(10^-3))^(-1/(steps/same))
 	annealingSettings=AnnealingSettings(steps,dyn,same,2dif,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
 	ress=ThreadsX.map(1:10) do i
 		println("Start $i")
@@ -114,4 +119,4 @@ res=map(pows) do power
 	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,annealingSettings.startTheshold,power,minimum(ress),maximum(ress),mean(ress)))
 	power,minimum(ress),maximum(ress),mean(ress)
 end
-CSV.write("exp/annRes.tsv",df)
+CSV.write("exp/annRes.tsv",df,delim='\t')
