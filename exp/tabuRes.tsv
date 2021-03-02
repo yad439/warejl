@@ -1,4 +1,4 @@
-problemSize	problemNum	lineTypes	boxLimit	boxNum	machineCount	carCount	bufferSize	Column9	algType	iterCunt	tabuSize	neigbourhoodSize	best	worst	mean
+problemSize	problemNum	lineTypes	boxLimit	boxNum	machineCount	carCount	bufferSize	sortReturns	algType	iterCunt	tabuSize	neigbourhoodSize	best	worst	mean
 20	4	A		27	4	30	6	true	3	1000	50	1000	2950	2991	2969.2
 20	4	A		27	4	30	6	true	3	1000	50	1000	2950	2978	2959.8
 20	4	A		27	4	30	6	true	3	1000	50	1000	2950	2978	2961.2

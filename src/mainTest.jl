@@ -174,7 +174,7 @@ end
 ##
 limitCounter=Counter(10)
 machineCount=6
-carCount=30
+carCount=20
 bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
@@ -222,9 +222,12 @@ rdm=PermutationRandomIterable(problem.jobCount,100,0.5,jobDistance(problem.items
 tabuSettings=TabuSearchSettings4(1000,100,(_,cd)->randomChangeIterator(st1,100,cd))
 tabuSettings=TabuSearchSettings4(1000,100,rdm)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
-annealingSettings=AnnealingSettings(700000,1,2maxDif(st1,sf),it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+dif=maxDif(st1,sf)
+steps=round(Int,-log(0.99999,-2dif*log(10^-3))*1.5)
+#α=(-dif*log(p))^(-1/10^6)
+annealingSettings=AnnealingSettings(steps,true,1,2dif,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 
-# localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
+localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
 tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
 annealingRes=modularAnnealing(annealingSettings,sf,deepcopy(st1))
 ##
