@@ -18,11 +18,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=20
-probNum=4
+probSize=50
+probNum=1
 machineCount=6
 carCount=20
-bufferSize=6
+bufferSize=5
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -99,7 +99,7 @@ starts=rand(sample1,10)
 # prog=Progress(10*length(pows))
 dif=maxDif(rand(sample1),sf)
 dyn=false
-sames=[1,2,10,27,54]
+sames=[1,2,10,50,101,202,404]
 #same=1
 steps=10^6
 res=map(sames) do same
