@@ -11,8 +11,17 @@ struct AnnealingSettings
 	decreasingFunction::Function
 	applyChange::Function
 end
+struct AnnealingSettings2
+	searchTries::Int
+	isDynamic::Bool
+	sameTemperatureTries::Int
+	startTheshold::Float64
+	decreasingFunction::Function
+	applyChange::Function
+	changeGenerator::Function
+end
 
-function modularAnnealing(settings,scoreFunction,startTimeTable,showProgress=true)
+function modularAnnealing(settings::AnnealingSettings,scoreFunction,startTimeTable,showProgress=true)
 	progress=ProgressUnknown("Annealing:")
 
 	timeTable=startTimeTable
@@ -27,6 +36,52 @@ function modularAnnealing(settings,scoreFunction,startTimeTable,showProgress=tru
 	scounter=1
 	while counter<settings.searchTries
 		newChange,restoreChange=randomChange!(timeTable,change->true)
+		score=scoreFunction(timeTable)
+		if settings.applyChange(prevScore,score,threshold)
+			prevScore=score
+		else
+			change!(timeTable,restoreChange)
+		end
+		if score<minval
+			if settings.isDynamic
+				counter=0
+			else
+				counter+=1
+			end
+			minval=score
+			copy!(minsol,timeTable)
+		else
+			counter+=1
+		end
+		if scounter≥settings.sameTemperatureTries
+			threshold=settings.decreasingFunction(threshold)
+			scounter=1
+		else
+			scounter+=1
+		end
+		push!(history,prevScore)
+		showProgress && ProgressMeter.next!(progress,showvalues=(("Min score",minval),))
+	end
+	ProgressMeter.finish!(progress)
+	(score=minval,solution=minsol,history=history)
+end
+
+function modularAnnealing(settings::AnnealingSettings2,scoreFunction,startTimeTable,showProgress=true)
+	progress=ProgressUnknown("Annealing:")
+
+	timeTable=startTimeTable
+	minval=scoreFunction(timeTable)
+	minsol=copy(timeTable)
+	counter=0
+	threshold=settings.startTheshold
+
+	prevScore=minval
+	history=QHistory(typeof(minval))
+	push!(history,minval)
+	scounter=1
+	while counter<settings.searchTries
+		newChange=settings.changeGenerator(timeTable)
+		restoreChange=change!(timeTable,newChange)
 		score=scoreFunction(timeTable)
 		if settings.applyChange(prevScore,score,threshold)
 			prevScore=score

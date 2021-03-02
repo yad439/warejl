@@ -43,3 +43,25 @@ function controlledPermutationRandom(n,moveProbability,moveProbabilities,swapPro
 		end
 	end
 end
+
+function controlledPermutationRandom(jobs,moveProbability,jobDistances)
+	prm=jobs.permutation
+	if rand()<moveProbability
+		job=rand(1:n)
+		probs=map(1:n) do i
+			i==job && return 0.0
+			i==1 && return 1/(jobDistances[prm[job],prm[1]]+1)
+			i==n && return 1/(jobDistances[prm[job],prm[n]]+1)
+			1/(jobDistances[prm[job],prm[i-1]]+jobDistances[prm[job],prm[i]]+1)
+		end
+		normalize!(probs,1)
+		place=rand(Categorical(probs))
+		return PERMUTATION_MOVE,job,place
+	else
+		job1=rand(1:n)
+		probs=[Float64(jobDistances[prm[i],prm[job1]]) for i=1:n]
+		normalize!(probs,1)
+		job2=rand(Categorical(probs))
+		return PERMUTATION_SWAP,job1,job2
+	end
+end
