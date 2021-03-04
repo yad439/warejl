@@ -18,16 +18,16 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=50
+probSize=100
 probNum=1
-machineCount=6
+machineCount=8
 carCount=20
 bufferSize=5
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
 sf=let problem=problem
-	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
 end
 sf2=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
@@ -99,7 +99,7 @@ starts=rand(sample1,10)
 # prog=Progress(10*length(pows))
 dif=maxDif(rand(sample1),sf)
 dyn=false
-sames=[1,2,10,50,101,202,404]
+sames=[1,2,10,100,200,400,800]
 #same=1
 steps=10^6
 res=map(sames) do same
