@@ -35,15 +35,15 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 println(problem.jobCount)
-#st1=rand(sample1)
-#sol=computeTimeLazyReturn(st1,problem,Val(true))
-#T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+st1=rand(sample1)
+sol=computeTimeLazyReturn(st1,problem,Val(true))
+T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
 #T=max(T,problem.jobCount)
-#M=sol.time
-#println(M,' ',T)
+M=sol.time
+println(M,' ',T)
 
-#exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
-#exactRes=runModel(exactModel,30*60)
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
+exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
 # df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 # sizes=[50,100,500,1000,2000]
@@ -92,7 +92,7 @@ push!(df,(probSize,probNum,"A",missing,machineCount,carCount,bufferSize,minimum(
 CSV.write("exp/sortOrNotToSort.tsv",df,delim='\t')
 savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCount)$(carCount)$(bufferSize).svg")
 =#
-
+#=
 df=CSV.File("exp/annRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 #power=1-10^-4
@@ -120,3 +120,4 @@ res=map(sames) do same
 	power,minimum(ress),maximum(ress),mean(ress)
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
+=#
