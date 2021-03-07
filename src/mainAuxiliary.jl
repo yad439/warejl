@@ -457,14 +457,14 @@ function computeTimeLazyReturn(timetable,problem,::Val{true})
 				setdiff!(itemsLeft,toAdd)
 			else
 				activeLocks=Iterators.map(it->(it,lockTime[it]),Iterators.filter(it->it∉itemsNeeded[job],bufferState))
-				minLockTime=minimum(lock[2] for lock ∈ activeLocks)
+				minLockTime=max(minimum(lock[2] for lock ∈ activeLocks),availableFromTime+carTravelTime)
 				while !isempty(inUseCars) && first(inUseCars)[1]≤minLockTime-carTravelTime
 					(availableFromTime,carChange)=popfirst!(inUseCars)
 					carsAvailable+=length(carChange.endAdd)+length(carChange.endRemove)-length(carChange.startRemove)
 					push!(carHistory,(availableFromTime,carChange))
 				end
 				availableFromTime=max(availableFromTime,minLockTime-carTravelTime)
-				minLocks=Iterators.map(first,Iterators.filter(it->it[2]==minLockTime,activeLocks)) |> collect
+				minLocks=Iterators.map(first,Iterators.filter(it->it[2] ≤ minLockTime,activeLocks)) |> collect
 				nexts=map(item->findnext(jb->item ∈ itemsNeeded[jb],timetable.permutation,ind+1),minLocks) |> fmap(it->it≡nothing ? typemax(Int) : it)
 				nextsDict=Dict(Iterators.zip(minLocks,nexts))
 				sort!(minLocks,by=it->nextsDict[it],rev=true)
@@ -543,13 +543,16 @@ function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 				minLockTime=typemax(Int)
 				@inbounds for item ∈ bufferState
 					item∉itemsNeeded[job] || continue
-					if lockTime[item]<minLockTime
+					if lockTime[item]<minLockTime && minLockTime > availableFromTime+carTravelTime
 						minLockTime=lockTime[item]
 						minLocksLen=1
 						minLocks[1]=item
-					elseif lockTime[item]==minLockTime
+					elseif lockTime[item]==minLockTime || lockTime[item] ≤ availableFromTime+carTravelTime
 						minLocksLen+=1
 						@inbounds minLocks[minLocksLen]=item
+						if lockTime[item] > minLockTime
+							minLockTime = lockTime[item]
+						end
 					end
 				end
 				if sortRemoves
