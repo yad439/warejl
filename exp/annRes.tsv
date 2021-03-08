@@ -1,5 +1,4 @@
 problemSize	problemNum	lineTypes	boxLimit	boxNum	machineCount	carCount	bufferSize	sortReturns	iterCount	dynamic	sameTemperature	startThres	power	best	worst	mean
-0	0	A		0	0	0	0	false	0	false	0	0.0	0.0	0	0	0.0
 20	4	A		27	6	20	6	true	988	false	1	2966.0	0.99	2483	2692	2584.3
 20	4	A		27	6	20	6	true	9923	false	1	2966.0	0.999	2476	2538	2513.1
 20	4	A		27	6	20	6	true	99271	false	1	2966.0	0.9999	2455	2517	2490.3

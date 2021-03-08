@@ -10,6 +10,7 @@ include("realDataUtility.jl");
 include("modularLinear.jl");
 include("extendedRandoms.jl");
 include("io.jl");
+include("simlpeHeuristic.jl");
 
 using Random
 using DataFrames
@@ -215,6 +216,9 @@ exactRes[1]+problem.carTravelTime,exactRes[2]+problem.carTravelTime
 ##
 st1=rand(sample1)
 st2=rand(sample2);
+##
+st3=problem.itemsNeeded |> jobDistance |> likehoodBased |> PermutationEncoding;
+st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
 ##
 # tabuSettings=TabuSearchSettings(700,600,1500)
 # tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
