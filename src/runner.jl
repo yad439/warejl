@@ -2,12 +2,13 @@ include("mainAuxiliary.jl");
 #include("moderateAuxiliary.jl");
 #include("utility.jl");
 #include("auxiliary.jl")
-# include("modularTabu.jl");
+include("modularTabu.jl");
 #include("modularLocal.jl");
 include("modularAnnealing.jl");
 #include("modularGenetic.jl");
 include("realDataUtility.jl");
 include("modularLinear.jl");
+include("extendedRandoms.jl");
 
 using Random
 #using ThreadTools
@@ -18,11 +19,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=100
+probSize=50
 probNum=1
-machineCount=8
+machineCount=6
 carCount=20
-bufferSize=5
+bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -94,7 +95,7 @@ push!(df,(probSize,probNum,"A",missing,machineCount,carCount,bufferSize,minimum(
 CSV.write("exp/sortOrNotToSort.tsv",df,delim='\t')
 savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCount)$(carCount)$(bufferSize).svg")
 =#
-
+#=
 df=CSV.File("exp/annRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 #power=1-10^-4
@@ -122,3 +123,24 @@ res=map(sames) do same
 	power,minimum(ress),maximum(ress),mean(ress)
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
+=#
+
+df=CSV.File("exp/tabuRes.tsv") |> DataFrame
+starts=rand(sample1,10)
+tabuSize=300
+baseIter=1500
+neighSize=2000
+tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
+#rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
+#tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
+ress2=progress_map(mapfun=ThreadsX.map,1:10) do i
+	#println("Start $i")
+	sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1)
+	#ProgressMeter.next!(prog)
+	#println("End $i")
+	sc.score,length(sc.history)
+end
+ress=map(first,ress2)
+iters=map(secondElement,ress2)
+push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"uniform",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
+CSV.write("exp/tabuRes.tsv",df,delim='\t')
