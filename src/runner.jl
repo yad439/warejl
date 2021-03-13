@@ -2,12 +2,13 @@ include("mainAuxiliary.jl");
 #include("moderateAuxiliary.jl");
 #include("utility.jl");
 #include("auxiliary.jl")
-# include("modularTabu.jl");
+include("modularTabu.jl");
 #include("modularLocal.jl");
 include("modularAnnealing.jl");
 #include("modularGenetic.jl");
 include("realDataUtility.jl");
 include("modularLinear.jl");
+include("extendedRandoms.jl");
 
 using Random
 #using ThreadTools
@@ -18,11 +19,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=100
+probSize=50
 probNum=1
-machineCount=8
+machineCount=6
 carCount=20
-bufferSize=5
+bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -35,6 +36,7 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 println(problem.jobCount)
+#=
 st1=rand(sample1)
 sol=computeTimeLazyReturn(st1,problem,Val(true))
 T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
@@ -44,6 +46,7 @@ println(M,' ',T)
 
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
 exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
+=#
 # df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 # sizes=[50,100,500,1000,2000]
@@ -99,7 +102,7 @@ starts=rand(sample1,10)
 # prog=Progress(10*length(pows))
 dif=maxDif(rand(sample1),sf)
 dyn=false
-sames=[1,2,10,100,200,400,800]
+sames=[10_000,20_000,40_000,80_000,160_000]
 #same=1
 steps=10^6
 res=map(sames) do same
@@ -121,3 +124,23 @@ res=map(sames) do same
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
+
+df=CSV.File("exp/tabuRes.tsv") |> DataFrame
+starts=rand(sample1,10)
+tabuSize=300
+baseIter=1500
+neighSize=2000
+tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
+#rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
+#tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
+ress2=progress_map(mapfun=ThreadsX.map,1:10) do i
+	#println("Start $i")
+	sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1)
+	#ProgressMeter.next!(prog)
+	#println("End $i")
+	sc.score,length(sc.history)
+end
+ress=map(first,ress2)
+iters=map(secondElement,ress2)
+push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"uniform",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
+CSV.write("exp/tabuRes.tsv",df,delim='\t')
