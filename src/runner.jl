@@ -124,7 +124,7 @@ res=map(sames) do same
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
-
+#=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 tabuSize=300
@@ -144,3 +144,14 @@ ress=map(first,ress2)
 iters=map(secondElement,ress2)
 push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"uniform",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 CSV.write("exp/tabuRes.tsv",df,delim='\t')
+=#
+
+prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,4,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
+@assert isValid(prob)
+##
+model=buildModel(prob,ORDER_FIRST_STRICT,SHARED_EVENTS,12,20)
+addItems=model.inner[:addItems]
+removeItems=model.inner[:removeItems]
+@constraint(model.inner,[τ=1:12],sum(addItems[τ,:])≥sum(removeItems[τ,:]))
+res=runModel(model) .+ 2
+##
