@@ -174,10 +174,10 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-machineCount=6
+machineCount=8
 carCount=20
-bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",20,4),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=5
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -220,6 +220,7 @@ st2=rand(sample2);
 st3=problem.itemsNeeded |> jobDistance |> likehoodBased |> PermutationEncoding;
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
 ##
+dist=jobDistance(problem.itemsNeeded)
 # tabuSettings=TabuSearchSettings(700,600,1500)
 # tabuSettings=TabuSearchSettings3(1000,600,500,200,20)
 rdm=PermutationRandomIterable(problem.jobCount,100,0.5,jobDistance(problem.itemsNeeded))
@@ -227,9 +228,13 @@ tabuSettings=TabuSearchSettings4(1000,100,(_,cd)->randomChangeIterator(st1,100,c
 tabuSettings=TabuSearchSettings4(1000,100,rdm)
 localSettings=LocalSearchSettings(changeIterator(st1),false)
 dif=maxDif(st1,sf)
-steps=round(Int,-log(0.99999,-2dif*log(10^-3))*1.5)
+# steps=round(Int,-log(0.99999,-2dif*log(10^-3))*1.5)
 #α=(-dif*log(p))^(-1/10^6)
-annealingSettings=AnnealingSettings(steps,true,1,2dif,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+steps=10^6
+same=1
+power=(-2dif*log(10^-3))^(-1/(steps/same))
+# annealingSettings=AnnealingSettings(steps,true,1,2dif,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+annealingSettings=AnnealingSettings2(steps,false,same,2dif,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold),jobs->controlledPermutationRandom(jobs,0.5,dist))
 
 localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
 tabuRes1=modularTabuSearch5(tabuSettings,sf,deepcopy(st1))
@@ -245,7 +250,7 @@ rest=tmap(1:10) do _
 	modularTabuSearch5(tabuSettings,sf,rand(sample1)).score
 end
 ##
-resa=tmap(1:10) do _
+resa=map(1:10) do _
 	st=rand(sample1)
 	modularAnnealing(annealingSettings,sf,st).score
 end
