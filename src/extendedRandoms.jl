@@ -46,6 +46,7 @@ end
 
 function controlledPermutationRandom(jobs,moveProbability,jobDistances)
 	prm=jobs.permutation
+	n=length(prm)
 	if rand()<moveProbability
 		job=rand(1:n)
 		probs=map(1:n) do i
