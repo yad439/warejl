@@ -32,10 +32,10 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-machineCount=6
+machineCount=8
 carCount=20
-bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=5
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -184,3 +184,12 @@ res=minimum(1:2factorial(9)) do _
 end
 ##
 toJson("out/problem.json",problem)
+##
+sf2=let problem=problem
+	jobs->computeTimeBufferOnly(jobs,problem)
+end
+##
+starts=rand(sample1,100000)
+orig=@time map(sf,starts)
+buffer=@time map(sf2,starts)
+rat=orig ./ buffer
