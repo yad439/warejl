@@ -173,3 +173,59 @@ function computeTimeLazyReturn(timetable,problem,::Val{false},sortRemoves=true)
 	end
 	maximum(sums)
 end
+
+function computeTimeBufferOnly(timetable,problem)
+	sums=fill(zero(eltype(problem.jobLengths)),problem.machineCount)
+	bufferState=BitSet()
+	lockTimes=zeros(Int,problem.itemCount)
+	minLocks=Vector{Int}(undef,problem.bufferSize)
+	itemsLeft=BitSet()
+	sizehint!(itemsLeft,problem.itemCount)
+	for job ∈ timetable.permutation
+		machine=selectMachine(job,timetable,sums)
+		machineTime=sums[machine]
+		lockTime=0
+
+		setdiff!(itemsLeft,itemsLeft)
+		union!(itemsLeft,problem.itemsNeeded[job])
+		setdiff!(itemsLeft,bufferState)
+
+		if length(bufferState)<problem.bufferSize
+			add=Iterators.take(itemsLeft,problem.bufferSize-length(bufferState))
+			union!(bufferState,add)
+			setdiff!(itemsLeft,add)
+		end
+
+		while !isempty(itemsLeft)
+			minLocksLen=0
+			minLockTime=typemax(Int)
+			@inbounds for item ∈ bufferState
+				item ∉ problem.itemsNeeded[job] || continue
+				if lockTimes[item] < minLockTime && minLockTime > machineTime
+					minLockTime=lockTimes[item]
+					minLocksLen=1
+					minLocks[1]=item
+				elseif lockTimes[item]==minLockTime || lockTimes[item] ≤ machineTime
+					minLocksLen+=1
+					@inbounds minLocks[minLocksLen]=item
+					if lockTimes[item] > minLockTime
+						minLockTime = lockTimes[item]
+					end
+				end
+			end
+			changeNum=min(minLocksLen,length(itemsLeft))
+			remove=Iterators.take(minLocks,changeNum)
+			add=Iterators.take(itemsLeft,changeNum)
+			setdiff!(bufferState,remove)
+			union!(bufferState,add)
+			setdiff!(itemsLeft,add)
+			lockTime=minLockTime
+		end
+		startTime=max(machineTime,lockTime)
+		sums[machine]=startTime+problem.jobLengths[job]
+		@inbounds for item ∈ problem.itemsNeeded[job]
+			@inbounds lockTimes[item]=max(lockTimes[item],startTime+problem.jobLengths[job])
+		end
+	end
+	maximum(sums)
+end
