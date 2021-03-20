@@ -291,7 +291,7 @@ for i=1:problem.jobCount,item in problem.itemsNeeded[i]
 	@assert sum(addEventBeforeItem[τ,i,item] for τ=1:T)-sum(removeEventBeforeItem[τ,i,item] for τ=1:T)≥1 (i,item)
 end
 ##
-res=map(prm->(computeTimeLazyReturn(prm,problem,Val(false),false),computeTimeLazyReturn(prm,problem,Val(false),true)),rand(sample1,100000))
+res=progress_map(prm->(computeTimeLazyReturn(prm,problem,Val(false),false),computeTimeLazyReturn(prm,problem,Val(false),true)),rand(sample1,1_000_000))
 res2=map(r->r[1]/r[2],res)
 println((maximum(res2),minimum(res2),mean(res2)))
 mn1=argmin(map(first,res))
