@@ -174,10 +174,10 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-machineCount=8
+machineCount=6
 carCount=20
-bufferSize=5
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -259,6 +259,8 @@ println(minimum(rest),' ',maximum(rest),' ',mean(rest))
 println(minimum(resa),' ',maximum(resa),' ',mean(resa))
 ##
 starts=rand(sample1,10);
+starts=fill(st4,10)
+starts=[PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded),rand(1:problem.jobCount))) for _=1:10]
 ##
 ress=ThreadsX.map(1:10) do i
 		println("Start $i")
@@ -269,6 +271,23 @@ ress=ThreadsX.map(1:10) do i
 	end
 push!(df,(20,4,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,1458,minimum(ress),maximum(ress),mean(ress)))
 println((minimum(ress),maximum(ress),mean(ress)))
+##
+baseIter=1500
+tabuSize=300
+neighSize=2000
+tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
+#rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
+#tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
+ress2=progress_map(mapfun=ThreadsX.map,1:10) do i
+	#println("Start $i")
+	sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1)
+	#ProgressMeter.next!(prog)
+	#println("End $i")
+	sc.score,length(sc.history)
+end
+ress=map(first,ress2)
+iters=map(secondElement,ress2)
+push!(df,(50,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 ##
 sol=computeTimeLazyReturn(st1,problem,Val(true));
 ##
