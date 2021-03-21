@@ -193,3 +193,23 @@ starts=rand(sample1,100000)
 orig=@time map(sf,starts)
 buffer=@time map(sf2,starts)
 rat=orig ./ buffer
+##
+df=CSV.File("exp/annRes.tsv") |> DataFrame
+##
+CSV.write("exp/annRes.tsv",df,delim='\t')
+##
+starts=fill(st4,10)
+dif=maxDif(st4,sf)
+dyn=false
+same=1
+steps=10^6
+power=(-2dif*log(10^-3))^(-1/(steps/same))
+annealingSettings=AnnealingSettings(steps,dyn,same,2dif,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
+ress=ThreadsX.map(1:10) do i
+	println("Start $i")
+	sc=modularAnnealing(annealingSettings,sf,deepcopy(starts[i]),false).score
+	#ProgressMeter.next!(prog)
+	println("End $i")
+	sc
+end
+push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
