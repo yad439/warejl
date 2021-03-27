@@ -37,7 +37,7 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 println(problem.jobCount)
-
+#=
 st1=rand(sample1)
 sol=computeTimeLazyReturn(st1,problem,Val(true))
 T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
@@ -47,7 +47,7 @@ println(M,' ',T)
 
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,BUFFER_ONLY,T,M)
 exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
-
+=#
 # df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 # sizes=[50,100,500,1000,2000]
@@ -96,35 +96,38 @@ push!(df,(probSize,probNum,"A",missing,machineCount,carCount,bufferSize,minimum(
 CSV.write("exp/sortOrNotToSort.tsv",df,delim='\t')
 savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCount)$(carCount)$(bufferSize).svg")
 =#
-#=
+
 df=CSV.File("exp/annRes.tsv") |> DataFrame
-starts=rand(sample1,10)
+#starts=rand(sample1,10)
+st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
+starts=fill(st4,10)
 #power=1-10^-4
 # prog=Progress(10*length(pows))
-dif=maxDif(rand(sample1),sf)
+dif=maxDif(st4,sf)
+temps=[5]
 dyn=false
-sames=[10_000,20_000,40_000,80_000,160_000]
-#same=1
+#sames=[10_000,20_000,40_000,80_000,160_000]
+same=1
 steps=10^6
-res=map(sames) do same
+res=map(temps) do temp
 	#println("Same: ",same)
-	@show same
+	@show temp
 	#steps=round(Int,-log(power,-2dif*log(10^-3)))
 	#steps=round(Int,stepsBase/)
-	power=(-2dif*log(10^-3))^(-1/(steps/same))
-	annealingSettings=AnnealingSettings(steps,dyn,same,2dif,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
+	power=(-temp*log(10^-3))^(-1/(steps/same))
+	annealingSettings=AnnealingSettings(steps,dyn,same,temp,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
 	ress=ThreadsX.map(1:10) do i
 		println("Start $i")
-		sc=modularAnnealing(annealingSettings,sf,deepcopy(starts[i]),i==1).score
+		sc=modularAnnealing(annealingSettings,sf,deepcopy(starts[i]),false).score
 		#ProgressMeter.next!(prog)
 		println("End $i")
 		sc
 	end
-	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,annealingSettings.startTheshold,power,minimum(ress),maximum(ress),mean(ress)))
-	power,minimum(ress),maximum(ress),mean(ress)
+	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
+	temp,minimum(ress),maximum(ress),mean(ress)
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
-=#
+
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
