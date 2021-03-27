@@ -34,8 +34,8 @@ end
 limitCounter=Counter(10)
 machineCount=8
 carCount=20
-bufferSize=5
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,2),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -91,7 +91,7 @@ dif=maxDif(st1,sf)
 steps=10^6
 same=1
 power=(-2dif*log(10^-3))^(-1/(steps/same))
-# annealingSettings=AnnealingSettings(steps,true,1,2dif,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+annealingSettings=AnnealingSettings(steps,true,1,2dif,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
 annealingSettings=AnnealingSettings2(steps,false,same,2dif,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold),jobs->controlledPermutationRandom(jobs,0.5,dist))
 
 localRes1=modularLocalSearch(localSettings,sf,deepcopy(st1))
