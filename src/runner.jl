@@ -32,7 +32,7 @@ sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
 end
 sf2=let problem=problem
-	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
@@ -96,7 +96,7 @@ push!(df,(probSize,probNum,"A",missing,machineCount,carCount,bufferSize,minimum(
 CSV.write("exp/sortOrNotToSort.tsv",df,delim='\t')
 savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCount)$(carCount)$(bufferSize).svg")
 =#
-
+#=
 df=CSV.File("exp/annRes.tsv") |> DataFrame
 #starts=rand(sample1,10)
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
@@ -127,30 +127,30 @@ res=map(temps) do temp
 	temp,minimum(ress),maximum(ress),mean(ress)
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
+=#
 
-#=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
 starts=fill(st4,10)
 tabuSize=600
 baseIter=2000
-neighSize=1000
+neighSize=5000
 tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
 #rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
 #tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
 ress2=progress_map(mapfun=ThreadsX.map,1:10) do i
 	#println("Start $i")
-	sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1)
+	sc=modularTabuSearch5(tabuSettings,sf2,deepcopy(starts[i]),i==1)
 	#ProgressMeter.next!(prog)
 	#println("End $i")
-	sc.score,length(sc.history)
+	sf(sc.solution),length(sc.history)
 end
 ress=map(first,ress2)
 iters=map(secondElement,ress2)
-push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
+push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 CSV.write("exp/tabuRes.tsv",df,delim='\t')
-=#
+
 #=
 prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,4,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
 @assert isValid(prob)

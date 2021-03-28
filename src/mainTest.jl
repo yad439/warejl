@@ -34,12 +34,12 @@ end
 limitCounter=Counter(10)
 machineCount=8
 carCount=20
-bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",50,2),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=5
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
-	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
@@ -84,7 +84,7 @@ dist=jobDistance(problem.itemsNeeded)
 rdm=PermutationRandomIterable(problem.jobCount,100,0.5,jobDistance(problem.itemsNeeded))
 tabuSettings=TabuSearchSettings4(1000,100,(_,cd)->randomChangeIterator(st1,100,cd))
 tabuSettings=TabuSearchSettings4(1000,100,rdm)
-localSettings=LocalSearchSettings(changeIterator(st1),false)
+localSettings=LocalSearchSettings(changeIterator(st1),true)
 dif=maxDif(st1,sf)
 # steps=round(Int,-log(0.99999,-2dif*log(10^-3))*1.5)
 #α=(-dif*log(p))^(-1/10^6)
@@ -111,6 +111,10 @@ end
 resa=map(1:10) do _
 	st=rand(sample1)
 	modularAnnealing(annealingSettings,sf,st).score
+end
+##
+resl=map(1:10) do _
+	modularLocalSearch(localSettings,sf,rand(sample1)).score
 end
 ##
 println(minimum(rest),' ',maximum(rest),' ',mean(rest))
@@ -213,3 +217,9 @@ ress=ThreadsX.map(1:10) do i
 	sc
 end
 push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
+##
+@time for change ∈ changeIterator(st1)
+	restore=change!(st1,change)
+	val=sf(st1)
+	change!(st1,restore)
+end
