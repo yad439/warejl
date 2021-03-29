@@ -20,11 +20,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=50
-probNum=2
+probSize=100
+probNum=1
 machineCount=8
 carCount=20
-bufferSize=6
+bufferSize=5
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -166,9 +166,9 @@ df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
 #starts=fill(st4,10)
-tabuSize=300
-baseIter=1500
-neighSize=1500
+tabuSize=600
+baseIter=2000
+neighSize=1000
 ratios=[0,0.2,0.5,0.8,1]
 for rat in ratios
 	@show rat
@@ -176,10 +176,10 @@ for rat in ratios
 	rdm=PermutationRandomIterable(problem.jobCount,neighSize,rat,fill(1,problem.jobCount,problem.jobCount))
 	tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
 	ress2=progress_map(mapfun=ThreadsX.map,1:10) do i
-		#println("Start $i")
+		println("Start $i")
 		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),false)
 		#ProgressMeter.next!(prog)
-		#println("End $i")
+		println("End $i")
 		sf(sc.solution),length(sc.history)
 	end
 	ress=map(first,ress2)
