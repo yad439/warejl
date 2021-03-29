@@ -127,6 +127,16 @@ hammingDistance(vec1,vec2)=count(it->it[1]≠it[2],Iterators.zip(vec1,vec2))
 
 jobDistance(itemsNeeded)=map(((i,j),)->length(symdiff(i,j)),Iterators.product(itemsNeeded,itemsNeeded))
 
+function tmap(f,x)
+	type=Base.return_types(f,(eltype(x),))
+	@assert length(type)==1
+	result=similar(x,first(type))
+	Threads.@threads for i ∈ eachindex(x)
+		result[i]=f(x[i])
+	end
+	result
+end
+
 ▷(f,g)=g∘f
 fmap(f)=x->map(f,x)
 ffilter(f)=x->filter(f,x)
