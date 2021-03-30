@@ -10,6 +10,7 @@ include("realDataUtility.jl");
 include("modularLinear.jl");
 include("extendedRandoms.jl");
 include("simlpeHeuristic.jl");
+include("utility.jl");
 
 using Random
 #using ThreadTools
@@ -20,11 +21,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=100
-probNum=1
+probSize=50
+probNum=2
 machineCount=8
 carCount=20
-bufferSize=5
+bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -128,18 +129,18 @@ res=map(temps) do temp
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
-#=
+
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
 starts=fill(st4,10)
-tabuSize=100
-baseIter=1000
-neighSize=1500
+tabuSize=300
+baseIter=1500
+neighSize=8000
 tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
 #rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
 #tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
-ress2=progress_map(mapfun=ThreadsX.map,1:10) do i
+ress2=progress_map(mapfun=tmap,1:10) do i
 	#println("Start $i")
 	sc=modularTabuSearch5(tabuSettings,sf2,deepcopy(starts[i]),i==1)
 	#ProgressMeter.next!(prog)
@@ -150,7 +151,7 @@ ress=map(first,ress2)
 iters=map(secondElement,ress2)
 push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 CSV.write("exp/tabuRes.tsv",df,delim='\t')
-=#
+
 #=
 prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,4,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
 @assert isValid(prob)
@@ -162,6 +163,7 @@ removeItems=model.inner[:removeItems]
 res=runModel(model) .+ 2
 ##
 =#
+#=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
@@ -187,3 +189,4 @@ for rat in ratios
 	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,rat,"none",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 end
 CSV.write("exp/tabuRes.tsv",df,delim='\t')
+=#
