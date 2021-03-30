@@ -21,9 +21,9 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=50
-probNum=2
-machineCount=8
+probSize=20
+probNum=4
+machineCount=6
 carCount=20
 bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
@@ -134,9 +134,9 @@ df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
 starts=fill(st4,10)
-tabuSize=300
+tabuSize=100
 baseIter=1500
-neighSize=8000
+neighSize=1500
 tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
 #rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
 #tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
