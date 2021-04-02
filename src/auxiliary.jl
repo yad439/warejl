@@ -88,6 +88,9 @@ function isValid(problem::Problem)
 end
 
 function isValid(solution::Schedule,problem)
+	for task ∈ solution.carTasks
+		count(t->task.time-problem.carTravelTime<t.time≤task.time,solution.carTasks) ≤ problem.carChangeHistory || return false
+	end
 	bufferEvents = map(solution.carTasks) do task
 		task.isAdd ? (time=task.time+problem.carTravelTime,task.item,task.isAdd) : task
 	end
