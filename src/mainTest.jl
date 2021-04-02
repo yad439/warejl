@@ -10,6 +10,7 @@ include("modularLinear.jl");
 include("extendedRandoms.jl");
 include("io.jl");
 include("simlpeHeuristic.jl");
+include("plots.jl");
 
 using Random
 using DataFrames
