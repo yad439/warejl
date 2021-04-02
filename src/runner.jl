@@ -7,7 +7,7 @@ include("modularTabu.jl");
 include("modularAnnealing.jl");
 #include("modularGenetic.jl");
 include("realDataUtility.jl");
-include("modularLinear.jl");
+#include("modularLinear.jl");
 include("extendedRandoms.jl");
 include("simlpeHeuristic.jl");
 include("utility.jl");
@@ -19,7 +19,7 @@ using DataFrames
 using CSV
 using Statistics
 using ProgressMeter
-using Plots
+#using Plots
 
 probSize=50
 probNum=2
@@ -38,7 +38,7 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 println(problem.jobCount)
-
+#=
 st1=rand(sample1)
 sol=computeTimeLazyReturn(st1,problem,Val(true))
 T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
@@ -48,7 +48,7 @@ println(M,' ',T)
 
 exactModel=buildModel(problem,ASSIGNMENT_ONLY_SHARED,NO_CARS,T,M)
 exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
-
+=#
 # df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 # starts=rand(sample1,10)
 # sizes=[50,100,500,1000,2000]
@@ -105,11 +105,11 @@ starts=fill(st4,10)
 #power=1-10^-4
 # prog=Progress(10*length(pows))
 dif=maxDif(st4,sf)
-temps=[5]
+temps=[5,10,20,50,100,500]
 dyn=false
 #sames=[10_000,20_000,40_000,80_000,160_000]
 same=1
-steps=10^6
+steps=10^7
 res=map(temps) do temp
 	#println("Same: ",same)
 	@show temp
@@ -117,7 +117,7 @@ res=map(temps) do temp
 	#steps=round(Int,stepsBase/)
 	power=(-temp*log(10^-3))^(-1/(steps/same))
 	annealingSettings=AnnealingSettings(steps,dyn,same,temp,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
-	ress=ThreadsX.map(1:10) do i
+	ress=tmap(1:10) do i
 		println("Start $i")
 		sc=modularAnnealing(annealingSettings,sf,deepcopy(starts[i]),false).score
 		#ProgressMeter.next!(prog)
@@ -189,4 +189,30 @@ for rat in ratios
 	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,rat,"none",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 end
 CSV.write("exp/tabuRes.tsv",df,delim='\t')
+=#
+#=
+df=CSV.File("exp/annRes.tsv") |> DataFrame
+#starts=rand(sample1,10)
+st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
+starts=fill(st4,10)
+#power=1-10^-4
+# prog=Progress(10*length(pows))
+dif=maxDif(st4,sf)
+temp=diff
+dyn=false
+same=1
+steps=10^7
+#steps=round(Int,-log(power,-2dif*log(10^-3)))
+#steps=round(Int,stepsBase/)
+power=(-temp*log(10^-3))^(-1/(steps/same))
+annealingSettings=AnnealingSettings(steps,dyn,same,temp,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
+ress=tmap(1:10) do i
+	println("Start $i")
+	sc=modularAnnealing(annealingSettings,sf,deepcopy(starts[i]),false).score
+	#ProgressMeter.next!(prog)
+	println("End $i")
+	sc
+end
+push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
+CSV.write("exp/annRes.tsv",df,delim='\t')
 =#

@@ -33,14 +33,19 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
+probSize=100
+probNum=1
 machineCount=8
 carCount=20
-bufferSize=5
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",100,1),machineCount,carCount,bufferSize,box->box.lineType=="A")
+bufferSize=6
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
 	jobs->computeTimeLazyReturn(jobs,problem,Val(false),true)
+end
+sf2=let problem=problem
+	jobs->computeTimeLazyReturn(jobs,problem,Val(false),false)
 end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
@@ -224,3 +229,7 @@ push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,tr
 	val=sf(st1)
 	change!(st1,restore)
 end
+##
+sols=rand(sample1,10^5)
+@time foreach(sf,sols)
+@time foreach(sf2,sols)
