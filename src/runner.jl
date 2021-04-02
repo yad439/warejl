@@ -21,11 +21,11 @@ using Statistics
 using ProgressMeter
 using Plots
 
-probSize=50
-probNum=2
-machineCount=8
-carCount=20
-bufferSize=6
+probSize=20
+probNum=4
+machineCount=4
+carCount=40
+bufferSize=8
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -46,7 +46,7 @@ T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> l
 M=sol.time
 println(M,' ',T)
 
-exactModel=buildModel(problem,ASSIGNMENT_ONLY_SHARED,NO_CARS,T,M)
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
 exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
 
 # df=CSV.File("exp/tabuRes.tsv") |> DataFrame
