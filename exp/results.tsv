@@ -1,6 +1,6 @@
-﻿problemSize	problemNum	lineTypes	boxLimit	machineCount	carCount	bufferSize	tabuBest	tabuWorst	tabuAvg	annBest	annWorst	annAvg	linSol	linLB	dLinSol	dLinLB	bLinSol	bLinLB	sLinSol	sLinLB
+problemSize	problemNum	lineTypes	boxLimit	machineCount	carCount	bufferSize	tabuBest	tabuWorst	tabuAvg	annBest	annWorst	annAvg	linSol	linLB	dLinSol	dLinLB	bLinSol	bLinLB	sLinSol	sLinLB
 20	4	A		6	30	6	2455	2524	2493.7	2455	2504	2473.2		735	2128	1417	2611	1745	2128	2128
-20	4	A		4	40	8	2775	2782	2775.7	2775	2775	2775			2782	1417			2775	2775
+20	4	A		4	40	8	2775	2782	2775.7	2775	2775	2775		1417	2782	1417			2775	2775
 50	1	A		4	30	6	7409	7409	7409	7408	7409	7408.8		877					7408	7408
 50	1	A		6	30	5	5185	5263	5211.9	5185	5187	5185.7							5183	5181
 100	1	A		8	20	5	9421	10136	9755.0	9333	9871	9562.9		2359			8291	2359	8270	8269
