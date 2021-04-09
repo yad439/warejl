@@ -1,11 +1,11 @@
 include("mainAuxiliary.jl");
 include("utility.jl");
 include("auxiliary.jl")
-include("modularTabu.jl");
-include("modularLocal.jl");
-include("modularAnnealing.jl");
+include("tabu.jl");
+include("local.jl");
+include("annealing.jl");
 include("realDataUtility.jl");
-include("modularLinear.jl");
+include("linear.jl");
 include("extendedRandoms.jl");
 include("io.jl");
 include("simlpeHeuristic.jl");
