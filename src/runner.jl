@@ -21,11 +21,11 @@ using Statistics
 using ProgressMeter
 #using Plots
 
-probSize=20
-probNum=4
-machineCount=4
-carCount=40
-bufferSize=8
+probSize=50
+probNum=1
+machineCount=8
+carCount=20
+bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -216,3 +216,37 @@ end
 push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
 CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
+sts=rand(sample1,10^3)
+tabuSettings=TabuSearchSettings(100,100,100)
+annealingSettings=AnnealingSettings(10^3,false,1,1000,it->it*0.999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+foreach(sf,sts)
+foreach(sf2,sts)
+modularTabuSearch5(tabuSettings,sf,deepcopy(sts[1]),false)
+modularAnnealing(annealingSettings,sf,deepcopy(sts[1]),false)
+modularTabuSearch5(tabuSettings,sf2,deepcopy(sts[1]),false)
+modularAnnealing(annealingSettings,sf2,deepcopy(sts[1]),false)
+sts=rand(sample1,10^6)
+tabuSettings=TabuSearchSettings(1000,100,1000)
+annealingSettings=AnnealingSettings(10^6,false,1,1000,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+println("Timing")
+prog=Progress(6)
+time0=(@timed foreach(sf,sts)).time/10^6
+ProgressMeter.next!(prog)
+time1=(@timed foreach(sf2,sts)).time/10^6
+ProgressMeter.next!(prog)
+res2=@timed modularTabuSearch5(tabuSettings,sf,deepcopy(sts[1]),false)
+time2=res2.time/length(res2.value.history)/1000
+ProgressMeter.next!(prog)
+time3=(@timed modularAnnealing(annealingSettings,sf,deepcopy(sts[1]),false)).time/10^6
+ProgressMeter.next!(prog)
+res4=@timed modularTabuSearch5(tabuSettings,sf2,deepcopy(sts[1]),false)
+time4=res4.time/length(res4.value.history)/1000
+ProgressMeter.next!(prog)
+time5=(@timed modularAnnealing(annealingSettings,sf2,deepcopy(sts[1]),false)).time/10^6
+ProgressMeter.next!(prog)
+ProgressMeter.finish!(prog)
+println("$time0 $time2 $time3")
+println("$time1 $time4 $time5")
+df=CSV.File("out/times.tsv")|>DataFrame
+push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
+CSV.write("out/times.tsv",df,delim='\t')
