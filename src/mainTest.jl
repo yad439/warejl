@@ -4,7 +4,6 @@ include("auxiliary.jl")
 include("modularTabu.jl");
 include("modularLocal.jl");
 include("modularAnnealing.jl");
-include("modularGenetic.jl");
 include("realDataUtility.jl");
 include("modularLinear.jl");
 include("extendedRandoms.jl");
