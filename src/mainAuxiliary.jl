@@ -311,12 +311,10 @@ function improveSolution(solution,problem)
 	for task ∈ tasks
 		changed=false
 		task.isAdd || continue
-		bufferFreed=something(findprev(==(problem.bufferSize),bufferUsage,task.endTime-1),-1)+1
-		bufferFreed≥task.endTime && continue
 		carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
 		carFreed≥task.startTime && continue
 
-		newTime=max(bufferFreed-problem.carTravelTime,carFreed)
+		newTime=carFreed
 		for t=newTime+problem.carTravelTime:task.endTime-1
 			bufferUsage[t]+=1
 			bufferItems[t,task.item]=true
@@ -329,6 +327,45 @@ function improveSolution(solution,problem)
 		for t=task.startTime:task.endTime-1
 			carUsage[t]+=1
 		end
+
+		for task2 ∈ tasks
+			task2.isAdd && continue
+			itemFreed=findprev(itemLocks[:,task2.item],task2.startTime-1)+1
+			@assert !isnothing(itemFreed)
+			itemFreed≥task2.startTime && continue
+			carFreed=something(findprev(==(problem.carCount),carUsage,task2.startTime-1),-1)+1
+			carFreed≥task2.startTime && continue
+
+			newTime=max(itemFreed,carFreed)
+			for t=newTime:task2.startTime-1
+				bufferUsage[t]-=1
+				bufferItems[t,task2.item]=false
+			end
+			for t=task2.startTime:task2.endTime-1
+				carUsage[t]-=1
+			end
+			task2.startTime=newTime
+			task2.endTime=newTime+problem.carTravelTime
+			for t=task2.startTime:task2.endTime-1
+				carUsage[t]+=1
+			end
+		end
+
+		overflowBuffer=findnext(≤(problem.bufferSize),bufferUsage,task.endTime)
+		newTime=overflowBuffer-problem.carTravelTime
+		for t=task.endTime:newTime+problem.carTravelTime-1
+			bufferUsage[t]+=1
+			bufferItems[t,task.item]=false
+		end
+		for t=task.startTime:task.endTime-1
+			carUsage[t]-=1
+		end
+		task.startTime=newTime
+		task.endTime=newTime+problem.carTravelTime
+		for t=task.startTime:task.endTime-1
+			carUsage[t]+=1
+		end
+
 		changed=true
 	end
 	for (j,job) ∈ enumerate(jobs)
