@@ -189,8 +189,25 @@ res=runModel(model,60*60)
 ##
 res=minimum(1:2factorial(9)) do _
 	enc=PermutationEncoding(shuffle(1:9))
-	min(computeTimeLazyReturn(enc,prob,Val(false),false),computeTimeLazyReturn(enc,prob,Val(false),true))
+	computeTimeLazyReturn(enc,prob,Val(false),true)
 end
+##
+res=nothing
+score=100
+for _=1:2factorial(9)
+	enc=PermutationEncoding(shuffle(1:9))
+	sc=computeTimeLazyReturn(enc,prob,Val(false),true)
+	if sc<score
+		global score=sc
+		global res=enc
+	end
+end
+##
+sol,=computeTimeLazyReturn(PermutationEncoding(1:9),prob,Val(true))
+sol2=improveSolution(sol,prob)
+##
+sol,=computeTimeLazyReturn(st1,problem,Val(true))
+sol2=improveSolution(sol,problem)
 ##
 toJson("out/problem.json",problem)
 ##
@@ -242,7 +259,8 @@ berr=(df2[:,:mean]-df2[:,:best])
 werr=(df2[:,:worst]-df2[:,:mean])
 err=zip(berr,werr)|>collect
 plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,series_annotations=string.(df2[:,:sameTemperature]),yerror=err)
-plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,series_annotations=string.(df2[:,:sameTemperature]))
+plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,series_annotations=string.(df2[:,:sameTemperature]),label=false)
+plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,label=false)
 ##
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 df2=df[22:28,:]
