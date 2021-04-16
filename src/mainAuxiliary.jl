@@ -284,112 +284,115 @@ function improveSolution(solution,problem)
 		end
 	end
 	@assert all(t->sum(bufferItems[t,:])≤problem.bufferSize,0:fullTime)
-	for task ∈ tasks
+	while changed
 		changed=false
-		task.isAdd && continue
-		itemFreed=findprev(itemLocks[:,task.item],task.startTime-1)+1
-		@assert !isnothing(itemFreed)
-		itemFreed≥task.startTime && continue
-		carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
-		carFreed≥task.startTime && continue
-
-		newTime=max(itemFreed,carFreed)
-		for t=newTime:task.startTime-1
-			bufferUsage[t]-=1
-			bufferItems[t,task.item]=false
-		end
-		for t=task.startTime:task.endTime-1
-			carUsage[t]-=1
-		end
-		task.startTime=newTime
-		task.endTime=newTime+problem.carTravelTime
-		for t=task.startTime:task.endTime-1
-			carUsage[t]+=1
-		end
-		changed=true
-	end
-	for task ∈ tasks
-		changed=false
-		task.isAdd || continue
-		carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
-		carFreed≥task.startTime && continue
-
-		newTime=carFreed
-		for t=newTime+problem.carTravelTime:task.endTime-1
-			bufferUsage[t]+=1
-			bufferItems[t,task.item]=true
-		end
-		for t=task.startTime:task.endTime-1
-			carUsage[t]-=1
-		end
-		task.startTime=newTime
-		task.endTime=newTime+problem.carTravelTime
-		for t=task.startTime:task.endTime-1
-			carUsage[t]+=1
-		end
-
-		for task2 ∈ tasks
-			task2.isAdd && continue
-			itemFreed=findprev(itemLocks[:,task2.item],task2.startTime-1)+1
+		for task ∈ tasks
+			task.isAdd && continue
+			itemFreed=findprev(itemLocks[:,task.item],task.startTime-1)+1
 			@assert !isnothing(itemFreed)
-			itemFreed≥task2.startTime && continue
-			carFreed=something(findprev(==(problem.carCount),carUsage,task2.startTime-1),-1)+1
-			carFreed≥task2.startTime && continue
+			itemFreed≥task.startTime && continue
+			carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
+			carFreed≥task.startTime && continue
 
 			newTime=max(itemFreed,carFreed)
-			for t=newTime:task2.startTime-1
+			for t=newTime:task.startTime-1
 				bufferUsage[t]-=1
-				bufferItems[t,task2.item]=false
+				bufferItems[t,task.item]=false
 			end
-			for t=task2.startTime:task2.endTime-1
+			for t=task.startTime:task.endTime-1
 				carUsage[t]-=1
 			end
-			task2.startTime=newTime
-			task2.endTime=newTime+problem.carTravelTime
-			for t=task2.startTime:task2.endTime-1
+			task.startTime=newTime
+			task.endTime=newTime+problem.carTravelTime
+			for t=task.startTime:task.endTime-1
 				carUsage[t]+=1
 			end
+			changed=true
 		end
+		for task ∈ tasks
+			task.isAdd || continue
+			carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
+			carFreed≥task.startTime && continue
 
-		overflowBuffer=findnext(≤(problem.bufferSize),bufferUsage,task.endTime)
-		newTime=overflowBuffer-problem.carTravelTime
-		for t=task.endTime:newTime+problem.carTravelTime-1
-			bufferUsage[t]+=1
-			bufferItems[t,task.item]=false
-		end
-		for t=task.startTime:task.endTime-1
-			carUsage[t]-=1
-		end
-		task.startTime=newTime
-		task.endTime=newTime+problem.carTravelTime
-		for t=task.startTime:task.endTime-1
-			carUsage[t]+=1
-		end
+			oldTime=task.startTime
+			newTime=carFreed
+			for t=newTime+problem.carTravelTime:task.endTime-1
+				bufferUsage[t]+=1
+				bufferItems[t,task.item]=true
+			end
+			for t=task.startTime:task.endTime-1
+				carUsage[t]-=1
+			end
+			task.startTime=newTime
+			task.endTime=newTime+problem.carTravelTime
+			for t=task.startTime:task.endTime-1
+				carUsage[t]+=1
+			end
 
-		changed=true
-	end
-	for (j,job) ∈ enumerate(jobs)
-		machineFreed=something(findprev(==(problem.machineCount),machineUsage,job.startTime-1),-1)+1
-		machineFreed≥job.startTime && continue
-		itemsAvailable=maximum(
-			findprev(==(false),bufferItems[:,i],job.startTime-1)+1
-		for i∈problem.itemsNeeded[j])
-		itemsAvailable≥job.startTime && continue
+			for task2 ∈ tasks
+				task2.isAdd && continue
+				itemFreed=findprev(itemLocks[:,task2.item],task2.startTime-1)+1
+				@assert !isnothing(itemFreed)
+				itemFreed≥task2.startTime && continue
+				carFreed=something(findprev(==(problem.carCount),carUsage,task2.startTime-1),-1)+1
+				carFreed≥task2.startTime && continue
 
-		newTime=max(machineFreed,itemsAvailable)
-		for t=job.startTime:job.endTime-1
-			machineUsage[t]-=1
+				newTime=max(itemFreed,carFreed)
+				for t=newTime:task2.startTime-1
+					bufferUsage[t]-=1
+					bufferItems[t,task2.item]=false
+				end
+				for t=task2.startTime:task2.endTime-1
+					carUsage[t]-=1
+				end
+				task2.startTime=newTime
+				task2.endTime=newTime+problem.carTravelTime
+				for t=task2.startTime:task2.endTime-1
+					carUsage[t]+=1
+				end
+			end
+
+			overflowBuffer=findnext(≤(problem.bufferSize),bufferUsage,task.endTime)
+			newTime=overflowBuffer-problem.carTravelTime
+			for t=task.endTime:newTime+problem.carTravelTime-1
+				bufferUsage[t]-=1
+				bufferItems[t,task.item]=false
+			end
+			for t=task.startTime:task.endTime-1
+				carUsage[t]-=1
+			end
+			task.startTime=newTime
+			task.endTime=newTime+problem.carTravelTime
+			for t=task.startTime:task.endTime-1
+				carUsage[t]+=1
+			end
+
+			task.startTime≠oldTime && (changed=true)
 		end
-		for t=job.startTime:job.endTime-1,i∈problem.itemsNeeded[j]
-			itemLocks[t,i]=reduce((a,b)->a||b,(jb.startTime≤t<job.endTime for jb ∈ jobs if jb≢job))
-		end
-		job.startTime=newTime
-		job.endTime=newTime+problem.jobLengths[j]
-		for t=job.startTime:job.endTime-1
-			machineUsage[t]+=1
-		end
-		for t=job.startTime:job.endTime-1,i∈problem.itemsNeeded[j]
-			itemLocks[t,i]=true
+		for (j,job) ∈ enumerate(jobs)
+			machineFreed=something(findprev(==(problem.machineCount),machineUsage,job.startTime-1),-1)+1
+			machineFreed≥job.startTime && continue
+			itemsAvailable=maximum(
+				findprev(==(false),bufferItems[:,i],job.startTime-1)+1
+			for i∈problem.itemsNeeded[j])
+			itemsAvailable≥job.startTime && continue
+
+			newTime=max(machineFreed,itemsAvailable)
+			for t=job.startTime:job.endTime-1
+				machineUsage[t]-=1
+			end
+			for t=job.startTime:job.endTime-1,i∈problem.itemsNeeded[j]
+				itemLocks[t,i]=reduce((a,b)->a||b,(jb.startTime≤t<job.endTime for jb ∈ jobs if jb≢job))
+			end
+			job.startTime=newTime
+			job.endTime=newTime+problem.jobLengths[j]
+			for t=job.startTime:job.endTime-1
+				machineUsage[t]+=1
+			end
+			for t=job.startTime:job.endTime-1,i∈problem.itemsNeeded[j]
+				itemLocks[t,i]=true
+			end
+			changed=true
 		end
 	end
 
