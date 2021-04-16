@@ -1,4 +1,5 @@
 using DataStructures
+using OffsetArrays
 
 include("auxiliary.jl")
 include("structures.jl")
@@ -228,4 +229,157 @@ function computeTimeBufferOnly(timetable,problem)
 		end
 	end
 	maximum(sums)
+end
+
+function improveSolution(solution,problem)
+	jobs=[Job(
+			solution.times[i],
+			solution.times[i]+problem.jobLengths[i]
+		) for i=1:problem.jobCount]
+	tasks=[CarTask(t.time,
+					t.time+problem.carTravelTime,
+					t.item,t.isAdd
+		) for t ∈ solution.carTasks]
+	fullTime=max(
+		maximum(i->i.endTime,jobs),
+		maximum(t->t.endTime,tasks)
+	)
+	changed=true
+	machineUsage=OffsetVector(zeros(Int,fullTime+1),0:fullTime)
+	for job ∈ jobs
+		machineUsage[job.startTime:job.endTime-1].+=1
+	end
+	@assert all(≤(problem.machineCount),machineUsage)
+	carUsage=OffsetVector(zeros(Int,fullTime+1),0:fullTime)
+	for task ∈ tasks
+		for t=task.startTime:task.endTime-1
+			carUsage[t]+=1
+		end
+	end
+	@assert all(≤(problem.carCount),carUsage)
+	itemLocks=OffsetMatrix(BitMatrix(falses(fullTime+1,problem.itemCount)),0:fullTime,:)
+	for j=1:problem.jobCount
+		for i ∈ problem.itemsNeeded[j]
+			for t=jobs[j].startTime:jobs[j].endTime-1
+				itemLocks[t,i]=true
+			end
+		end
+	end
+	bufferUsage=OffsetVector(zeros(Int,fullTime+1),0:fullTime)
+	for task ∈ tasks
+		if task.isAdd
+			bufferUsage[task.endTime:end].+=1
+		else
+			bufferUsage[task.startTime:end].-=1
+		end
+	end
+	@assert all(≥(0),bufferUsage)
+	@assert all(≤(problem.bufferSize),bufferUsage)
+	bufferItems=OffsetMatrix(BitMatrix(falses(fullTime+1,problem.itemCount)),0:fullTime,:)
+	for task ∈ tasks
+		if task.isAdd
+			bufferItems[task.endTime:end,task.item].=true
+		else
+			bufferItems[task.startTime:end,task.item].=false
+		end
+	end
+	@assert all(t->sum(bufferItems[t,:])≤problem.bufferSize,0:fullTime)
+	for task ∈ tasks
+		changed=false
+		task.isAdd && continue
+		itemFreed=findprev(itemLocks[:,task.item],task.startTime-1)+1
+		@assert !isnothing(itemFreed)
+		itemFreed≥task.startTime && continue
+		carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
+		carFreed≥task.startTime && continue
+
+		newTime=max(itemFreed,carFreed)
+		for t=newTime:task.startTime-1
+			bufferUsage[t]-=1
+			bufferItems[t,task.item]=false
+		end
+		for t=task.startTime:task.endTime-1
+			carUsage[t]-=1
+		end
+		task.startTime=newTime
+		task.endTime=newTime+problem.carTravelTime
+		for t=task.startTime:task.endTime-1
+			carUsage[t]+=1
+		end
+		changed=true
+	end
+	for task ∈ tasks
+		changed=false
+		task.isAdd || continue
+		bufferFreed=something(findprev(==(problem.bufferSize),bufferUsage,task.endTime-1),-1)+1
+		bufferFreed≥task.endTime && continue
+		carFreed=something(findprev(==(problem.carCount),carUsage,task.startTime-1),-1)+1
+		carFreed≥task.startTime && continue
+
+		newTime=max(bufferFreed-problem.carTravelTime,carFreed)
+		for t=newTime+problem.carTravelTime:task.endTime-1
+			bufferUsage[t]+=1
+			bufferItems[t,task.item]=true
+		end
+		for t=task.startTime:task.endTime-1
+			carUsage[t]-=1
+		end
+		task.startTime=newTime
+		task.endTime=newTime+problem.carTravelTime
+		for t=task.startTime:task.endTime-1
+			carUsage[t]+=1
+		end
+		changed=true
+	end
+	for (j,job) ∈ enumerate(jobs)
+		machineFreed=something(findprev(==(problem.machineCount),machineUsage,job.startTime-1),-1)+1
+		machineFreed≥job.startTime && continue
+		itemsAvailable=maximum(
+			findprev(==(false),bufferItems[:,i],job.startTime-1)+1
+		for i∈problem.itemsNeeded[j])
+		itemsAvailable≥job.startTime && continue
+
+		newTime=max(machineFreed,itemsAvailable)
+		for t=job.startTime:job.endTime-1
+			machineUsage[t]-=1
+		end
+		for t=job.startTime:job.endTime-1,i∈problem.itemsNeeded[j]
+			itemLocks[t,i]=reduce((a,b)->a||b,(jb.startTime≤t<job.endTime for jb ∈ jobs if jb≢job))
+		end
+		job.startTime=newTime
+		job.endTime=newTime+problem.jobLengths[j]
+		for t=job.startTime:job.endTime-1
+			machineUsage[t]+=1
+		end
+		for t=job.startTime:job.endTime-1,i∈problem.itemsNeeded[j]
+			itemLocks[t,i]=true
+		end
+	end
+
+	newPerm=sortperm(map(j->j.startTime,jobs))
+	sums=zeros(Int,problem.machineCount)
+	newAssignment=similar(solution.assignment)
+	for j ∈ newPerm
+		machine=findfirst(≤(jobs[j].startTime),sums)
+		@assert machine≢nothing
+		newAssignment[j]=machine
+		sums[machine]=jobs[j].endTime
+	end
+	Schedule(
+		newAssignment,
+		map(j->j.startTime,jobs),
+		map(t->(time=t.startTime,item=t.item,isAdd=t.isAdd),tasks)
+	)
+end
+
+mutable struct Job
+	startTime::Int
+	endTime::Int
+end
+
+mutable struct CarTask
+	startTime::Int
+	endTime::Int
+	item::Int
+	isAdd::Bool
 end
