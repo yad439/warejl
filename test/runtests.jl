@@ -15,13 +15,26 @@ Random.seed!(1234)
 			itemsNeeded=map(BitSet,itemsNeeded)
 			tt=20
 			k=length.(itemsNeeded)
-			bs=maximum(length.(itemsNeeded))+rand(0:4)
+			bs=maximum(length,itemsNeeded)+rand(0:4)
 			problem=Problem(n,m,c,tt,itemCount,bs,p,itemsNeeded)
+			#@assert isValid(problem)
 			s=rand(samp)
 			sol=@inferred computeTimeLazyReturn(s,problem,Val(true))
+			@test isValid(sol.schedule,problem)
 			@test sol.time==@inferred computeTimeLazyReturn(s,problem,Val(false))
 		end
 	end
+end
+
+@testset "Solution improving" begin
+	prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,4,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
+	@assert isValid(prob)
+	sol,=computeTimeLazyReturn(PermutationEncoding(1:9),prob,Val(true))
+	sol2=improveSolution(sol,prob)
+
+	@test isValid(sol,prob)
+	@test isValid(sol2,prob)
+	@test maximum(((s,p),)->s+p,zip(sol2.times,prob.jobLengths))==17
 end
 
 @testset "Distance tests" begin
