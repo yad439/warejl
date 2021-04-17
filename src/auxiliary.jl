@@ -119,3 +119,36 @@ function isValid(solution::Schedule,problem)
 	end
 	true
 end
+
+function validate(solution::Schedule,problem)
+	for task ∈ solution.carTasks
+		@assert count(t->task.time-problem.carTravelTime<t.time≤task.time,solution.carTasks) ≤ problem.carCount
+	end
+	bufferEvents = map(solution.carTasks) do task
+		task.isAdd ? (time=task.time+problem.carTravelTime,task.item,task.isAdd) : task
+	end
+	sort!(bufferEvents;by=event->event.time)
+	bufferStates = [(0,Set{Int}())]
+	for event ∈ bufferEvents
+		@assert event.time ≥ bufferStates[end][1]
+		event.time > bufferStates[end][1] && push!(bufferStates,(event.time,copy(bufferStates[end][2])))
+		items=bufferStates[end][2]
+		if event.isAdd
+			@assert event.item ∉ items
+			push!(items,event.item)
+		else
+			@assert event.item ∈ items
+			delete!(items,event.item)
+		end
+	end
+	@assert all(state->length(state[2])≤problem.bufferSize,bufferStates)
+	order = sortperm(solution.times)
+	sums = zeros(Int,problem.machineCount)
+	for job ∈ order
+		@assert sums[solution.assignment[job]] ≤ solution.times[job]
+		stateInd = searchsortedlast(bufferStates,solution.times[job]; by = first)
+		@assert problem.itemsNeeded[job] ⊆ bufferStates[stateInd][2]
+		sums[solution.assignment[job]] = solution.times[job] + problem.jobLengths[job]
+	end
+	nothing
+end
