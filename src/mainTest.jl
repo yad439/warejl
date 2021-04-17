@@ -268,7 +268,9 @@ df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 df2=df[22:28,:]
 df2=df[29:36,:]
 df2=df[46:50,:]
+theme(:dark)
 berr=(df2[:,:mean]-df2[:,:best])
 werr=(df2[:,:worst]-df2[:,:mean])
 err=zip(berr,werr)|>collect
 plot(df2[:,:tabuSize],df2[:,:mean],xscale=:log10,xlabel="l",ylabel="Cmax",yerror=err)
+plot(df2[:,:tabuSize],df2[:,:mean],xscale=:log10,xlabel="l",ylabel="Cmax",series_annotations=string.(df2[:,:tabuSize]))
