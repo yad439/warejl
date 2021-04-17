@@ -205,9 +205,11 @@ end
 ##
 sol,=computeTimeLazyReturn(PermutationEncoding(1:9),prob,Val(true))
 sol2=improveSolution(sol,prob)
+validate(sol2,prob)
 ##
 sol,=computeTimeLazyReturn(st1,problem,Val(true))
 sol2=improveSolution(sol,problem)
+validate(sol2,problem)
 ##
 toJson("out/problem.json",problem)
 ##
