@@ -19,7 +19,7 @@ using Statistics
 using ProgressMeter
 #using Plots
 
-probSize=50
+probSize=100
 probNum=1
 machineCount=8
 carCount=20
@@ -245,6 +245,6 @@ ProgressMeter.next!(prog)
 ProgressMeter.finish!(prog)
 println("$time0 $time2 $time3")
 println("$time1 $time4 $time5")
-df=CSV.File("out/times.tsv")|>DataFrame
+df=CSV.File("exp/times.tsv")|>DataFrame
 push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
-CSV.write("out/times.tsv",df,delim='\t')
+CSV.write("exp/times.tsv",df,delim='\t')
