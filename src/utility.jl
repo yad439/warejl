@@ -2,6 +2,7 @@ using Random
 import Base.iterate,Base.eltype
 import Random.rand
 using OffsetArrays
+using ResumableFunctions
 
 include("common.jl")
 
@@ -126,6 +127,25 @@ end
 hammingDistance(vec1,vec2)=count(it->it[1]≠it[2],Iterators.zip(vec1,vec2))
 
 jobDistance(itemsNeeded)=map(((i,j),)->length(symdiff(i,j)),Iterators.product(itemsNeeded,itemsNeeded))
+
+@resumable function allPermutations(n)
+	a=Vector{Int}(1:n)
+	p=Vector{Int}(0:n)
+	@yield copy(a)
+	i=1
+	j=0
+	while i<n
+		p[i+1]-=1
+		j=i%2 * p[i+1]
+		a[i+1],a[j+1]=a[j+1],a[i+1]
+		@yield copy(a)
+		i=1
+		while p[i+1]==0
+			p[i+1]=i
+			i+=1
+		end
+	end
+end
 
 function tmap(f,x)
 	type=Base.return_types(f,(eltype(x),))

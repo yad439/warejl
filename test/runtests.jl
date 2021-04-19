@@ -56,3 +56,11 @@ end
 		@test distance(ord,PermutationEncoding([1,3,4,6,7,8,5,2,9,10]))≈2
 	end
 end
+
+@testset "Permutation generation tests" begin
+	@testset "Size: $n" for n=1:5
+		perm=collect(allPermutations(n))
+		@test length(perm)==factorial(n)
+		@test allunique(perm)
+	end
+end

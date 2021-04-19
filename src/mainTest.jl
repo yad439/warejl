@@ -187,8 +187,8 @@ removeItems=model.inner[:removeItems]
 @constraint(model.inner,[τ=1:12],sum(addItems[τ,:])≥sum(removeItems[τ,:]))
 res=runModel(model,60*60)
 ##
-res=minimum(1:2factorial(9)) do _
-	enc=PermutationEncoding(shuffle(1:9))
+res=minimum(allPermutations(prob.jobCount)) do perm
+	enc=PermutationEncoding(perm)
 	computeTimeLazyReturn(enc,prob,Val(false),true)
 end
 ##
