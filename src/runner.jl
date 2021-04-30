@@ -19,9 +19,9 @@ using Statistics
 using ProgressMeter
 #using Plots
 
-probSize=100
-probNum=1
-machineCount=8
+probSize=20
+probNum=4
+machineCount=6
 carCount=20
 bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
@@ -47,23 +47,30 @@ println(M,' ',T)
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
 exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
 =#
-# df=CSV.File("exp/tabuRes.tsv") |> DataFrame
-# starts=rand(sample1,10)
-# sizes=[50,100,500,1000,2000]
-#prog=Progress(10*length(sizes))
-#res=map(sizes) do tabuSize
-#	println("Size: ",tabuSize)
-#	tabuSettings=TabuSearchSettings(2000,tabuSize,1000)
-#	ress=ThreadsX.map(1:10) do i
-#		println("Start $i")
-#		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1).score
-#		#ProgressMeter.next!(prog)
-#		println("End $i")
-#		sc
-#	end
-#	push!(df,(100,1,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,5,tabuSettings.searchTries,tabuSettings.tabuSize,tabuSettings.neighbourhoodSize,minimum(ress),maximum(ress),mean(ress)))
-#	tabuSize,minimum(ress),maximum(ress),mean(ress)
-#end
+#=
+df=CSV.File("exp/tabuRes.tsv") |> DataFrame
+starts=rand(sample1,10)
+sizes=[2000,5000,10_000,20_000,40_000]
+#sizes=[2000,5000,10_000]
+#sizes=[20_000,40_000]
+prog=Progress(10*length(sizes))
+res=map(sizes) do tabuSize
+	@show tabuSize
+	tabuSettings=TabuSearchSettings(2000,tabuSize,1000)
+	ress2=ThreadsX.map(1:10) do i
+		println("Start $i")
+		sc=modularTabuSearch5(tabuSettings,sf,deepcopy(starts[i]),i==1)
+		#ProgressMeter.next!(prog)
+		println("End $i")
+		sc.score,length(sc.history)
+	end
+	ress=map(first,ress2)
+	iters=map(secondElement,ress2)
+	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,tabuSettings.neighbourhoodSize,0.5,"none",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
+	tabuSize,minimum(ress),maximum(ress),mean(ress)
+end
+CSV.write("exp/tabuRes.tsv",df,delim='\t')
+=#
 # tabuSettings=TabuSearchSettings(2000,500,1000)
 # ress=ThreadsX.map(1:10) do i
 # 	println("Start $i")
@@ -129,12 +136,12 @@ CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
-# starts=rand(sample1,10)
-st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
-starts=fill(st4,10)
-tabuSize=100
+starts=rand(sample1,10)
+#st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
+#starts=fill(st4,10)
+tabuSize=300
 baseIter=1500
-neighSize=1500
+neighSize=round(Int,1500*2.077168272078332/1.3165544511496166)
 tabuSettings=TabuSearchSettings(baseIter,tabuSize,neighSize)
 #rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
 #tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
@@ -147,7 +154,7 @@ ress2=progress_map(mapfun=tmap,1:10) do i
 end
 ress=map(first,ress2)
 iters=map(secondElement,ress2)
-push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
+push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,5,tabuSettings.searchTries,tabuSettings.tabuSize,neighSize,0.5,"none",minimum(ress),maximum(ress),mean(ress),minimum(iters),maximum(iters),mean(iters)))
 CSV.write("exp/tabuRes.tsv",df,delim='\t')
 =#
 #=
@@ -190,30 +197,32 @@ CSV.write("exp/tabuRes.tsv",df,delim='\t')
 =#
 #=
 df=CSV.File("exp/annRes.tsv") |> DataFrame
-#starts=rand(sample1,10)
-st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
-starts=fill(st4,10)
+starts=rand(sample1,10)
+#st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
+#starts=fill(st4,10)
 #power=1-10^-4
 # prog=Progress(10*length(pows))
-dif=maxDif(st4,sf)
-temp=diff
+dif=maxDif(starts[1],sf2)
+temp=dif
 dyn=false
 same=1
-steps=10^7
+#steps=10^7
+steps=round(Int,10^6*7.2321310304/3.4153597199)
 #steps=round(Int,-log(power,-2dif*log(10^-3)))
 #steps=round(Int,stepsBase/)
 power=(-temp*log(10^-3))^(-1/(steps/same))
 annealingSettings=AnnealingSettings(steps,dyn,same,temp,it->it*power,(old,new,threshold)->rand()<exp((old-new)/threshold))
 ress=tmap(1:10) do i
 	println("Start $i")
-	sc=modularAnnealing(annealingSettings,sf,deepcopy(starts[i]),false).score
+	sc=modularAnnealing(annealingSettings,sf2,deepcopy(starts[i]),false).score
 	#ProgressMeter.next!(prog)
 	println("End $i")
 	sc
 end
-push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
+push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"none",minimum(ress),maximum(ress),mean(ress)))
 CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
+#=
 sts=rand(sample1,10^3)
 tabuSettings=TabuSearchSettings(100,100,100)
 annealingSettings=AnnealingSettings(10^3,false,1,1000,it->it*0.999,(old,new,threshold)->rand()<exp((old-new)/threshold))
@@ -248,3 +257,14 @@ println("$time1 $time4 $time5")
 df=CSV.File("exp/times.tsv")|>DataFrame
 push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
 CSV.write("exp/times.tsv",df,delim='\t')
+=#
+res=progress_map(1:10^4,mapfun=ThreadsX.map) do _
+	st=rand(sample1)
+	sol,=computeTimeLazyReturn(st,problem,Val(true))
+	sol2=improveSolution(sol,problem)
+	#validate(sol2,problem)
+	l1=maximum(((t,p),)->t+p,zip(sol.times,problem.jobLengths))
+	l2=maximum(((t,p),)->t+p,zip(sol2.times,problem.jobLengths))
+	imp=sol.times-sol2.times
+	l2/l1,count(≠(0),imp),sum(imp),mean(imp),mean(filter(≠(0),imp))
+end

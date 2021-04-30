@@ -32,9 +32,9 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-probSize=100
-probNum=1
-machineCount=8
+probSize=20
+probNum=4
+machineCount=6
 carCount=20
 bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
