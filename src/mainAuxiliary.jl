@@ -257,7 +257,7 @@ function improveSolution(solution,problem)
 		end
 	end
 	@assert all(≤(problem.carCount),carUsage)
-	itemLocks=OffsetMatrix(BitMatrix(falses(fullTime+1,problem.itemCount)),0:fullTime,:)
+	itemLocks=OffsetMatrix(falses(fullTime+1,problem.itemCount),0:fullTime,:)
 	for j=1:problem.jobCount
 		for i ∈ problem.itemsNeeded[j]
 			for t=jobs[j].startTime:jobs[j].endTime-1
@@ -275,7 +275,7 @@ function improveSolution(solution,problem)
 	end
 	@assert all(≥(0),bufferUsage)
 	@assert all(≤(problem.bufferSize),bufferUsage)
-	bufferItems=OffsetMatrix(BitMatrix(falses(fullTime+1,problem.itemCount)),0:fullTime,:)
+	bufferItems=OffsetMatrix(falses(fullTime+1,problem.itemCount),0:fullTime,:)
 	for task ∈ tasks
 		if task.isAdd
 			bufferItems[task.endTime:end,task.item].=true
