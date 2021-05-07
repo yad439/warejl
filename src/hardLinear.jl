@@ -612,9 +612,6 @@ function toCarsModel4Q(model,solution,problem)
 			set_start_value(model[:removeItems][t,i],i ∈ eventVals[t][2][2])
 		end
 	end
-	#set_start_value.(model[:eventTime][length(eventVals)+1:T],range(eventVals[end][1]+1,length=(T-length(eventVals))))
-	#set_start_value.(model[:addItems][length(eventVals)+1:T,:],false)
-	#set_start_value.(model[:removeItems][length(eventVals)+1:T,:],false)
 
 	bs=map(((t,i),)->eventVals[t][1]≤solution.times[i],Tuple.(CartesianIndices(model[:beforeStart])))
 	be=map(((t,i),)->eventVals[t][1]<solution.times[i]+problem.jobLengths[i],Tuple.(CartesianIndices(model[:beforeEnd])))
@@ -629,6 +626,61 @@ function toCarsModel4Q(model,solution,problem)
 	foreach(((t0,t),)->set_start_value(model[:in1][t0,t],in1[t0,t]),Tuple.(eachindex(model[:in1])))
 	foreach(((t0,t),)->set_start_value(model[:in2][t0,t],in2[t0,t]),Tuple.(eachindex(model[:in2])))
 	foreach(((t0,t),)->set_start_value(model[:in12][t0,t],in12[t0,t]),Tuple.(eachindex(model[:in12])))
+
+	nothing
+end
+function toCarsModel4(model,solution,problem)
+	n=problem.jobCount
+	Q=problem.itemCount
+
+	events=Dict{Int,Tuple{Set{Int},Set{Int}}}()
+	for task ∈ solution.carTasks
+		if task.isAdd
+			event=get!(events,task.time+problem.carTravelTime,(Set{Int}(),Set{Int}()))
+			push!(event[1],task.item)
+		else
+			event=get!(events,task.time,(Set{Int}(),Set{Int}()))
+			push!(event[2],task.item)
+		end
+	end
+
+	T=length(model[:eventTime])
+
+	eventVals=sort(collect(events),by=first)
+	@assert T≥length(eventVals) (T,length(eventVals))
+	tm=eventVals[end][1]+1
+	while length(eventVals)<T
+		push!(eventVals,tm=>(Set{Int}(),Set{Int}()))
+		tm+=1
+	end
+	for t=1:T
+		set_start_value(model[:eventTime][t],eventVals[t][1])
+		for i=1:problem.itemCount
+			set_start_value(model[:addItems][t,i],i ∈ eventVals[t][2][1])
+			set_start_value(model[:removeItems][t,i],i ∈ eventVals[t][2][2])
+		end
+	end
+
+	bs=map(((t,i),)->eventVals[t][1]≤solution.times[i],Tuple.(CartesianIndices(model[:beforeStart])))
+	be=map(((t,i),)->eventVals[t][1]<solution.times[i]+problem.jobLengths[i],Tuple.(CartesianIndices(model[:beforeEnd])))
+	set_start_value.(model[:beforeStart],bs)
+	set_start_value.(model[:beforeEnd],be)
+
+	foreach(((t,i,q),)->set_start_value(model[:beforeStartItem][t,i,q],bs[t,i] && q ∈ eventVals[t][2][1]),Tuple.(eachindex(model[:beforeStartItem])))
+	foreach(((t,i,q),)->set_start_value(model[:beforeEndItem][t,i,q],be[t,i] && q ∈ eventVals[t][2][2]),Tuple.(eachindex(model[:beforeEndItem])))
+
+
+	in1=falses(T,T)
+	in2=falses(T,T)
+	foreach(((t0,t),)->in1[t0,t]=eventVals[t][1]+problem.carTravelTime>eventVals[t0][1],Tuple.(eachindex(model[:in1])))
+	foreach(((t0,t),)->in2[t0,t]=eventVals[t][1]+2problem.carTravelTime>eventVals[t0][1],Tuple.(eachindex(model[:in2])))
+	foreach(((t0,t),)->set_start_value(model[:in1][t0,t],in1[t0,t]),Tuple.(eachindex(model[:in1])))
+	foreach(((t0,t),)->set_start_value(model[:in2][t0,t],in2[t0,t]),Tuple.(eachindex(model[:in2])))
+
+	foreach(((t0,t),)->set_start_value(model[:addItemsIn1][t0,t],in1[t0,t]*length(eventVals[t][2][1])),Tuple.(eachindex(model[:addItemsIn1])))
+	foreach(((t0,t),)->set_start_value(model[:addItemsIn1R][t0,t],in1[t0,t]*length(eventVals[t0][2][1])),Tuple.(eachindex(model[:addItemsIn1R])))
+	foreach(((t0,t),)->set_start_value(model[:removeItemsIn2][t0,t],(!in1[t0,t])*in2[t0,t]*length(eventVals[t][2][2])),Tuple.(eachindex(model[:removeItemsIn2])))
+	foreach(((t0,t),)->set_start_value(model[:removeItemsIn1][t0,t],in1[t0,t]*length(eventVals[t][2][2])),Tuple.(eachindex(model[:removeItemsIn1])))
 
 	nothing
 end
