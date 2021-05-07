@@ -82,7 +82,7 @@ function setStartValues(model,schedule,problem)
 	end
 	if model.carType≡SEPARATE_EVENTS
 		toCarsModel2(model.inner,schedule,problem)
-	elseif model.carModelType≡SHARED_EVENTS_QUAD
+	elseif model.carType≡SHARED_EVENTS_QUAD
 		toCarsModel4Q(model.inner,schedule,problem)
 	else
 		@assert false
