@@ -19,11 +19,11 @@ using Statistics
 using ProgressMeter
 #using Plots
 
-probSize=20
-probNum=4
-machineCount=6
+probSize=100
+probNum=1
+machineCount=8
 carCount=20
-bufferSize=6
+bufferSize=5
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -102,15 +102,15 @@ push!(df,(probSize,probNum,"A",missing,machineCount,carCount,bufferSize,minimum(
 CSV.write("exp/sortOrNotToSort.tsv",df,delim='\t')
 savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCount)$(carCount)$(bufferSize).svg")
 =#
-#=
+
 df=CSV.File("exp/annRes.tsv") |> DataFrame
-#starts=rand(sample1,10)
-st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
-starts=fill(st4,10)
+starts=rand(sample1,10)
+#st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
+#starts=fill(st4,10)
 #power=1-10^-4
 # prog=Progress(10*length(pows))
-dif=maxDif(st4,sf)
-temps=[5,10,20,50,100,500]
+dif=maxDif(starts[1],sf)
+temps=[5,10,20,50,100,500,dif]
 dyn=false
 #sames=[10_000,20_000,40_000,80_000,160_000]
 same=1
@@ -129,11 +129,11 @@ res=map(temps) do temp
 		println("End $i")
 		sc
 	end
-	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"bestStart",minimum(ress),maximum(ress),mean(ress)))
+	push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,true,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"none",minimum(ress),maximum(ress),mean(ress)))
 	temp,minimum(ress),maximum(ress),mean(ress)
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
-=#
+
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
@@ -258,6 +258,7 @@ df=CSV.File("exp/times.tsv")|>DataFrame
 push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
 CSV.write("exp/times.tsv",df,delim='\t')
 =#
+#=
 res=progress_map(1:10^4,mapfun=ThreadsX.map) do _
 	st=rand(sample1)
 	sol,=computeTimeLazyReturn(st,problem,Val(true))
@@ -268,3 +269,4 @@ res=progress_map(1:10^4,mapfun=ThreadsX.map) do _
 	imp=sol.times-sol2.times
 	l2/l1,count(≠(0),imp),sum(imp),mean(imp),mean(filter(≠(0),imp))
 end
+=#
