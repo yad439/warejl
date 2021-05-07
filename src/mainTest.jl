@@ -160,7 +160,7 @@ sol=computeTimeLazyReturn(st1,problem,Val(true));
 ##
 sol=computeTimeLazyReturn(annealingRes.solution,problem,Val(true));
 ##
-exactModel=buildModel(problem,ORDER_FIRST,SEPARATE_EVENTS)
+exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS_QUAD)
 setStartValues(exactModel,sol.schedule,problem)
 exactRes=runModel(exactModel,10)
 ##
