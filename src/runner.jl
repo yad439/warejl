@@ -5,7 +5,7 @@ include("tabu.jl");
 #include("local.jl");
 include("annealing.jl");
 include("realDataUtility.jl");
-#include("linear.jl");
+include("linear.jl");
 include("extendedRandoms.jl");
 include("simlpeHeuristic.jl");
 include("utility.jl");
@@ -19,11 +19,11 @@ using Statistics
 using ProgressMeter
 #using Plots
 
-probSize=100
-probNum=1
-machineCount=8
-carCount=20
-bufferSize=5
+probSize=20
+probNum=4
+machineCount=6
+carCount=30
+bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -36,7 +36,7 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 println(problem.jobCount)
-#=
+
 st1=rand(sample1)
 sol=computeTimeLazyReturn(st1,problem,Val(true))
 T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
@@ -45,8 +45,9 @@ M=sol.time
 println(M,' ',T)
 
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
-exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
-=#
+setStartValues(exactModel,sol.schedule,problem)
+exactRes=runModel(exactModel,5*60) .+ problem.carTravelTime
+
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
@@ -102,7 +103,7 @@ push!(df,(probSize,probNum,"A",missing,machineCount,carCount,bufferSize,minimum(
 CSV.write("exp/sortOrNotToSort.tsv",df,delim='\t')
 savefig(histogram(rat,label=false),"out/hist_$(probSize)_$(probNum)_$(machineCount)$(carCount)$(bufferSize).svg")
 =#
-
+#=
 df=CSV.File("exp/annRes.tsv") |> DataFrame
 starts=rand(sample1,10)
 #st4=PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),argmin([sf(PermutationEncoding(likehoodBased(jobDistance(getfield(problem,:itemsNeeded)),i))) for i=1:getfield(problem,:jobCount)])));
@@ -133,7 +134,7 @@ res=map(temps) do temp
 	temp,minimum(ress),maximum(ress),mean(ress)
 end
 CSV.write("exp/annRes.tsv",df,delim='\t')
-
+=#
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
