@@ -13,6 +13,7 @@ include("plots.jl");
 
 using Random
 using Printf
+using DelimitedFiles
 
 using DataFrames
 using CSV
@@ -296,6 +297,10 @@ ress=progress_map(mapfun=ThreadsX.map,1:1_000_000) do _
 	sf(st),sf2(st)
 end
 rat=secondElement.(ress) ./ first.(ress)
+##
+ress=readdlm("out/random_500_1.tsv")
+rat=ress[:,2] ./ ress[:,1]
+##
 plt=histogram(rat,label=false,normalize=:pdf,xlabel="f'(s)/f(s)")
 savefig(plt,"out/hist_alt_218.svg")
 ##

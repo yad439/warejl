@@ -17,13 +17,14 @@ using DataFrames
 using CSV
 using Statistics
 using ProgressMeter
+using DelimitedFiles
 #using Plots
 
-probSize=50
+probSize=500
 probNum=1
-machineCount=6
-carCount=30
-bufferSize=5
+machineCount=8
+carCount=20
+bufferSize=9
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -36,18 +37,29 @@ end
 sample1=EncodingSample{PermutationEncoding}(problem.jobCount,problem.machineCount)
 sample2=EncodingSample{TwoVectorEncoding}(problem.jobCount,problem.machineCount);
 println(problem.jobCount)
-
+#=
 st1=rand(sample1)
-sol=computeTimeLazyReturn(st1,problem,Val(true))
-T=sol.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+sol1=computeTimeLazyReturn(st1,problem,Val(true))
+annealingSettings=AnnealingSettings(10^6,true,1,500,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+sol2=computeTimeLazyReturn(modularAnnealing(annealingSettings,sf,deepcopy(st1)).solution,problem,Val(true))
+T1=sol1.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+T2=sol2.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+println(T1,' ',T2)
+T=max(T1,T2)
 #T=max(T,problem.jobCount)
-M=sol.time
+M=sol2.time
 println(M,' ',T)
 
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
-setStartValues(exactModel,sol.schedule,problem)
+setStartValues(exactModel,sol2.schedule,problem)
+set_optimizer_attribute(exactModel.inner,"MIPFocus",3)
 exactRes=runModel(exactModel,60*60)
-
+=#
+ress=progress_map(mapfun=ThreadsX.map,1:1_000_000) do _
+	st=rand(sample1)
+	sf(st),sf2(st)
+end
+writedlm("out/random_500_1.tsv",ress)
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
