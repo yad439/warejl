@@ -20,11 +20,11 @@ using ProgressMeter
 using DelimitedFiles
 #using Plots
 
-probSize=500
-probNum=1
-machineCount=8
-carCount=20
-bufferSize=9
+probSize=200
+probNum=6
+machineCount=4
+carCount=30
+bufferSize=6
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -40,26 +40,29 @@ println(problem.jobCount)
 #=
 st1=rand(sample1)
 sol1=computeTimeLazyReturn(st1,problem,Val(true))
-annealingSettings=AnnealingSettings(10^6,true,1,500,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
-sol2=computeTimeLazyReturn(modularAnnealing(annealingSettings,sf,deepcopy(st1)).solution,problem,Val(true))
+#annealingSettings=AnnealingSettings(10^6,true,1,500,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+#sol2=computeTimeLazyReturn(modularAnnealing(annealingSettings,sf,deepcopy(st1)).solution,problem,Val(true))
 T1=sol1.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
-T2=sol2.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
-println(T1,' ',T2)
-T=max(T1,T2)
+#T2=sol2.schedule.carTasks |> ffilter(e->e.isAdd) |> fmap(e->e.time) |> unique |> length
+#println(T1,' ',T2)
+#T=max(T1,T2)
 #T=max(T,problem.jobCount)
-M=sol2.time
+T=T1
+M=sol1.time
 println(M,' ',T)
 
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,SHARED_EVENTS,T,M)
-setStartValues(exactModel,sol2.schedule,problem)
-set_optimizer_attribute(exactModel.inner,"MIPFocus",3)
+setStartValues(exactModel,sol1.schedule,problem)
+#set_optimizer_attribute(exactModel.inner,"MIPFocus",3)
 exactRes=runModel(exactModel,60*60)
 =#
+#=
 ress=progress_map(mapfun=ThreadsX.map,1:1_000_000) do _
 	st=rand(sample1)
 	sf(st),sf2(st)
 end
 writedlm("out/random_500_1.tsv",ress)
+=#
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
@@ -235,7 +238,7 @@ end
 push!(df,(probSize,probNum,"A",missing,problem.jobCount,machineCount,carCount,bufferSize,false,annealingSettings.searchTries,dyn,annealingSettings.sameTemperatureTries,dif,annealingSettings.startTheshold,power,0.5,"none",minimum(ress),maximum(ress),mean(ress)))
 CSV.write("exp/annRes.tsv",df,delim='\t')
 =#
-#=
+
 sts=rand(sample1,10^3)
 tabuSettings=TabuSearchSettings(100,100,100)
 annealingSettings=AnnealingSettings(10^3,false,1,1000,it->it*0.999,(old,new,threshold)->rand()<exp((old-new)/threshold))
@@ -270,7 +273,7 @@ println("$time1 $time4 $time5")
 df=CSV.File("exp/times.tsv")|>DataFrame
 push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
 CSV.write("exp/times.tsv",df,delim='\t')
-=#
+
 #=
 res=progress_map(1:10^4,mapfun=ThreadsX.map) do _
 	st=rand(sample1)
