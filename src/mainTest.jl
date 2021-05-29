@@ -35,12 +35,13 @@ function flt(box)
 end
 ##
 limitCounter=Counter(10)
-probSize=50
-probNum=2
-machineCount=6
+probSize=100
+probNum=1
+machineCount=8
 carCount=20
-bufferSize=6
-problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A" && !isempty(box.items) && limitCounter())
+bufferSize=5
+problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
+# problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A" && !isempty(box.items) && limitCounter())
 @assert bufferSize≥maximum(length,problem.itemsNeeded)
 @assert isValid(problem)
 sf=let problem=problem
@@ -298,11 +299,15 @@ ress=progress_map(mapfun=ThreadsX.map,1:1_000_000) do _
 end
 rat=secondElement.(ress) ./ first.(ress)
 ##
-ress=readdlm("out/random_500_1.tsv")
-rat=ress[:,2] ./ ress[:,1]
+ress1=readdlm("out/random_100_1.tsv")
+ress2=readdlm("out/random_500_1.tsv")
+rat1=ress1[:,2] ./ ress1[:,1]
+rat2=ress2[:,2] ./ ress2[:,1]
 ##
-plt=histogram(rat,label=false,normalize=:pdf,xlabel="f'(s)/f(s)")
-savefig(plt,"out/hist_alt_218.svg")
+plt1=histogram(rat1,label=false,normalize=:pdf,xlabel="f'(s)/f(s)")
+plt2=histogram(rat2,label=false,normalize=:pdf,xlabel="f'(s)/f(s)")
+plt=plot(plt1,plt2,size=(800,480))
+savefig(plt,"out/hist_alt_double.svg")
 ##
 sol=computeTimeLazyReturn(st1,problem,Val(true))
 annealingSettings=AnnealingSettings(10^6,true,1,1000,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
