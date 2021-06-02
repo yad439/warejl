@@ -273,12 +273,14 @@ plt=plot(
 	xscale=:log10,
 	marker=:circle,
 	label=false,
-	xlabel="итерации при одной темпрературе",
-	ylabel="средняя длина расписания",
+	xlabel="Итерации при одной темпрературе",
+	ylabel="Средняя длина расписания",
 	#annotations=tuple.(df2[:,:sameTemperature],df2[:,:mean] .+ 1,string.(df2[:,:sameTemperature])),
 	xticks=setdiff(df2[:,:sameTemperature],[5000,20000,80000]),
 	xformatter=x -> true ? round(Int,x) : @sprintf("%.0e",x),
-	# xtickfontsize=6
+	# xtickfontsize=6,
+	palette=:grays,
+	size=(600,300)
 )
 #savefig(plt,"out/sameTemp_form_27.svg")
 ##
