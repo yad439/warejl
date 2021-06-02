@@ -20,11 +20,11 @@ using ProgressMeter
 using DelimitedFiles
 #using Plots
 
-probSize=200
-probNum=6
-machineCount=4
+probSize=50
+probNum=1
+machineCount=6
 carCount=30
-bufferSize=6
+bufferSize=5
 problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A")
 @assert isValid(problem)
 @assert problem.bufferSize≥maximum(length,problem.itemsNeeded)
@@ -54,7 +54,8 @@ println(M,' ',T)
 exactModel=buildModel(problem,ORDER_FIRST_STRICT,BUFFER_ONLY,T,M)
 #setStartValues(exactModel,sol1.schedule,problem)
 set_optimizer_attribute(exactModel.inner,"MIPFocus",3)
-exactRes=runModel(exactModel,60*60)
+#exactRes=runModel(exactModel,60*60)
+exactRes=runModel(exactModel,60*60) .+ problem.carTravelTime
 
 #=
 ress=progress_map(mapfun=ThreadsX.map,1:1_000_000) do _
