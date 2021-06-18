@@ -9,6 +9,7 @@ include("linear.jl");
 include("extendedRandoms.jl");
 include("simlpeHeuristic.jl");
 include("utility.jl");
+include("experimentUtils.jl")
 
 using Random
 # using ThreadTools
@@ -18,8 +19,9 @@ using CSV
 using Statistics
 using ProgressMeter
 using DelimitedFiles
+import JSON
 # using Plots
-
+#=
 probSize = 50
 probNum = 1
 machineCount = 6
@@ -55,8 +57,7 @@ exactModel = buildModel(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, T, M)
 # setStartValues(exactModel,sol1.schedule,problem)
 set_optimizer_attribute(exactModel.inner,"MIPFocus",3)
 # exactRes=runModel(exactModel,60*60)
-exactRes = runModel(exactModel, 60 * 60) .+ problem.carTravelTime
-
+exactRes = runModel(exactModel, 60 * 60) .+ problem.carTravelTime =#
 #=
 ress=progress_map(mapfun=ThreadsX.map,1:1_000_000) do _
 	st=rand(sample1)
@@ -173,13 +174,12 @@ CSV.write("exp/tabuRes.tsv",df,delim='\t') =#
 #=
 prob=Problem(9,3,2,2,8,3,[10,2,8,5,6,6,4,2,1],BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
 @assert isValid(prob)
-##
+
 model=buildModel(prob,ORDER_FIRST_STRICT,SHARED_EVENTS,12,20)
 addItems=model.inner[:addItems]
 removeItems=model.inner[:removeItems]
 @constraint(model.inner,[τ=1:12],sum(addItems[τ,:])≥sum(removeItems[τ,:]))
-res=runModel(model) .+ 2
-## =#
+res=runModel(model) .+ 2 =#
 #=
 df=CSV.File("exp/tabuRes.tsv") |> DataFrame
 starts=rand(sample1,10)
@@ -283,3 +283,35 @@ res=progress_map(1:10^4,mapfun=ThreadsX.map) do _
 	imp=sol.times-sol2.times
 	l2/l1,count(≠(0),imp),sum(imp),mean(imp),mean(filter(≠(0),imp))
 end =#
+
+begin
+	resFile = "exp/results.json"
+
+	probSize = 20
+	probNum = 4
+	machineCount = 6
+	carCount = 30
+	bufferSize = 6
+
+	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
+	instance = findInstance(
+						results,probSize,probNum,['A'],
+						missing,machineCount,carCount,bufferSize
+				)
+	if instance ≡ nothing
+		instance = createInstance(
+						probSize,probNum,['A'],
+						missing,machineCount,carCount,bufferSize
+				)
+		push!(results, instance)
+	end
+	instance::ProblemInstance
+
+	problem = instanceToProblem(instance)
+	res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=30)
+
+	instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+	open(resFile, "w") do file
+		JSON.print(file, results);
+	end;
+end
