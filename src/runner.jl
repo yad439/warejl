@@ -288,29 +288,32 @@ begin
 	resFile = "exp/results.json"
 
 	probSize = 20
-	probNum = 4
-	machineCount = 6
+	#probNum = 4
+	machineCount = 16
 	carCount = 30
-	bufferSize = 6
+	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
-	instance = findInstance(
-						results,probSize,probNum,['A'],
-						missing,machineCount,carCount,bufferSize
-				)
-	if instance ≡ nothing
-		instance = createInstance(
-						probSize,probNum,['A'],
-						missing,machineCount,carCount,bufferSize
-				)
-		push!(results, instance)
+	for probNum=1:4
+		instance = findInstance(
+							results,probSize,probNum,['A'],
+							missing,machineCount,carCount,bufferSize
+					)
+		if instance ≡ nothing
+			instance = createInstance(
+							probSize,probNum,['A'],
+							missing,machineCount,carCount,bufferSize
+					)
+			push!(results, instance)
+		end
+		instance::ProblemInstance
+
+		problem = instanceToProblem(instance)
+		@assert isValid(problem)
+		res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
+
+		instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 	end
-	instance::ProblemInstance
-
-	problem = instanceToProblem(instance)
-	res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=30)
-
-	instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 	open(resFile, "w") do file
 		JSON.print(file, results);
 	end;

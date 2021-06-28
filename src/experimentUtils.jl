@@ -98,7 +98,7 @@ function instanceToProblem(instance::ProblemInstance)::Problem
 		instance.machineCount,
 		instance.carCount,
 		instance.bufferSize,
-		box -> box.lineType[1] ∈ instance.lineTypes  && limitCounter()
+		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items)  && limitCounter()
 	)
 end
 
