@@ -294,25 +294,28 @@ begin
 	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
-	for probNum=1:4
-		instance = findInstance(
-							results,probSize,probNum,['A'],
-							missing,machineCount,carCount,bufferSize
-					)
-		if instance ≡ nothing
-			instance = createInstance(
-							probSize,probNum,['A'],
-							missing,machineCount,carCount,bufferSize
-					)
-			push!(results, instance)
+	for probNum=5:5
+		begin
+			instance = findInstance(
+								results,probSize,probNum,['A'],
+								missing,machineCount,carCount,bufferSize
+						)
+			if instance ≡ nothing
+				instance = createInstance(
+								probSize,probNum,['A'],
+								missing,machineCount,carCount,bufferSize
+						)
+				push!(results, instance)
+			end
+			instance::ProblemInstance
+
+			problem = instanceToProblem(instance)
+			@assert isValid(problem)
+			res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
+
+			instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 		end
-		instance::ProblemInstance
-
-		problem = instanceToProblem(instance)
-		@assert isValid(problem)
-		res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
-
-		instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
+		GC.gc()
 	end
 	open(resFile, "w") do file
 		JSON.print(file, results);
