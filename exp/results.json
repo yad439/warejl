@@ -6101,7 +6101,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 3000.0,
+                "bound": 3000.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -7184,7 +7187,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 3473.0,
+                "bound": 3473.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -8187,7 +8193,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 1758.0,
+                "bound": 1758.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -8570,7 +8579,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 2128.0,
+                "bound": 2128.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -9213,7 +9225,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 1805.0,
+                "bound": 1805.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -9816,7 +9831,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 2339.0,
+                "bound": 2339.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -10339,7 +10357,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 1647.0,
+                "bound": 1647.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -10862,7 +10883,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 2201.0,
+                "bound": 2201.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
@@ -11605,7 +11629,10 @@
             "fullModel": null,
             "bufferOnly": null,
             "transportOnly": null,
-            "assignmentOnly": null
+            "assignmentOnly": {
+                "solution": 1913.0,
+                "bound": 1913.0
+            }
         },
         "tabuResults": [],
         "annealingResults": [
