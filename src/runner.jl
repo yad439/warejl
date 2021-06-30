@@ -294,7 +294,7 @@ begin
 	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
-	for probNum=5:5
+	for probNum=1:3
 		begin
 			instance = findInstance(
 								results,probSize,probNum,['A'],
@@ -310,10 +310,13 @@ begin
 			instance::ProblemInstance
 
 			problem = instanceToProblem(instance)
-			@assert isValid(problem)
-			res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
+			if !isValid(problem)
+				println(stderr,"Problem ",probNum," is invalid!")
+				continue
+			end
+			res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60*60,startSolution=true)
 
-			instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
+			instance.modelResults.fullModel = (solution = res[1], bound = res[2])
 		end
 		GC.gc()
 	end
