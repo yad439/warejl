@@ -288,13 +288,14 @@ begin
 	resFile = "exp/results.json"
 
 	probSize = 20
-	#probNum = 4
+	# probNum = 4
 	machineCount = 16
 	carCount = 30
 	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
-	for probNum=5:5
+	for probNum = 2:10
+		println("Instance",probNum)
 		begin
 			instance = findInstance(
 								results,probSize,probNum,['A'],
@@ -310,14 +311,24 @@ begin
 			instance::ProblemInstance
 
 			problem = instanceToProblem(instance)
-			@assert isValid(problem)
-			res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
+			if !isValid(problem)
+				println("Problem ",probNum," is invalid!")
+				continue
+			end
 
-			instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
+			# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
+			# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
+
+			samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+			sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+			starts = rand(samp, 10)
+			dif = maxDif(starts[1], sf)
+			res = runAnnealing(problem, starts, 10^6, 1, dif / 2)
+			push!(instance.annealingResults, res)
 		end
 		GC.gc()
 	end
 	open(resFile, "w") do file
-		JSON.print(file, results,4);
+		JSON.print(file, results, 4);
 	end;
 end

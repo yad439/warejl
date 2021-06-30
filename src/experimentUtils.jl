@@ -2,6 +2,8 @@ include("realDataUtility.jl");
 include("linear.jl");
 include("mainAuxiliary.jl");
 
+using ThreadsX
+
 
 const ModelResult = @NamedTuple{solution::Union{Float32,Missing},bound::Union{Float32,Missing}}
 
@@ -118,6 +120,43 @@ function runLinear(problem::Problem, machineType::MachineModelType, carType::Car
 		res = res .+ problem.carTravelTime
 	end
 	res
+end
+
+function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, same::Int, temp::Float64;uniform::Bool=true,fast::Bool=false,improvements::Vector{String}=String[],type::String="")
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), !fast)
+	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+
+	power = (-temp * log(10^-3))^(-1 / (steps / same))
+	if uniform
+		annealingSettings = AnnealingSettings(steps, false, same, temp, it -> it * power, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+		ress = ThreadsX.map(1:length(starts)) do i
+			println("Start $i")
+			solution = modularAnnealing(annealingSettings, sf, deepcopy(starts[i]), false)
+			println("End $i")
+			solution
+		end
+		results = map(starts, ress) do st, sol
+			AnnealingResult(
+				st.permutation,
+				sol.solution.permutation,
+				length(sol.history)
+			)
+		end
+		return AnnealingExperiment(
+			!fast,
+			steps,
+			false,
+			same,
+			temp,
+			power,
+			0.5,
+			improvements,
+			type,
+			results
+		)
+	end
+	@assert false
+	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, String[], "", AnnealingResult[])
 end
 
 function fromJson(T, data)
