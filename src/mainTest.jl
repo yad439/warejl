@@ -10,6 +10,7 @@ include("extendedRandoms.jl");
 include("io.jl");
 include("simlpeHeuristic.jl");
 include("plots.jl");
+include("experimentUtils.jl");
 
 using Random
 using Printf
@@ -415,3 +416,9 @@ foreach(job -> plot!(pl3, job[1], label=false, annotations=(center(job[1])..., P
 end
 
 plr = plot(pl1, pl3, pl2, layout=(3, 1), size=(720, 480), xlabel="время")
+##
+resFile = "exp/results.json"
+results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
+open(resFile, "w") do file
+	JSON.print(file, results,4);
+end;

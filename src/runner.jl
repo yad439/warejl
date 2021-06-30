@@ -318,6 +318,6 @@ begin
 		GC.gc()
 	end
 	open(resFile, "w") do file
-		JSON.print(file, results);
+		JSON.print(file, results,4);
 	end;
 end
