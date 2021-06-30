@@ -104,6 +104,17 @@ function instanceToProblem(instance::ProblemInstance)::Problem
 	)
 end
 
+function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple{jobCount::Int,items::Int,maxItems::Int,travelTime::Int}
+	lineTypesSet = Set(lineTypes)
+	data = toModerateJobs(parseRealData("res/benchmark - automatic warehouse", problemSize, problemNum), box -> box.lineType[1] ∈ lineTypesSet && !isempty(box.items))
+	(
+		jobCount = length(data.lengths),
+		items = maximum(maximum, data.itemsForJob),
+		maxItems = maximum(length, data.itemsForJob),
+		travelTime = data.carTravelTime
+	)
+end
+
 function runLinear(problem::Problem, machineType::MachineModelType, carType::CarModelType;timeLimit::Int=0,startSolution::Union{Bool,PermutationEncoding}=false)
 	sample = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 	sol = computeTimeLazyReturn(isa(startSolution, PermutationEncoding) ? startSolution : rand(sample), problem, Val(true))

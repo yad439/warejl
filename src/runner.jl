@@ -298,7 +298,7 @@ let
 		for probNum = 4:9
 			println("Instance", probNum)
 			begin
-				bufferSize = maximum(length, toModerateJobs(parseRealData("res/benchmark - automatic warehouse", probSize, probNum), box -> box.lineType == "A" && !isempty(box.items)).itemsForJob)
+				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
 									results,probSize,probNum,['A'],
