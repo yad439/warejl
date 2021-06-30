@@ -284,51 +284,63 @@ res=progress_map(1:10^4,mapfun=ThreadsX.map) do _
 	l2/l1,count(≠(0),imp),sum(imp),mean(imp),mean(filter(≠(0),imp))
 end =#
 
-begin
+let
 	resFile = "exp/results.json"
 
 	probSize = 20
 	# probNum = 4
-	machineCount = 16
+	machineCount = 6
 	carCount = 30
-	bufferSize = 8
+	# bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
-	for probNum = 2:10
-		println("Instance",probNum)
-		begin
-			instance = findInstance(
-								results,probSize,probNum,['A'],
-								missing,machineCount,carCount,bufferSize
-						)
-			if instance ≡ nothing
-				instance = createInstance(
-								probSize,probNum,['A'],
-								missing,machineCount,carCount,bufferSize
-						)
-				push!(results, instance)
+	try
+		for probNum = 4:9
+			println("Instance", probNum)
+			begin
+				bufferSize = maximum(length, toModerateJobs(parseRealData("res/benchmark - automatic warehouse", probSize, probNum), box -> box.lineType == "A" && !isempty(box.items)).itemsForJob)
+
+				instance = findInstance(
+									results,probSize,probNum,['A'],
+									missing,machineCount,carCount,bufferSize
+							)
+				if instance ≡ nothing
+					instance = createInstance(
+									probSize,probNum,['A'],
+									missing,machineCount,carCount,bufferSize
+							)
+					push!(results, instance)
+				end
+				instance::ProblemInstance
+
+
+				problem = try
+					instanceToProblem(instance)
+				catch e
+					println(stderr, "Can't parse problem ", probNum)
+					continue
+				end
+				problem::Problem
+				if !isValid(problem)
+					println(stderr, "Problem ", probNum, " is invalid!")
+					continue
+				end
+
+				res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+
+				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+				# starts = rand(samp, 10)
+				# dif = maxDif(starts[1], sf)
+				# res = runAnnealing(problem, starts, 10^6, 1, dif / 2)
+				# push!(instance.annealingResults, res)
 			end
-			instance::ProblemInstance
-
-			problem = instanceToProblem(instance)
-			if !isValid(problem)
-				println("Problem ",probNum," is invalid!")
-				continue
-			end
-
-			# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60*60)
-			# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
-
-			samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
-			sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-			starts = rand(samp, 10)
-			dif = maxDif(starts[1], sf)
-			res = runAnnealing(problem, starts, 10^6, 1, dif / 2)
-			push!(instance.annealingResults, res)
+			GC.gc()
 		end
-		GC.gc()
+	finally
+		open(resFile, "w") do file
+			JSON.print(file, results, 4);
+		end;
 	end
-	open(resFile, "w") do file
-		JSON.print(file, results, 4);
-	end;
 end
