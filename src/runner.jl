@@ -296,7 +296,7 @@ let
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
 		for probNum = 4:9
-			println("Instance", probNum)
+			println("Instance ", probNum)
 			begin
 				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
@@ -312,7 +312,6 @@ let
 					push!(results, instance)
 				end
 				instance::ProblemInstance
-
 
 				problem = try
 					instanceToProblem(instance)
@@ -344,3 +343,4 @@ let
 		end;
 	end
 end
+GC.gc()
