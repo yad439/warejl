@@ -10,7 +10,10 @@
         "carCount": 30,
         "bufferSize": 8,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2759.9968,
+                "bound": 1972.037
+            },
             "bufferOnly": {
                 "solution": 1707.9982,
                 "bound": 1268.0
@@ -1099,7 +1102,10 @@
         "carCount": 30,
         "bufferSize": 8,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2536.0,
+                "bound": 2473.0
+            },
             "bufferOnly": {
                 "solution": 1794.0,
                 "bound": 1731.0
@@ -2108,7 +2114,10 @@
         "carCount": 30,
         "bufferSize": 8,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2771.9993,
+                "bound": 2472.0
+            },
             "bufferOnly": {
                 "solution": 1758.0,
                 "bound": 1758.0
@@ -3756,7 +3765,10 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": null,
-            "bufferOnly": null,
+            "bufferOnly": {
+                "solution": 2339.0,
+                "bound": 2339.0
+            },
             "transportOnly": null,
             "assignmentOnly": {
                 "solution": 2339.0,
@@ -4282,7 +4294,10 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": null,
-            "bufferOnly": null,
+            "bufferOnly": {
+                "solution": 1445.0,
+                "bound": 1173.0
+            },
             "transportOnly": null,
             "assignmentOnly": {
                 "solution": 1194.0,
@@ -4808,7 +4823,10 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": null,
-            "bufferOnly": null,
+            "bufferOnly": {
+                "solution": 1553.0,
+                "bound": 1553.0
+            },
             "transportOnly": null,
             "assignmentOnly": {
                 "solution": 1553.0,
@@ -5554,7 +5572,10 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": null,
-            "bufferOnly": null,
+            "bufferOnly": {
+                "solution": 1913.0,
+                "bound": 1913.0
+            },
             "transportOnly": null,
             "assignmentOnly": {
                 "solution": 1913.0,
