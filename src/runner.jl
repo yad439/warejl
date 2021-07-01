@@ -297,7 +297,7 @@ let
 	try
 		for probNum = 4:9
 			println("Instance ", probNum)
-			begin
+			let
 				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
