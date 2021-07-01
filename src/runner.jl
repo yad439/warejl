@@ -289,16 +289,16 @@ let
 
 	probSize = 20
 	# probNum = 4
-	machineCount = 6
+	machineCount = 16
 	carCount = 30
-	# bufferSize = 8
+	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = 4:9
+		for probNum = 7:7
 			println("Instance ", probNum)
 			let
-				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
+				#bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
 									results,probSize,probNum,['A'],
@@ -325,8 +325,8 @@ let
 					continue
 				end
 
-				res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-				instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				instance.modelResults.fullModel = (solution = res[1], bound = res[2])
 
 				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)

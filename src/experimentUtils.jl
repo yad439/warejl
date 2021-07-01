@@ -127,7 +127,7 @@ function runLinear(problem::Problem, machineType::MachineModelType, carType::Car
 	end
 	res = runModel(exactModel, timeLimit)
 
-	if carType ∈ [SHARED_EVENTS,SHARED_EVENTS_QUAD,BUFFER_ONLY, NO_CARS]
+	if carType ∈ [BUFFER_ONLY, NO_CARS]
 		res = res .+ problem.carTravelTime
 	end
 	res
