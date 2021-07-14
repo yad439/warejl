@@ -2,7 +2,10 @@ include("realDataUtility.jl");
 include("linear.jl");
 include("mainAuxiliary.jl");
 
+using Statistics
+
 using ThreadsX
+using DataFrames
 
 
 const ModelResult = @NamedTuple{solution::Union{Float32,Missing},bound::Union{Float32,Missing}}
@@ -113,6 +116,52 @@ function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char}
 		maxItems = maximum(length, data.itemsForJob),
 		travelTime = data.carTravelTime
 	)
+end
+
+function resultsToTable(results::Vector{ProblemInstance})
+	df = DataFrame(
+		probSize=Int[],
+		probNum=Int[],
+		machineCount=Int[],
+		carCount=Int[],
+		bufSize=Int[],
+		fullSol=Union{Float64,Missing}[],
+		fullLB=Union{Float64,Missing}[],
+		bufferSol=Union{Float64,Missing}[],
+		bufferLB=Union{Float64,Missing}[],
+		carsSol=Union{Float64,Missing}[],
+		carsLB=Union{Float64,Missing}[],
+		simpleSol=Union{Float64,Missing}[],
+		simpleLB=Union{Float64,Missing}[],
+		annMean=Union{Float64,Missing}[],
+		tabuMean=Union{Float64,Missing}[]
+	)
+	for instance ∈ results
+		problem = instanceToProblem(instance)
+		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
+		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+		annMean = isempty(annRess) ? missing : minimum(mean, annRess)
+		tabuMean = isempty(tabuRess) ? missing : minimum(mean, tabuRess)
+		push!(df,(
+			instance.problemSize,
+			instance.problemNumber,
+			instance.machineCount,
+			instance.carCount,
+			instance.bufferSize,
+			instance.modelResults.fullModel ≢ nothing ? instance.modelResults.fullModel.solution : missing,
+			instance.modelResults.fullModel ≢ nothing ? instance.modelResults.fullModel.bound : missing,
+			instance.modelResults.bufferOnly ≢ nothing ? instance.modelResults.bufferOnly.solution : missing,
+			instance.modelResults.bufferOnly ≢ nothing ? instance.modelResults.bufferOnly.bound : missing,
+			instance.modelResults.transportOnly ≢ nothing ? instance.modelResults.transportOnly.solution : missing,
+			instance.modelResults.transportOnly ≢ nothing ? instance.modelResults.transportOnly.bound : missing,
+			instance.modelResults.assignmentOnly ≢ nothing ? instance.modelResults.assignmentOnly.solution : missing,
+			instance.modelResults.assignmentOnly ≢ nothing ? instance.modelResults.assignmentOnly.bound : missing,
+			annMean,
+			tabuMean
+		))
+	end
+	df
 end
 
 function runLinear(problem::Problem, machineType::MachineModelType, carType::CarModelType;timeLimit::Int=0,startSolution::Union{Bool,PermutationEncoding}=false)
