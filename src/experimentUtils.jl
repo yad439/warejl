@@ -17,7 +17,7 @@ end
 struct TabuResult
 	startSolution::Vector{UInt16}
 	solution::Vector{UInt16}
-	iterations::UInt16
+	foundIteration::UInt16
 end
 
 struct TabuExperiment
@@ -35,7 +35,7 @@ end
 struct AnnealingResult
 	startSolution::Vector{UInt16}
 	solution::Vector{UInt16}
-	iterations::UInt32
+	foundIteration::UInt32
 end
 
 struct AnnealingExperiment
@@ -150,7 +150,7 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 			AnnealingResult(
 				st.permutation,
 				sol.solution.permutation,
-				length(sol.history)
+				argmin(get(sol.history)[2])
 			)
 		end
 		return AnnealingExperiment(
