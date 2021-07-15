@@ -11,8 +11,8 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": {
-                "solution": 2759.9968,
-                "bound": 1972.037
+                "solution": 1999.9968,
+                "bound": 1212.037
             },
             "bufferOnly": {
                 "solution": 1707.9982,
@@ -1103,8 +1103,8 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": {
-                "solution": 2536.0,
-                "bound": 2473.0
+                "solution": 1794.0,
+                "bound": 1731.0
             },
             "bufferOnly": {
                 "solution": 1794.0,
@@ -2115,8 +2115,8 @@
         "bufferSize": 8,
         "modelResults": {
             "fullModel": {
-                "solution": 2771.9993,
-                "bound": 2472.0
+                "solution": 2057.9993,
+                "bound": 1758.0
             },
             "bufferOnly": {
                 "solution": 1758.0,
