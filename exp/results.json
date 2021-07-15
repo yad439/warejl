@@ -4834,7 +4834,10 @@
         "carCount": 30,
         "bufferSize": 8,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 1561.0,
+                "bound": 1553.0
+            },
             "bufferOnly": {
                 "solution": 1553.0,
                 "bound": 1553.0
@@ -5583,7 +5586,10 @@
         "carCount": 30,
         "bufferSize": 8,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 1913.0,
+                "bound": 1913.0
+            },
             "bufferOnly": {
                 "solution": 1913.0,
                 "bound": 1913.0
@@ -6131,7 +6137,10 @@
         "carCount": 30,
         "bufferSize": 3,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 4151.0,
+                "bound": 1239.4814
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -7217,7 +7226,10 @@
         "carCount": 30,
         "bufferSize": 4,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 3909.0,
+                "bound": 1731.0
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -8223,7 +8235,10 @@
         "carCount": 30,
         "bufferSize": 6,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2698.0,
+                "bound": 2329.0
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -8609,7 +8624,10 @@
         "carCount": 30,
         "bufferSize": 5,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2929.0,
+                "bound": 1417.0
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
