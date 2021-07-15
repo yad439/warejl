@@ -467,7 +467,7 @@ function carsModel4Q(model,problem,T,M)
 	tt=problem.carTravelTime
 	t=model[:startTime]
 	@variables(model,begin
-		eventTime[1:T]≥0
+		eventTime[1:T]≥problem.carTravelTime
 		beforeStart[1:T,1:n],Bin
 		beforeEnd[1:T,1:n],Bin
 	end)
