@@ -9273,7 +9273,10 @@
         "carCount": 30,
         "bufferSize": 4,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2154.0,
+                "bound": 1016.0777
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -9879,7 +9882,10 @@
         "carCount": 30,
         "bufferSize": 5,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2666.0,
+                "bound": 2339.0
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -10405,7 +10411,10 @@
         "carCount": 30,
         "bufferSize": 3,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2490.0,
+                "bound": 1093.302
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -10931,7 +10940,10 @@
         "carCount": 30,
         "bufferSize": 3,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 3520.0,
+                "bound": 1553.0
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {
@@ -11677,7 +11689,10 @@
         "carCount": 30,
         "bufferSize": 5,
         "modelResults": {
-            "fullModel": null,
+            "fullModel": {
+                "solution": 2239.9998,
+                "bound": 1913.0
+            },
             "bufferOnly": null,
             "transportOnly": null,
             "assignmentOnly": {

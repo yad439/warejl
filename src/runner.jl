@@ -295,7 +295,7 @@ let
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = 4:4
+		for probNum = 5:9
 			println("Instance ", probNum)
 			let
 				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
