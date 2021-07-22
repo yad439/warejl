@@ -1,6 +1,8 @@
 include("realDataUtility.jl");
 include("linear.jl");
 include("mainAuxiliary.jl");
+include("annealing.jl");
+include("tabu.jl");
 
 using Statistics
 
@@ -217,6 +219,41 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 	end
 	@assert false
 	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, String[], "", AnnealingResult[])
+end
+
+function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSize::Int;uniform::Bool=true,fast::Bool=false,improvements::Vector{String}=String[],type::String="")
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), !fast)
+	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+
+	if uniform
+		tabuSettings = TabuSearchSettings(steps, tabuLength, neigborhoodSize)
+		ress = ThreadsX.map(1:length(starts)) do i
+			println("Start $i")
+			solution = modularTabuSearch5(tabuSettings, sf, deepcopy(starts[i]), false)
+			println("End $i")
+			solution
+		end
+		results = map(starts, ress) do st, sol
+			TabuResult(
+				st.permutation,
+				sol.solution.permutation,
+				argmin(get(sol.history)[2])
+			)
+		end
+		return TabuExperiment(
+			!fast,
+			5,
+			steps,
+			tabuLength,
+			neigborhoodSize,
+			0.5,
+			improvements,
+			type,
+			results
+		)
+	end
+	@assert false
+	TabuExperiment(false, 0, 0, 0, 0, 0.0, String[], "", TabuResult[])
 end
 
 function fromJson(T, data)
