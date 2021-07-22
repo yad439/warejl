@@ -10,6 +10,7 @@ include("extendedRandoms.jl");
 include("simlpeHeuristic.jl");
 include("utility.jl");
 include("experimentUtils.jl")
+include("json.jl")
 
 using Random
 # using ThreadTools
@@ -339,7 +340,7 @@ let
 		end
 	finally
 		open(resFile, "w") do file
-			JSON.print(file, results, 4);
+			toJson(file, results);
 		end;
 	end
 end

@@ -255,24 +255,3 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 	@assert false
 	TabuExperiment(false, 0, 0, 0, 0, 0.0, String[], "", TabuResult[])
 end
-
-function fromJson(T, data)
-	@assert isstructtype(T)
-	fields = fieldnames(T)
-	types = fieldtypes(T)
-	arguments = broadcast((field, type) -> fromJson(type, data[string(field)]), fields, types)
-	T(arguments...)
-end
-function fromJson(::Type{T}, data) where {T <: NamedTuple}
-	fields = fieldnames(T)
-	types = fieldtypes(T)
-	arguments = broadcast((field, type) -> fromJson(type, data[string(field)]), fields, types)
-	T(arguments)
-end
-fromJson(::Type{Union{T,Nothing}},data) where {T} = data ≡ nothing ? nothing : fromJson(T, data)
-fromJson(::Type{Union{T,Missing}},data) where {T} = data ≡ nothing ? missing : fromJson(T, data)
-fromJson(::Type{Vector{T}},data) where {T} = map(it -> fromJson(T, it), data)
-fromJson(::Type{Set{T}},data) where {T} = Set(Iterators.map(it -> fromJson(T, it), data))
-fromJson(::Type{T},data) where {T <: Number} = convert(T, data)
-fromJson(::Type{String},data) = data
-fromJson(::Type{Char},data) = (@assert(length(data) == 1);data[1])
