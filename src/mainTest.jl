@@ -274,13 +274,13 @@ plt = plot(
 	xscale=:log10,
 	marker=:circle,
 	label=false,
-	xlabel="Итерации при одной темпрературе",
-	ylabel="Средняя длина расписания",
+	xlabel="Iterations at the same temperature",
+	ylabel="Mean schedule length",
 	# annotations=tuple.(df2[:,:sameTemperature],df2[:,:mean] .+ 1,string.(df2[:,:sameTemperature])),
 	xticks=setdiff(df2[:,:sameTemperature], [5000,20000,80000]),
 	xformatter=x -> true ? round(Int, x) : @sprintf("%.0e",x),
 	# xtickfontsize=6,
-	palette=:grays,
+	# palette=:grays,
 	size=(600, 300)
 )
 # savefig(plt,"out/sameTemp_form_27.svg")
@@ -336,11 +336,11 @@ sol = computeTimeLazyReturn(modularAnnealing(annealingSettings, sf, deepcopy(st1
 cars = normalizeHistory(sol[3], problem.carTravelTime)
 fnt = 8
 # pl1=gantt(sol[1],problem.jobLengths,false,string.(collect.(problem.itemsNeeded)),bw=false)
-pl1 = plot(xlims=(0, :auto), ylabel="машины")
+pl1 = plot(xlims=(0, :auto), ylabel="Machines")
 jobs = sol[1]
 useLabel = false
 jobLengths = problem.jobLengths
-bw = true
+bw = false
 txt = string.(collect.(problem.itemsNeeded))
 for i = 1:length(jobLengths)
 	job = GanttJob(jobs.assignment[i], jobs.times[i], jobLengths[i])
@@ -367,7 +367,7 @@ jobs = map(carHistory) do event
 		job, item
 	end
 end |> Iterators.flatten |> collect
-pl2 = plot(label=false, xlims=(0, sol[2]), ylabel="роботы")
+pl2 = plot(label=false, xlims=(0, sol[2]), ylabel="Robots")
 adds = filter(job -> job[2][2], jobs)
 removes = filter(job -> !job[2][2], jobs)
 addsShapes = map(toShape ∘ first, adds)
@@ -408,14 +408,14 @@ jobs = map(itemsInBuffer) do item
 	maxTime[car] = item[3]
 	job, item[1]
 end
-pl3 = plot(label=false, xlims=(0, sol[2]), ylabel="буфер")
+pl3 = plot(label=false, xlims=(0, sol[2]), ylabel="Buffer")
 if bw
 foreach(job -> plot!(pl3, job[1], label=false, annotations=(center(job[1])..., Plots.text(string(job[2]), fnt)), fillcolor=:lightgrey), jobs)
 else
 foreach(job -> plot!(pl3, job[1], label=false, annotations=(center(job[1])..., Plots.text(string(job[2]), fnt)), fillalpha=(bw ? 0 : 1)), jobs)
 end
 
-plr = plot(pl1, pl3, pl2, layout=(3, 1), size=(720, 480), xlabel="время")
+plr = plot(pl1, pl3, pl2, layout=(3, 1), size=(720, 480), xlabel="Time")
 ##
 resFile = "exp/results.json"
 results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
