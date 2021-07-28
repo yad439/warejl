@@ -98,14 +98,14 @@ function findInstance(data, problemSize, problemNumber, lineTypes, boxLimit, mac
 	ind ≡ nothing ? nothing : data[ind]
 end
 
-function instanceToProblem(instance::ProblemInstance)::Problem
+function instanceToProblem(instance::ProblemInstance; skipZeros::Bool=false)::Problem
 	limitCounter = instance.boxLimit ≢ missing ? Counter(instance.boxLimit) : () -> true
 	Problem(
 		parseRealData("res/benchmark - automatic warehouse", instance.problemSize, instance.problemNumber),
 		instance.machineCount,
 		instance.carCount,
 		instance.bufferSize,
-		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items)  && limitCounter()
+		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!skipZeros || box.packingTime ≠ 0)  && limitCounter()
 	)
 end
 
