@@ -292,11 +292,11 @@ let
 	# probNum = 4
 	machineCount = 6
 	carCount = 30
-	#bufferSize = 8
+	# bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = 5:9
+		for probNum = 1:9
 			println("Instance ", probNum)
 			let
 				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
@@ -326,15 +326,19 @@ let
 					continue
 				end
 
-				res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
-				instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
 
-				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
-				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-				# starts = rand(samp, 10)
+				samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+				sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+				starts = rand(samp, 10)
+
 				# dif = maxDif(starts[1], sf)
 				# res = runAnnealing(problem, starts, 10^6, 1, dif / 2)
 				# push!(instance.annealingResults, res)
+
+				res = runTabu(problem, starts, 1000, problem.jobCount, 2 * problem.jobCount^2)
+				push!(instance.tabuResults, res)
 			end
 			GC.gc()
 		end

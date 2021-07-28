@@ -11,6 +11,7 @@ include("io.jl");
 include("simlpeHeuristic.jl");
 include("plots.jl");
 include("experimentUtils.jl");
+include("json.jl");
 
 using Random
 using Printf
@@ -420,5 +421,9 @@ plr = plot(pl1, pl3, pl2, layout=(3, 1), size=(720, 480), xlabel="Time")
 resFile = "exp/results.json"
 results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 open(resFile, "w") do file
-	JSON.print(file, results,4);
+	JSON.print(file, results, 4);
 end;
+##
+results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
+tab = resultsToTable(results)
+CSV.write("out/results.tsv",tab,delim='\t')
