@@ -425,5 +425,46 @@ open(resFile, "w") do file
 end;
 ##
 results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
+##
 tab = resultsToTable(results)
 CSV.write("out/results.tsv",tab,delim='\t')
+##
+ress = []
+cnt = 1
+for instance ∈ results
+	prob = instanceToProblem(instance)
+	println("Instance ", cnt)
+	cnt += 1
+	if prob.jobLengths ∋ 0
+		println("invalid")
+		continue
+	end
+
+	c2 = 1
+	for exp ∈ instance.annealingResults
+		println("annealing ", c2)
+		c2 += 1
+		for res ∈ exp.results
+			perm = res.solution
+			sol = computeTimeLazyReturn(PermutationEncoding(perm), prob, Val(true)).schedule
+			sol2 = improveSolution(sol, prob)
+			tm = maximum(i -> sol.times[i] + prob.jobLengths[i], 1:prob.jobCount)
+			tm2 = maximum(i -> sol2.times[i] + prob.jobLengths[i], 1:prob.jobCount)
+			push!(ress, (tm, tm2))
+		end
+	end
+	c2 = 1
+	for exp ∈ instance.tabuResults
+		println("tabu ", c2)
+		c2 += 1
+		for res ∈ exp.results
+			perm = res.solution
+			sol = computeTimeLazyReturn(PermutationEncoding(perm), prob, Val(true)).schedule
+			sol2 = improveSolution(sol, prob)
+			tm = maximum(i -> sol.times[i] + prob.jobLengths[i], 1:prob.jobCount)
+			tm2 = maximum(i -> sol2.times[i] + prob.jobLengths[i], 1:prob.jobCount)
+			push!(ress, (tm, tm2))
+		end
+	end
+end
+count(r -> r[1] ≠ r[2],ress)
