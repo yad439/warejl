@@ -169,6 +169,7 @@ function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings4{T}, s
 			toApply = newChange
 		end
 	end
+	updateCounter(settings.neighbourhoodIterator, timeTable, toApply)
 	toApply
 end
 

@@ -11,6 +11,31 @@ struct PermutationRandomIterable
 	jobDistances::Matrix{Int}
 end
 
+struct PermutationRandomIterable2
+	jobCount::Int
+	tryCount::Int
+	moveProbability::Float64
+	placedCount::Matrix{Int}
+end
+
+struct PermutationRandomIterable3
+	jobCount::Int
+	tryCount::Int
+	moveProbability::Float64
+	jobDistances::Matrix{Int}
+	placedCount::Matrix{Int}
+end
+
+updateCounter(::PermutationRandomIterable,_,_) = nothing
+function updateCounter(iterable, jobs::PermutationEncoding, toApply)
+	if toApply[1] ≡ PERMUTATION_MOVE
+		iterable.placedCount[jobs.permutation[toApply[2]],toApply[3]] += 1
+	else
+		iterable.placedCount[jobs.permutation[toApply[2]],toApply[3]] += 1
+		iterable.placedCount[jobs.permutation[toApply[3]],toApply[2]] += 1
+	end
+end
+
 function (settings::PermutationRandomIterable)(jobs, canDo)
 	n = settings.jobCount
 	prm = jobs.permutation
@@ -21,6 +46,44 @@ function (settings::PermutationRandomIterable)(jobs, canDo)
 		j == 1 && return 1 / (settings.jobDistances[prm[i],prm[1]] + 1)
 		j == n && return 1 / (settings.jobDistances[prm[i],prm[n]] + 1)
 		1 / (settings.jobDistances[prm[i],prm[j - 1]] + settings.jobDistances[prm[i],prm[j]] + 1)
+	end
+	moveDists = [Categorical(normalize(i, 1)) for i ∈ eachrow(moveProbabilities)]
+	prob = settings.moveProbability
+	count = settings.tryCount
+	(controlledPermutationRandom(n, prob, moveDists, swapDists, canDo) for _ = 1:count)
+end
+
+function (settings::PermutationRandomIterable2)(jobs, canDo)
+	n = settings.jobCount
+	prm = jobs.permutation
+	swapProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
+		i == j && return 0.0
+		j == 1 && return 1 / (settings.placedCount[prm[i],j] + 1) / (settings.placedCount[prm[j],i] + 1)
+	end
+	swapDists = [Categorical(normalize(i, 1)) for i ∈ eachcol(swapProbabilities)]
+	moveProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
+		i == j && return 0.0
+		j == 1 && return 1 / (settings.placedCount[prm[i],j] + 1)
+	end
+	moveDists = [Categorical(normalize(i, 1)) for i ∈ eachrow(moveProbabilities)]
+	prob = settings.moveProbability
+	count = settings.tryCount
+	(controlledPermutationRandom(n, prob, moveDists, swapDists, canDo) for _ = 1:count)
+end
+
+function (settings::PermutationRandomIterable3)(jobs, canDo)
+	n = settings.jobCount
+	prm = jobs.permutation
+	swapProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
+		i == j && return 0.0
+		j == 1 && return settings.jobDistances[prm[i],prm[j]] / (settings.placedCount[prm[i],j] + 1) / (settings.placedCount[prm[j],i] + 1)
+	end
+	swapDists = [Categorical(normalize(i, 1)) for i ∈ eachcol(swapProbabilities)]
+	moveProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
+		i == j && return 0.0
+		j == 1 && return 1 / (settings.jobDistances[prm[i],prm[1]] + 1) / (settings.placedCount[prm[i],j] + 1)
+		j == n && return 1 / (settings.jobDistances[prm[i],prm[n]] + 1) / (settings.placedCount[prm[i],j] + 1)
+		1 / (settings.jobDistances[prm[i],prm[j - 1]] + settings.jobDistances[prm[i],prm[j]] + 1) / (settings.placedCount[prm[i],j] + 1)
 	end
 	moveDists = [Categorical(normalize(i, 1)) for i ∈ eachrow(moveProbabilities)]
 	prob = settings.moveProbability
