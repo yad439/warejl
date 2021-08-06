@@ -2755,7 +2755,10 @@
 			"fullModel": null,
 			"bufferOnly": null,
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 2400.0,
+				"bound": 2398.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -2901,7 +2904,10 @@
 			"fullModel": null,
 			"bufferOnly": null,
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 2277.0,
+				"bound": 2266.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -3047,7 +3053,10 @@
 			"fullModel": null,
 			"bufferOnly": null,
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 1634.0,
+				"bound": 1629.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -3193,7 +3202,10 @@
 			"fullModel": null,
 			"bufferOnly": null,
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 2060.0,
+				"bound": 2054.0
+			}
 		},
 		"tabuResults": [
 			{
