@@ -19,16 +19,16 @@ let
 
 	probSize = 50
 	# probNum = 4
-	machineCount = 6
-	carCount = 20
-	# bufferSize = 8
+	machineCount = 16
+	carCount = 30
+	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [3, 4, 7, 10] # [1, 2, 8, 9] [3, 4, 7, 10]
+		for probNum = [1, 2] # [1, 2, 8, 9] [3, 4, 7, 10]
 			println("Instance ", probNum)
 			let
-				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
+				#bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
 									results,probSize,probNum,['A'],
@@ -55,11 +55,11 @@ let
 					continue
 				end
 
-				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
-				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				instance.modelResults.fullModel = (solution = res[1], bound = res[2])
 				
-				res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-				instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
 				#samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 				#sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
