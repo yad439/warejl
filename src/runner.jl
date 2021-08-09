@@ -55,8 +55,11 @@ let
 					continue
 				end
 
-				res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
-				instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				
+				res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
+				instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 				
 				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
 				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
