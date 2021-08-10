@@ -3066,7 +3066,10 @@
 				"solution": 2243.0,
 				"bound": 1274.9784
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 1634.0,
+				"bound": 1292.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 1634.0,
@@ -3218,7 +3221,10 @@
 				"solution": 5663.0,
 				"bound": 994.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 2102.0,
+				"bound": 1363.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 2060.0,
@@ -3370,7 +3376,10 @@
 				"solution": 11549.0,
 				"bound": 1630.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 6087.0,
+				"bound": 2374.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 6077.0,
@@ -3522,7 +3531,10 @@
 				"solution": 5600.0,
 				"bound": 835.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 3243.0,
+				"bound": 1564.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 3242.0,
