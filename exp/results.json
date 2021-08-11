@@ -3686,7 +3686,10 @@
 				"solution": 5423.0,
 				"bound": 933.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 3830.0,
+				"bound": 1676.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 3816.0,
@@ -3838,7 +3841,10 @@
 				"solution": 7137.0,
 				"bound": 1630.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 4718.0,
+				"bound": 2376.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 4690.0,
