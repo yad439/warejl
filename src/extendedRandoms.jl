@@ -58,12 +58,12 @@ function (settings::PermutationRandomIterable2)(jobs, canDo)
 	prm = jobs.permutation
 	swapProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
 		i == j && return 0.0
-		j == 1 && return 1 / (settings.placedCount[prm[i],j] + 1) / (settings.placedCount[prm[j],i] + 1)
+		1 / (settings.placedCount[prm[i],j] + 1) / (settings.placedCount[prm[j],i] + 1)
 	end
 	swapDists = [Categorical(normalize(i, 1)) for i ∈ eachcol(swapProbabilities)]
 	moveProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
 		i == j && return 0.0
-		j == 1 && return 1 / (settings.placedCount[prm[i],j] + 1)
+		1 / (settings.placedCount[prm[i],j] + 1)
 	end
 	moveDists = [Categorical(normalize(i, 1)) for i ∈ eachrow(moveProbabilities)]
 	prob = settings.moveProbability
@@ -76,7 +76,7 @@ function (settings::PermutationRandomIterable3)(jobs, canDo)
 	prm = jobs.permutation
 	swapProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)
 		i == j && return 0.0
-		j == 1 && return settings.jobDistances[prm[i],prm[j]] / (settings.placedCount[prm[i],j] + 1) / (settings.placedCount[prm[j],i] + 1)
+		settings.jobDistances[prm[i],prm[j]] / (settings.placedCount[prm[i],j] + 1) / (settings.placedCount[prm[j],i] + 1)
 	end
 	swapDists = [Categorical(normalize(i, 1)) for i ∈ eachcol(swapProbabilities)]
 	moveProbabilities = map(Iterators.product(1:n, 1:n)) do (i, j)

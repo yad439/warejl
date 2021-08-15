@@ -221,11 +221,11 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, String[], "", AnnealingResult[])
 end
 
-function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSize::Int;uniform::Bool=true,fast::Bool=false,improvements::Vector{String}=String[],type::String="")
+function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSize::Int;distribution::String="uniform",fast::Bool=false,improvements::Vector{String}=String[],type::String="")
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
 
-	if uniform
+	if distribution == "uniform"
 		tabuSettings = TabuSearchSettings(steps, tabuLength, neigborhoodSize)
 		ress = ThreadsX.map(1:length(starts)) do i
 			println("Start $i")
@@ -251,6 +251,62 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 			type,
 			results
 		)
+	elseif distribution == "count"
+		ress = ThreadsX.map(1:length(starts)) do i
+			rdm = PermutationRandomIterable2(problem.jobCount, neigborhoodSize, 0.5, zeros(Int, problem.jobCount, problem.jobCount))
+			tabuSettings = TabuSearchSettings4(steps, tabuLength, rdm)
+			println("Start $i")
+			solution = modularTabuSearch5(tabuSettings, sf, deepcopy(starts[i]), false)
+			println("End $i")
+			solution
+		end
+		results = map(starts, ress) do st, sol
+			TabuResult(
+				st.permutation,
+				sol.solution.permutation,
+				argmin(get(sol.history)[2])
+			)
+		end
+		return TabuExperiment(
+			!fast,
+			5,
+			steps,
+			tabuLength,
+			neigborhoodSize,
+			0.5,
+			improvements,
+			type,
+			results
+		)
+	elseif distribution == "item_count"
+		ress = ThreadsX.map(1:length(starts)) do i
+			rdm = PermutationRandomIterable3(problem.jobCount, neigborhoodSize, 0.5, jobDistance(problem.itemsNeeded), zeros(Int, problem.jobCount, problem.jobCount))
+			tabuSettings = TabuSearchSettings4(steps, tabuLength, rdm)
+			println("Start $i")
+			solution = modularTabuSearch5(tabuSettings, sf, deepcopy(starts[i]), false)
+			println("End $i")
+			solution
+		end
+		results = map(starts, ress) do st, sol
+			TabuResult(
+				st.permutation,
+				sol.solution.permutation,
+				argmin(get(sol.history)[2])
+			)
+		end
+		return TabuExperiment(
+			!fast,
+			5,
+			steps,
+			tabuLength,
+			neigborhoodSize,
+			0.5,
+			improvements,
+			type,
+			results
+		)
+	else
+		@assert false
 	end
 	@assert false
 	TabuExperiment(false, 0, 0, 0, 0, 0.0, String[], "", TabuResult[])
