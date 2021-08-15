@@ -51,68 +51,47 @@ function toJson(output::IO, object::T, indent::Int) where {T <: NamedTuple}
 	print(output, '\n', repeat('\t', indent), '}')
 	nothing
 end
-function toJson(output::IO, object::T, indent::Int) where {T <: AbstractVector}
-	if !isempty(object)
-		print(output, "[\n", repeat('\t', indent + 1))
-		first, rest = Iterators.peel(object)
-		toJson(output, first, indent + 1)
-		for elem ∈ rest
-			print(output, ",\n", repeat('\t', indent + 1))
-			toJson(output, elem, indent + 1)
-		end
-		print(output, '\n', repeat('\t', indent), ']')
-	else
-		print(output, "[]")
-	end
-	nothing
-end
-function toJson(output::IO, object::Vector{T}, indent::Int) where {T <: Number}
-	if !isempty(object)
-		print(output, "[ ")
-		first, rest = Iterators.peel(object)
-		toJson(output, first, indent + 1)
-		for elem ∈ rest
-			print(output, ", ")
-			toJson(output, elem, indent + 1)
-		end
-		print(output, " ]")
-	else
-		print(output, "[]")
-	end
-	nothing
-end
-function toJson(output::IO, object::T, indent::Int) where {T <: AbstractSet}
-	if !isempty(object)
-		print(output, "[\n", repeat('\t', indent + 1))
-		first, rest = Iterators.peel(object)
-		toJson(output, first, indent + 1)
-		for elem ∈ rest
-			print(output, ",\n", repeat('\t', indent + 1))
-			toJson(output, elem, indent + 1)
-		end
-		print(output, '\n', repeat('\t', indent), ']')
-	else
-		print(output, "[]")
-	end
-	nothing
-end
-function toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractChar}
-	if !isempty(object)
-		print(output, "[ ")
-		first, rest = Iterators.peel(object)
-		toJson(output, first, indent + 1)
-		for elem ∈ rest
-			print(output, ", ")
-			toJson(output, elem, indent + 1)
-		end
-		print(output, " ]")
-	else
-		print(output, "[]")
-	end
-	nothing
-end
+
+toJson(output::IO, object::T, indent::Int) where {T <: AbstractVector}=toJsonCollection(output,object,indent)
+toJson(output::IO, object::Vector{T}, indent::Int) where {T <: Number}=toJsonCollectionCompact(output,object,indent)
+toJson(output::IO, object::Vector{T}, indent::Int) where {T <: AbstractString}=toJsonCollectionCompact(output,object,indent)
+toJson(output::IO, object::T, indent::Int) where {T <: AbstractSet}=toJsonCollection(output,object,indent)
+toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractChar}=toJsonCollectionCompact(output,object,indent)
+toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractString}=toJsonCollectionCompact(output,object,indent)
+
 toJson(output::IO,object::T,::Int) where {T <: AbstractString} = (print(output, '"', object, '"');nothing)
 toJson(output::IO,object::T,::Int) where {T <: AbstractChar} = (print(output, '"', object, '"');nothing)
 toJson(output::IO,object::T,::Int) where {T <: Number} = (print(output, object);nothing)
 toJson(output::IO,::Missing,::Int) = (print(output, "null");nothing)
 toJson(output::IO,::Nothing,::Int) = (print(output, "null");nothing)
+
+function toJsonCollection(output::IO, object, indent::Int)
+	if !isempty(object)
+		print(output, "[\n", repeat('\t', indent + 1))
+		first, rest = Iterators.peel(object)
+		toJson(output, first, indent + 1)
+		for elem ∈ rest
+			print(output, ",\n", repeat('\t', indent + 1))
+			toJson(output, elem, indent + 1)
+		end
+		print(output, '\n', repeat('\t', indent), ']')
+	else
+		print(output, "[]")
+	end
+	nothing
+end
+function toJsonCollectionCompact(output::IO, object, indent::Int)
+	if !isempty(object)
+		print(output, "[ ")
+		first, rest = Iterators.peel(object)
+		toJson(output, first, indent + 1)
+		for elem ∈ rest
+			print(output, ", ")
+			toJson(output, elem, indent + 1)
+		end
+		print(output, " ]")
+	else
+		print(output, "[]")
+	end
+	nothing
+end
