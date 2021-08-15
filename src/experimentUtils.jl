@@ -32,7 +32,7 @@ struct TabuExperiment
 	tabuSize::UInt16
 	neigborhoodSize::UInt16
 	moveProbability::Float16
-	other::Vector{String}
+	other::Set{String}
 	type::String
 	results::Vector{TabuResult}
 end
@@ -51,7 +51,7 @@ struct AnnealingExperiment
 	startThreshold::Float32
 	power::Float64
 	moveProbability::Float16
-	other::Vector{String}
+	other::Set{String}
 	type::String
 	results::Vector{AnnealingResult}
 end
@@ -212,13 +212,13 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 			temp,
 			power,
 			0.5,
-			improvements,
+			Set(improvements),
 			type,
 			results
 		)
 	end
 	@assert false
-	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, String[], "", AnnealingResult[])
+	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, Set{String}(), "", AnnealingResult[])
 end
 
 function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSize::Int;distribution::String="uniform",fast::Bool=false,improvements::Vector{String}=String[],type::String="")
@@ -247,7 +247,7 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 			tabuLength,
 			neigborhoodSize,
 			0.5,
-			improvements,
+			Set(improvements),
 			type,
 			results
 		)
@@ -274,7 +274,7 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 			tabuLength,
 			neigborhoodSize,
 			0.5,
-			improvements,
+			Set(improvements),
 			type,
 			results
 		)
@@ -301,7 +301,7 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 			tabuLength,
 			neigborhoodSize,
 			0.5,
-			improvements,
+			Set(improvements),
 			type,
 			results
 		)
@@ -309,5 +309,5 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 		@assert false
 	end
 	@assert false
-	TabuExperiment(false, 0, 0, 0, 0, 0.0, String[], "", TabuResult[])
+	TabuExperiment(false, 0, 0, 0, 0, 0.0, Set{String}(), "", TabuResult[])
 end

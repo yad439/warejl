@@ -52,12 +52,12 @@ function toJson(output::IO, object::T, indent::Int) where {T <: NamedTuple}
 	nothing
 end
 
-toJson(output::IO, object::T, indent::Int) where {T <: AbstractVector}=toJsonCollection(output,object,indent)
-toJson(output::IO, object::Vector{T}, indent::Int) where {T <: Number}=toJsonCollectionCompact(output,object,indent)
-toJson(output::IO, object::Vector{T}, indent::Int) where {T <: AbstractString}=toJsonCollectionCompact(output,object,indent)
-toJson(output::IO, object::T, indent::Int) where {T <: AbstractSet}=toJsonCollection(output,object,indent)
-toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractChar}=toJsonCollectionCompact(output,object,indent)
-toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractString}=toJsonCollectionCompact(output,object,indent)
+toJson(output::IO, object::T, indent::Int) where {T <: AbstractVector} = toJsonCollection(output, object, indent)
+toJson(output::IO, object::Vector{T}, indent::Int) where {T <: Number} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::Vector{T}, indent::Int) where {T <: AbstractString} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::T, indent::Int) where {T <: AbstractSet} = toJsonCollection(output, object, indent)
+toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractChar} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractString} = toJsonCollectionCompact(output, object, indent)
 
 toJson(output::IO,object::T,::Int) where {T <: AbstractString} = (print(output, '"', object, '"');nothing)
 toJson(output::IO,object::T,::Int) where {T <: AbstractChar} = (print(output, '"', object, '"');nothing)
