@@ -17,11 +17,11 @@ import JSON
 let
 	resFile = "exp/results.json"
 
-	probSize = 50
+	probSize = 100
 	probNum = 1
-	machineCount = 6
+	machineCount = 8
 	carCount = 20
-	bufferSize = 6
+	bufferSize = 5
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
@@ -79,7 +79,7 @@ let
 				# push!(instance.annealingResults, res)
 
 				# res = runTabu(problem, starts, 1000, problem.jobCount, min(2 * problem.jobCount^2,5000),improvements=["bestStart"])
-				res = runTabu(problem, starts, 1500, 300, 2000, distribution="count", improvements=["countBased"], type="count")
+				res = runTabu(problem, starts, 2000, 600, 1000, distribution="item_count", improvements=["itemCountBased"], type="itemCount")
 				push!(instance.tabuResults, res)
 			end
 			GC.gc()
