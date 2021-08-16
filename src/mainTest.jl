@@ -468,3 +468,37 @@ for instance ∈ results
 	end
 end
 count(r -> r[1] ≠ r[2],ress)
+##
+df = CSV.File("exp/tabuRes.tsv") |> DataFrame
+for ins∈results
+	prob = instanceToProblem(ins)
+	for res∈ins.tabuResults
+		if res.type == "count" || res.type == "itemCount"
+			sols = [computeTimeLazyReturn(PermutationEncoding(result.solution), prob, Val(false)) for result∈res.results]
+			itrs = [result.foundIteration for result∈res.results]
+			push!(df,(
+				ins.problemSize,
+				ins.problemNumber,
+				join(ins.lineTypes),
+				ins.boxLimit,
+				prob.jobCount,
+				ins.machineCount,
+				ins.carCount,
+				ins.bufferSize,
+				res.sortReturns,
+				res.algorithmType,
+				res.baseIterations,
+				res.tabuSize,
+				res.neigborhoodSize,
+				res.moveProbability,
+				join(res.other, "_"),
+				minimum(sols),
+				maximum(sols),
+				mean(sols),
+				minimum(itrs),
+				maximum(itrs),
+				mean(itrs)
+			))
+		end
+	end
+end
