@@ -18,18 +18,18 @@ let
 	resFile = "exp/results.json"
 
 	probSize = 100
-	probNum = 1
-	machineCount = 8
-	carCount = 20
-	bufferSize = 5
+	# probNum = 1
+	machineCount = 6
+	carCount = 30
+	# bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		# for probNum = [7, 10] # [1, 2, 8, 9] [3, 4, 7, 10]
-		for _ = [0]
+		for probNum = [10] # [1, 4, 8] [2, 7, 10]
+		# for _ = [0]
 			println("Instance ", probNum)
 			let
-				# bufferSize = problemStats(probSize, probNum, ['A']).maxItems
+				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
 									results,probSize,probNum,['A'],
@@ -45,7 +45,7 @@ let
 				instance::ProblemInstance
 
 				problem = try
-					instanceToProblem(instance, skipZeros=false)
+					instanceToProblem(instance, skipZeros=true)
 				catch e
 					println(stderr, "Can't parse problem ", probNum)
 					continue
@@ -62,12 +62,12 @@ let
 				# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
 				# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 
-				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
-				samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
-				sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-				starts = rand(samp, 10)
+				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+				# starts = rand(samp, 10)
 				# goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
 				# bestInd = argmin(map(sf, goodStarts))
 				# bestStart = goodStarts[bestInd]
@@ -79,8 +79,8 @@ let
 				# push!(instance.annealingResults, res)
 
 				# res = runTabu(problem, starts, 1000, problem.jobCount, min(2 * problem.jobCount^2,5000),improvements=["bestStart"])
-				res = runTabu(problem, starts, 2000, 600, 1000, distribution="item_count", improvements=["itemCountBased"], type="itemCount")
-				push!(instance.tabuResults, res)
+				# res = runTabu(problem, starts, 2000, 600, 1000, distribution="item_count", improvements=["itemCountBased"], type="itemCount")
+				# push!(instance.tabuResults, res)
 			end
 			GC.gc()
 		end

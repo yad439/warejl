@@ -4392,5 +4392,125 @@
 			}
 		],
 		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 1,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 16,
+		"carCount": 30,
+		"bufferSize": 8,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": {
+				"solution": 4499.0,
+				"bound": 4499.0
+			}
+		},
+		"tabuResults": [],
+		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 4,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 16,
+		"carCount": 30,
+		"bufferSize": 8,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": {
+				"solution": 3824.0,
+				"bound": 3821.0
+			}
+		},
+		"tabuResults": [],
+		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 8,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 16,
+		"carCount": 30,
+		"bufferSize": 8,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": {
+				"solution": 3111.0,
+				"bound": 3106.0
+			}
+		},
+		"tabuResults": [],
+		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 2,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 6,
+		"carCount": 30,
+		"bufferSize": 6,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": {
+				"solution": 9834.0,
+				"bound": 9834.0
+			}
+		},
+		"tabuResults": [],
+		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 7,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 6,
+		"carCount": 30,
+		"bufferSize": 6,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": {
+				"solution": 7649.0,
+				"bound": 7649.0
+			}
+		},
+		"tabuResults": [],
+		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 10,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 6,
+		"carCount": 30,
+		"bufferSize": 8,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": {
+				"solution": 7208.0,
+				"bound": 7208.0
+			}
+		},
+		"tabuResults": [],
+		"annealingResults": []
 	}
 ]
