@@ -19,13 +19,13 @@ let
 
 	probSize = 100
 	# probNum = 1
-	machineCount = 6
+	machineCount = 16
 	carCount = 30
-	# bufferSize = 8
+	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [10] # [1, 4, 8] [2, 7, 10]
+		for probNum = [1] # [1, 4, 8] [2, 7, 10]
 		# for _ = [0]
 			println("Instance ", probNum)
 			let
@@ -56,14 +56,14 @@ let
 					continue
 				end
 
-				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
-				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				instance.modelResults.fullModel = (solution = res[1], bound = res[2])
 
 				# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
 				# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
-
-				res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-				instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				
+				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
 				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
