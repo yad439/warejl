@@ -4422,8 +4422,14 @@
 		"carCount": 30,
 		"bufferSize": 8,
 		"modelResults": {
-			"fullModel": null,
-			"bufferOnly": null,
+			"fullModel": {
+				"solution": 11637.0,
+				"bound": 1253.0
+			},
+			"bufferOnly": {
+				"solution": 3852.0,
+				"bound": 1984.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 3824.0,
@@ -4594,6 +4600,29 @@
 			"fullModel": {
 				"solution": 21880.0,
 				"bound": 1630.0
+			},
+			"bufferOnly": {
+				"solution": 4547.0,
+				"bound": 2359.0
+			},
+			"transportOnly": null,
+			"assignmentOnly": null
+		},
+		"tabuResults": [],
+		"annealingResults": []
+	},
+	{
+		"problemSize": 100,
+		"problemNumber": 8,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 16,
+		"carCount": 30,
+		"bufferSize": 6,
+		"modelResults": {
+			"fullModel": {
+				"solution": 15238.0,
+				"bound": 933.0
 			},
 			"bufferOnly": null,
 			"transportOnly": null,
