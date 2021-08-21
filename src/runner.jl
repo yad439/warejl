@@ -25,11 +25,11 @@ let
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [1, 4] # [1, 4, 8] [2, 7, 10]
+		for probNum = [4, 8] # [1, 4, 8] [2, 7, 10]
 		# for _ = [0]
 			println("Instance ", probNum)
 			let
-				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
+				# bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
 									results,probSize,probNum,['A'],
@@ -53,6 +53,10 @@ let
 				problem::Problem
 				if !isValid(problem)
 					println(stderr, "Problem ", probNum, " is invalid!")
+					continue
+				end
+				
+				if instance.modelResults.bufferOnly !== nothing
 					continue
 				end
 
