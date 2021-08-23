@@ -259,9 +259,9 @@ sols = rand(sample1, 10^5)
 @time foreach(sf2, sols)
 ##
 df = CSV.File("exp/annRes.tsv") |> DataFrame
-df2 = df[[6:10;25:29],:]
+df2 = df[[6:10;25:25;111:111;26:29],:]
 df2 = df[[11:17;30:34],:]
-df2 = df[[18:24;35:39],:]
+df2 = df[[18:24;113:113;112:112;35:39],:]
 theme(:dark)
 berr = (df2[:,:mean] - df2[:,:best])
 werr = (df2[:,:worst] - df2[:,:mean])
