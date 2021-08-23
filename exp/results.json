@@ -4538,7 +4538,10 @@
 				"solution": 24354.0,
 				"bound": 1128.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 9852.0,
+				"bound": 1867.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 9834.0,
@@ -4561,7 +4564,10 @@
 				"solution": 16198.0,
 				"bound": 982.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 7655.0,
+				"bound": 1724.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 7649.0,
@@ -4584,7 +4590,10 @@
 				"solution": 12114.0,
 				"bound": 1630.0
 			},
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 7215.0,
+				"bound": 2363.0
+			},
 			"transportOnly": null,
 			"assignmentOnly": {
 				"solution": 7208.0,

@@ -19,17 +19,17 @@ let
 
 	probSize = 100
 	# probNum = 1
-	machineCount = 16
-	carCount = 30
-	bufferSize = 8
+	machineCount = 6
+	carCount = 20
+	# bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [4, 8] # [1, 4, 8] [2, 7, 10]
+		for probNum = [2, 7, 10] # [1, 4, 8] [2, 7, 10]
 		# for _ = [0]
 			println("Instance ", probNum)
 			let
-				# bufferSize = problemStats(probSize, probNum, ['A']).maxItems
+				bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
 				instance = findInstance(
 									results,probSize,probNum,['A'],
