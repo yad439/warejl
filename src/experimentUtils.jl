@@ -216,6 +216,35 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 			type,
 			results
 		)
+	else
+		dist = jobDistance(problem.itemsNeeded)
+		rdm = jobs -> controlledPermutationRandom(jobs, 0.5, dist)
+		annealingSettings = AnnealingSettings2(steps, false, same, temp, it -> it * power, (old, new, threshold) -> rand() < exp((old - new) / threshold), rdm)
+		ress = ThreadsX.map(1:length(starts)) do i
+			println("Start $i")
+			solution = modularAnnealing(annealingSettings, sf, deepcopy(starts[i]), false)
+			println("End $i")
+			solution
+		end
+		results = map(starts, ress) do st, sol
+			AnnealingResult(
+				st.permutation,
+				sol.solution.permutation,
+				argmin(get(sol.history)[2])
+			)
+		end
+		return AnnealingExperiment(
+			!fast,
+			steps,
+			false,
+			same,
+			temp,
+			power,
+			0.5,
+			Set(improvements),
+			type,
+			results
+		)
 	end
 	@assert false
 	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, Set{String}(), "", AnnealingResult[])
