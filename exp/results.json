@@ -4486,7 +4486,7 @@
 				"startThreshold": 961.0,
 				"power": 0.9793051090684939,
 				"moveProbability": 0.5,
-				"other": [],
+				"other": [ "itemBased" ],
 				"type": "",
 				"results": [
 					{
@@ -4639,7 +4639,7 @@
 				"startThreshold": 972.0,
 				"power": 0.9862912740243794,
 				"moveProbability": 0.5,
-				"other": [],
+				"other": [ "itemBased" ],
 				"type": "",
 				"results": [
 					{
@@ -4789,7 +4789,7 @@
 				"startThreshold": 658.0,
 				"power": 0.9934420279256307,
 				"moveProbability": 0.5,
-				"other": [],
+				"other": [ "itemBased" ],
 				"type": "",
 				"results": [
 					{
@@ -5002,7 +5002,7 @@
 				"startThreshold": 1091.0,
 				"power": 0.9859566043780399,
 				"moveProbability": 0.5,
-				"other": [],
+				"other": [ "itemBased" ],
 				"type": "",
 				"results": [
 					{
@@ -5155,7 +5155,7 @@
 				"startThreshold": 862.0,
 				"power": 0.9806332181470837,
 				"moveProbability": 0.5,
-				"other": [],
+				"other": [ "itemBased" ],
 				"type": "",
 				"results": [
 					{
@@ -5308,7 +5308,7 @@
 				"startThreshold": 969.0,
 				"power": 0.9858925658661243,
 				"moveProbability": 0.5,
-				"other": [],
+				"other": [ "itemBased" ],
 				"type": "",
 				"results": [
 					{
