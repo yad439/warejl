@@ -429,6 +429,9 @@ results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
 tab = resultsToTable(results)
 CSV.write("out/results.tsv",tab,delim='\t')
 ##
+tab2 = resultsToArtTable(results)
+open(f -> show(f, MIME("text/latex"), sort(tab2, :jobCount)),"out/results.tex","w")
+##
 ress = []
 cnt = 1
 for instance ∈ results

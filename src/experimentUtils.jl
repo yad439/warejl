@@ -139,7 +139,7 @@ function resultsToTable(results::Vector{ProblemInstance})
 		tabuMean=Union{Float64,Missing}[]
 	)
 	for instance ∈ results
-		problem = instanceToProblem(instance)
+		problem = instanceToProblem(instance, skipZeros=instance.problemSize ≥ 50)
 		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
@@ -161,6 +161,73 @@ function resultsToTable(results::Vector{ProblemInstance})
 			instance.modelResults.assignmentOnly ≢ nothing ? instance.modelResults.assignmentOnly.bound : missing,
 			annMean,
 			tabuMean
+		))
+	end
+	df
+end
+
+function resultsToArtTable(results::Vector{ProblemInstance})
+	df = DataFrame(
+		jobCount=Int[],
+		tabuBest=Union{Int,Missing}[],
+		tabuWorst=Union{Int,Missing}[],
+		tabuMean=Union{Float64,Missing}[],
+		annBest=Union{Int,Missing}[],
+		annWorst=Union{Int,Missing}[],
+		annMean=Union{Float64,Missing}[],
+		fullSol=Union{Int,Missing}[],
+		fullLB=Union{Int,Missing}[],
+		bestLB=Int[]
+	)
+	for instance ∈ results
+		problem = instanceToProblem(instance, skipZeros=instance.problemSize ≥ 50)
+		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
+		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+		annMean = missing
+		annBest = missing
+		annWorst = missing
+		tabuMean = missing
+		tabuBest = missing
+		tabuWorst = missing
+		if !isempty(annRess)
+			means = map(mean, annRess)
+			i = argmin(means)
+			annBest = minimum(annRess[i])
+			annWorst = maximum(annRess[i])
+			annMean = mean(annRess[i])
+		end
+		if !isempty(tabuRess)
+			means = map(mean, tabuRess)
+			i = argmin(means)
+			tabuBest = minimum(tabuRess[i])
+			tabuWorst = maximum(tabuRess[i])
+			tabuMean = mean(tabuRess[i])
+		end
+		bestLB = 0
+		if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
+			bestLB = instance.modelResults.fullModel.bound
+		end
+		if instance.modelResults.bufferOnly ≢ nothing && instance.modelResults.bufferOnly.bound > bestLB
+			bestLB = instance.modelResults.bufferOnly.bound
+		end
+		if instance.modelResults.transportOnly ≢ nothing && instance.modelResults.transportOnly.bound > bestLB
+			bestLB = instance.modelResults.transportOnly.bound
+		end
+		if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
+			bestLB = instance.modelResults.assignmentOnly.bound
+		end
+		push!(df,(
+			problem.jobCount,
+			tabuBest,
+			tabuWorst,
+			tabuMean,
+			annBest,
+			annWorst,
+			annMean,
+			instance.modelResults.fullModel ≢ nothing ? round(Int, instance.modelResults.fullModel.solution) : missing,
+			instance.modelResults.fullModel ≢ nothing ? ceil(Int, instance.modelResults.fullModel.bound) : missing,
+			ceil(Int, bestLB)
 		))
 	end
 	df
