@@ -4402,7 +4402,10 @@
 		"carCount": 30,
 		"bufferSize": 8,
 		"modelResults": {
-			"fullModel": null,
+			"fullModel": {
+				"solution": 12737.0,
+				"bound": 1630.0
+			},
 			"bufferOnly": {
 				"solution": 4561.0,
 				"bound": 2359.0
@@ -4705,7 +4708,10 @@
 		"carCount": 30,
 		"bufferSize": 8,
 		"modelResults": {
-			"fullModel": null,
+			"fullModel": {
+				"solution": 10856.0,
+				"bound": 933.0
+			},
 			"bufferOnly": {
 				"solution": 3139.0,
 				"bound": 1662.0
