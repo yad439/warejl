@@ -17,7 +17,7 @@ import JSON
 let
 	resFile = "exp/results.json"
 
-	probSize = 100
+	probSize = 200
 	# probNum = 1
 	machineCount = 16
 	carCount = 30
@@ -25,7 +25,7 @@ let
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [1, 8] # [1, 4, 8] [2, 7, 10]
+		for probNum = [8] # [1, 4, 8] [2, 7, 10]
 		# for _ = [0]
 			println("Instance ", probNum)
 			let
@@ -56,22 +56,25 @@ let
 					continue
 				end
 
-				if instance.modelResults.fullModel !== nothing
-					continue
-				end
+				#if instance.modelResults.fullModel !== nothing
+				#	continue
+				#end
 
-				res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
-				instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# if !ismissing(res[1])
+				#	instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# end
 
 				# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
 				# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 
-				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				#res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				#instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
 				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-				# starts = rand(samp, 10)
+				#starts = rand(samp, 10)
 				# goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
 				# bestInd = argmin(map(sf, goodStarts))
 				# bestStart = goodStarts[bestInd]
@@ -79,12 +82,12 @@ let
 
 
 				# dif = maxDif(starts[1], sf)
-				# res = runAnnealing(problem, starts, 2 * 10^7, problem.jobCount^2, dif / 2, uniform=false)
+				# res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=false, improvements=["itemBased"])
 				# push!(instance.annealingResults, res)
 
 				
 				# res = runTabu(problem, starts, 1000, problem.jobCount, min(2 * problem.jobCount^2,5000),improvements=["bestStart"])
-				# res = runTabu(problem, starts, 2000, problem.jobCount, 5000, distribution="item_count", improvements=["itemCountBased","bestStart"])
+				# res = runTabu(problem, starts, 3000, problem.jobCount, 5000, distribution="item_count", improvements=["itemCountBased","bestStart"])
 				# push!(instance.tabuResults, res)
 			end
 			GC.gc()
