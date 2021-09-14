@@ -5444,8 +5444,8 @@
 		"bufferSize": 8,
 		"modelResults": {
 			"fullModel": {
-				"solution": 24527,
-				"bound": 937
+				"solution": 24527.0,
+				"bound": 937.0
 			},
 			"bufferOnly": null,
 			"transportOnly": null,
@@ -5583,5 +5583,22 @@
 				]
 			}
 		]
+	},
+	{
+		"problemSize": 200,
+		"problemNumber": 6,
+		"lineTypes": [ "A" ],
+		"boxLimit": null,
+		"machineCount": 4,
+		"carCount": 30,
+		"bufferSize": 6,
+		"modelResults": {
+			"fullModel": null,
+			"bufferOnly": null,
+			"transportOnly": null,
+			"assignmentOnly": null
+		},
+		"tabuResults": [],
+		"annealingResults": []
 	}
 ]

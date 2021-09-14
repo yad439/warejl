@@ -19,13 +19,13 @@ let
 
 	probSize = 200
 	# probNum = 1
-	machineCount = 16
+	machineCount = 4
 	carCount = 30
-	bufferSize = 8
+	bufferSize = 6
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [8] # [1, 4, 8] [2, 7, 10]
+		for probNum = [6] # [1, 4, 8] [2, 7, 10]
 		# for _ = [0]
 			println("Instance ", probNum)
 			let
@@ -45,7 +45,7 @@ let
 				instance::ProblemInstance
 
 				problem = try
-					instanceToProblem(instance, skipZeros=true)
+					instanceToProblem(instance, skipZeros=false)
 				catch e
 					println(stderr, "Can't parse problem ", probNum)
 					continue
@@ -73,22 +73,20 @@ let
 				#instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
 				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
-				# sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+				sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
 				#starts = rand(samp, 10)
-				# goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
-				# bestInd = argmin(map(sf, goodStarts))
-				# bestStart = goodStarts[bestInd]
-				# starts = fill(bestStart, 10)
-
+				goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
+				bestInd = argmin(map(sf, goodStarts))
+				bestStart = goodStarts[bestInd]
+				starts = fill(bestStart, 10)
 
 				# dif = maxDif(starts[1], sf)
-				# res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=false, improvements=["itemBased"])
+				# res = runAnnealing(problem, starts, 2*10^7, 100000, dif / 2, uniform=false,fast=true, improvements=["itemBased","fast"])
 				# push!(instance.annealingResults, res)
-
 				
 				# res = runTabu(problem, starts, 1000, problem.jobCount, min(2 * problem.jobCount^2,5000),improvements=["bestStart"])
-				# res = runTabu(problem, starts, 3000, problem.jobCount, 5000, distribution="item_count", improvements=["itemCountBased","bestStart"])
-				# push!(instance.tabuResults, res)
+				res = runTabu(problem, starts, 3000, 1038, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
+				push!(instance.tabuResults, res)
 			end
 			GC.gc()
 		end
