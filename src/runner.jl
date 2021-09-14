@@ -72,21 +72,21 @@ let
 				#res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
 				#instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
-				# samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+				samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 				sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-				#starts = rand(samp, 10)
-				goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
-				bestInd = argmin(map(sf, goodStarts))
-				bestStart = goodStarts[bestInd]
-				starts = fill(bestStart, 10)
+				starts = rand(samp, 10)
+				# goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
+				# bestInd = argmin(map(sf, goodStarts))
+				# bestStart = goodStarts[bestInd]
+				# starts = fill(bestStart, 10)
 
-				# dif = maxDif(starts[1], sf)
-				# res = runAnnealing(problem, starts, 2*10^7, 100000, dif / 2, uniform=false,fast=true, improvements=["itemBased","fast"])
-				# push!(instance.annealingResults, res)
+				dif = maxDif(starts[1], sf)
+				res = runAnnealing(problem, starts, 2*10^7, 100000, dif / 2, uniform=false,fast=true, improvements=["itemBased","fast"])
+				push!(instance.annealingResults, res)
 				
 				# res = runTabu(problem, starts, 1000, problem.jobCount, min(2 * problem.jobCount^2,5000),improvements=["bestStart"])
-				res = runTabu(problem, starts, 3000, 1038, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
-				push!(instance.tabuResults, res)
+				# res = runTabu(problem, starts, 3000, 1038, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
+				# push!(instance.tabuResults, res)
 			end
 			GC.gc()
 		end
