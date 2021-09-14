@@ -27,7 +27,15 @@ struct PermutationRandomIterable3
 end
 
 updateCounter(::PermutationRandomIterable,_,_) = nothing
-function updateCounter(iterable, jobs::PermutationEncoding, toApply)
+function updateCounter(iterable::PermutationRandomIterable2, jobs::PermutationEncoding, toApply)
+	if toApply[1] ≡ PERMUTATION_MOVE
+		iterable.placedCount[jobs.permutation[toApply[2]],toApply[3]] += 1
+	else
+		iterable.placedCount[jobs.permutation[toApply[2]],toApply[3]] += 1
+		iterable.placedCount[jobs.permutation[toApply[3]],toApply[2]] += 1
+	end
+end
+function updateCounter(iterable::PermutationRandomIterable3, jobs::PermutationEncoding, toApply)
 	if toApply[1] ≡ PERMUTATION_MOVE
 		iterable.placedCount[jobs.permutation[toApply[2]],toApply[3]] += 1
 	else
