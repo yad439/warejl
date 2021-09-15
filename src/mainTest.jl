@@ -505,3 +505,26 @@ for ins∈results
 		end
 	end
 end
+##
+for instance ∈ results
+	problem = instanceToProblem(instance,skipZeros=instance.problemSize ≥ 50 && !(
+		(instance.problemSize == 200 && instance.problemNumber == 6)
+		|| (instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
+		))
+	scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+	annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
+	tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+	bestAnn = argmin(map(mean, annRess))
+	bestTabu = argmin(map(mean, tabuRess))
+	open("out/export/data_$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize).txt", "w") do file
+		println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSzie, ' ', problem.itemCount, ' ', problem.carTravelTime)
+		for p ∈ problem.jobLengths;print(file, p, ' ');end
+		println(file)
+		for s ∈ problem.itemsNeeded
+			for it ∈ s;print(file, it, ' ');end
+			println(file)
+		end
+	end
+	write("out/export/tabu_$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize).txt", join(tabuRess[bestTabu], ' '))
+	write("out/export/annealing_$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize).txt", join(annRess[bestAnn], ' '))
+end
