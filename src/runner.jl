@@ -17,15 +17,15 @@ import JSON
 let
 	resFile = "exp/results.json"
 
-	probSize = 100
+	probSize = 20
 	# probNum = 1
-	machineCount = 8
-	carCount = 20
-	bufferSize = 5
+	machineCount = 4
+	carCount = 40
+	bufferSize = 8
 
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 	try
-		for probNum = [1] # [1, 4, 8] [2, 7, 10]
+		for probNum = [4] # [1, 4, 8] [2, 7, 10]
 		# for _ = [0]
 			println("Instance ", probNum)
 			let
@@ -81,12 +81,12 @@ let
 				#starts = fill(bestStart, 10)
 
 				dif = maxDif(starts[1], sf)
-				res = runAnnealing(problem, starts, 2*10^7, problem.jobCount^2, dif / 2, uniform=false,fast=true, improvements=["itemBased","fast"])
+				res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=true,fast=false)
 				push!(instance.annealingResults, res)
 				
-				# res = runTabu(problem, starts, 1000, problem.jobCount, min(2 * problem.jobCount^2,5000),improvements=["bestStart"])
+				res = runTabu(problem, starts, 1000, 3*problem.jobCount, min(2 * problem.jobCount^2,5000))
 				#res = runTabu(problem, starts, 2000, 600, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
-				#push!(instance.tabuResults, res)
+				push!(instance.tabuResults, res)
 			end
 			GC.gc()
 		end
