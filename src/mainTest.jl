@@ -506,25 +506,56 @@ for ins∈results
 	end
 end
 ##
-for instance ∈ results
-	problem = instanceToProblem(instance,skipZeros=instance.problemSize ≥ 50 && !(
-		(instance.problemSize == 200 && instance.problemNumber == 6)
-		|| (instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
-		))
-	scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
-	annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
-	tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
-	bestAnn = argmin(map(mean, annRess))
-	bestTabu = argmin(map(mean, tabuRess))
-	open("out/export/data_$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize).txt", "w") do file
-		println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSzie, ' ', problem.itemCount, ' ', problem.carTravelTime)
-		for p ∈ problem.jobLengths;print(file, p, ' ');end
-		println(file)
-		for s ∈ problem.itemsNeeded
-			for it ∈ s;print(file, it, ' ');end
-			println(file)
+group1 = [1:9;20:23;31:33;43:43]
+group2 = [11:19;24:27;37:39]
+group3 = [30:30;44:49]
+groups = [group1,group2,group3]
+##
+for gr = 1:3
+folder = "out/export/group$gr"
+mkpath(folder)
+names = Set{String}()
+open("$folder/results.tsv","w") do mins
+	for instance ∈ results[groups[gr]]
+		problem = instanceToProblem(instance,skipZeros=instance.problemSize ≥ 50 && !(
+			# (instance.problemSize == 200 && instance.problemNumber == 6)
+			(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
+			))
+		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
+		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+		bestAnn = argmin(map(mean, annRess))
+		bestTabu = argmin(map(mean, tabuRess))
+		bestLB = 0
+		if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
+			bestLB = instance.modelResults.fullModel.bound
 		end
+		if instance.modelResults.bufferOnly ≢ nothing && instance.modelResults.bufferOnly.bound > bestLB
+			bestLB = instance.modelResults.bufferOnly.bound
+		end
+		if instance.modelResults.transportOnly ≢ nothing && instance.modelResults.transportOnly.bound > bestLB
+			bestLB = instance.modelResults.transportOnly.bound
+		end
+		if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
+			bestLB = instance.modelResults.assignmentOnly.bound
+		end
+		counter = findfirst(i -> "$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$i" ∉ names, 1:10)
+		name = "$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$counter"
+		push!(names, name)
+		fld = "$folder/$name"
+		mkpath(fld)
+		open("$fld/data_$name.txt", "w") do file
+			println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
+			for p ∈ problem.jobLengths;print(file, p, ' ');end
+			println(file)
+			for s ∈ problem.itemsNeeded
+				for it ∈ s;print(file, it, ' ');end
+				println(file)
+			end
+		end
+		write("$fld/tabu_$name.txt", join(tabuRess[bestTabu], ' '))
+		write("$fld/annealing_$name.txt", join(annRess[bestAnn], ' '))
+		println(mins, problem.jobCount, '\t', problem.machineCount, '\t', problem.carCount, '\t', problem.bufferSize, '\t', "$name.zip", '\t', min(minimum(minimum, annRess), minimum(minimum, tabuRess)), '\t', bestLB)
 	end
-	write("out/export/tabu_$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize).txt", join(tabuRess[bestTabu], ' '))
-	write("out/export/annealing_$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize).txt", join(annRess[bestAnn], ' '))
+end
 end

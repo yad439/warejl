@@ -56,9 +56,9 @@ let
 					continue
 				end
 
-				#if instance.modelResults.fullModel !== nothing
+				# if instance.modelResults.fullModel !== nothing
 				#	continue
-				#end
+				# end
 
 				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
 				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
@@ -69,23 +69,23 @@ let
 				# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
 				# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 
-				#res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-				#instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
 				samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 				sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
 				starts = rand(samp, 10)
-				#goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
-				#bestInd = argmin(map(sf, goodStarts))
-				#bestStart = goodStarts[bestInd]
-				#starts = fill(bestStart, 10)
+				# goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
+				# bestInd = argmin(map(sf, goodStarts))
+				# bestStart = goodStarts[bestInd]
+				# starts = fill(bestStart, 10)
 
 				dif = maxDif(starts[1], sf)
-				res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=true,fast=false)
+				res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=true, fast=false)
 				push!(instance.annealingResults, res)
-				
-				res = runTabu(problem, starts, 1000, 3*problem.jobCount, min(2 * problem.jobCount^2,5000))
-				#res = runTabu(problem, starts, 2000, 600, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
+
+				res = runTabu(problem, starts, 1000, 3 * problem.jobCount, min(2 * problem.jobCount^2, 5000))
+				# res = runTabu(problem, starts, 2000, 600, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
 				push!(instance.tabuResults, res)
 			end
 			GC.gc()
