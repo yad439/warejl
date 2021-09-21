@@ -13,7 +13,7 @@ using Random
 import JSON
 
 ##
-
+#=
 let
 	resFile = "exp/results.json"
 
@@ -97,3 +97,13 @@ let
 	end
 end
 GC.gc()
+=#
+let
+	instance = createInstance(20,4,['A'],missing,6,30,6)
+	problem=instanceToProblem(instance)
+	samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
+	tabuSettings = TabuSearchSettings(500, 60, 5000)
+	solution = modularTabuSearch5(tabuSettings, sf, rand(samp), true)
+	println(solution.score)
+end
