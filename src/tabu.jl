@@ -111,18 +111,21 @@ function modularTabuSearch(settings::TabuSearchSettings3, scoreFunction, startTi
 end
 
 function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, scoreFunction, canChange)
-	minval = typemax(Int)
-	toApply = (defaultChange(timeTable), 0, 0)
-	for _ = 1:settings.neighbourhoodSize
-		newChange, restoreChange = randomChange!(timeTable, change -> canChange(timeTable, change, tabu))
-		score = scoreFunction(timeTable)
-		change!(timeTable, restoreChange)
-		if score < minval
-			minval = score
-			toApply = newChange
+	nthreads=Threads.nthreads()
+	minval = fill(typemax(Int),nthreads)
+	toApply = fill((defaultChange(timeTable), 0, 0),nthreads)
+	tables=[deepcopy(timeTable) for _=1:nthreads]
+	Threads.@threads for _ = 1:settings.neighbourhoodSize
+		thread=Threads.threadid()
+		newChange, restoreChange = randomChange!(tables[thread], change -> canChange(tables[thread], change, tabu))
+		score = scoreFunction(tables[thread])
+		change!(tables[thread], restoreChange)
+		if score < minval[thread]
+			minval[thread] = score
+			toApply[thread] = newChange
 		end
 	end
-	toApply
+	toApply[argmin(minval)]
 end
 
 function modularTabuImprove(timetable, tabu, settings::TabuSearchSettings2, scoreFunction, canChange)
