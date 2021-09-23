@@ -98,6 +98,7 @@ let
 end
 GC.gc()
 =#
+#=
 let
 	instance = createInstance(20,4,['A'],missing,6,30,6)
 	problem=instanceToProblem(instance)
@@ -107,3 +108,53 @@ let
 	solution = modularTabuSearch5(tabuSettings, sf, rand(samp), true)
 	println(solution.score)
 end
+=#
+probSize = 200
+probNum = 6
+machineCount = 4
+carCount = 30
+bufferSize = 6
+problem = Problem(parseRealData("res/benchmark - automatic warehouse", probSize, probNum), machineCount, carCount, bufferSize, box -> box.lineType == "A")
+@assert isValid(problem)
+@assert problem.bufferSize ≥ maximum(length, problem.itemsNeeded)
+sf = let problem = problem
+	jobs -> computeTimeLazyReturn(jobs, problem, Val(false), true)
+end
+sf2 = let problem = problem
+	jobs -> computeTimeLazyReturn(jobs, problem, Val(false), false)
+end
+sample1 = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+sts=rand(sample1,10^3)
+tabuSettings=TabuSearchSettings(100,100,100)
+annealingSettings=AnnealingSettings(10^3,false,1,1000,it->it*0.999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+foreach(sf,sts)
+foreach(sf2,sts)
+modularTabuSearch5(tabuSettings,sf,deepcopy(sts[1]),false)
+modularAnnealing(annealingSettings,sf,deepcopy(sts[1]),false)
+modularTabuSearch5(tabuSettings,sf2,deepcopy(sts[1]),false)
+modularAnnealing(annealingSettings,sf2,deepcopy(sts[1]),false)
+sts=rand(sample1,10^6)
+tabuSettings=TabuSearchSettings(1000,100,1000)
+annealingSettings=AnnealingSettings(10^6,false,1,1000,it->it*0.99999,(old,new,threshold)->rand()<exp((old-new)/threshold))
+println("Timing")
+prog=Progress(6)
+time0=(@timed foreach(sf,sts)).time/10^6
+ProgressMeter.next!(prog)
+time1=(@timed foreach(sf2,sts)).time/10^6
+ProgressMeter.next!(prog)
+res2=@timed modularTabuSearch5(tabuSettings,sf,deepcopy(sts[1]),false)
+time2=res2.time/length(res2.value.history)/1000
+ProgressMeter.next!(prog)
+time3=(@timed modularAnnealing(annealingSettings,sf,deepcopy(sts[1]),false)).time/10^6
+ProgressMeter.next!(prog)
+res4=@timed modularTabuSearch5(tabuSettings,sf2,deepcopy(sts[1]),false)
+time4=res4.time/length(res4.value.history)/1000
+ProgressMeter.next!(prog)
+time5=(@timed modularAnnealing(annealingSettings,sf2,deepcopy(sts[1]),false)).time/10^6
+ProgressMeter.next!(prog)
+ProgressMeter.finish!(prog)
+println("$time0 $time2 $time3")
+println("$time1 $time4 $time5")
+df=CSV.File("exp/times.tsv")|>DataFrame
+push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
+CSV.write("exp/times.tsv",df,delim='\t')
