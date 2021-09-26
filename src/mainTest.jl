@@ -559,3 +559,16 @@ open("$folder/results.tsv","w") do mins
 	end
 end
 end
+##
+instance = createInstance(20, 4, ['A'], missing, 6, 30, 6)
+problem = instanceToProblem(instance)
+open("out/data.txt","w") do file
+	println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
+	for p ∈ problem.jobLengths;print(file, p, ' ');end
+	println(file)
+	for s ∈ problem.itemsNeeded
+		print(file, length(s),' ')
+		for it ∈ s;print(file, it, ' ');end
+		println(file)
+	end
+end

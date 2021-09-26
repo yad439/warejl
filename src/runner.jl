@@ -104,9 +104,12 @@ let
 	problem=instanceToProblem(instance)
 	samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-	tabuSettings = TabuSearchSettings(500, 60, 5000)
-	solution = modularTabuSearch5(tabuSettings, sf, rand(samp), true)
-	println(solution.score)
+	annealingSettings=AnnealingSettings(10^7,false,1,1000,it -> it * 0.9999990885007308, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	res=@timed modularAnnealing(annealingSettings,sf,rand(samp),false)
+	solution=res.value
+	# tabuSettings = TabuSearchSettings(500, 60, 5000)
+	# solution = modularTabuSearch5(tabuSettings, sf, rand(samp), true)
+	println(solution.score,' ',res.time)
 end
 =#
 probSize = 200
