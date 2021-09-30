@@ -98,20 +98,23 @@ let
 end
 GC.gc()
 =#
-#=
+
 let
 	instance = createInstance(20,4,['A'],missing,6,30,6)
 	problem=instanceToProblem(instance)
 	samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
-	annealingSettings=AnnealingSettings(10^7,false,1,1000,it -> it * 0.9999990885007308, (old, new, threshold) -> rand() < exp((old - new) / threshold))
-	res=@timed modularAnnealing(annealingSettings,sf,rand(samp),false)
+	# annealingSettings=AnnealingSettings(10^7,false,1,1000,it -> it * 0.9999990885007308, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	# res=@timed modularAnnealing(annealingSettings,sf,rand(samp),false)
+	tabuSettings = TabuSearchSettings(1000,4*27, 1458)
+	res=@timed modularTabuSearch3(tabuSettings,sf,rand(samp),false)
 	solution=res.value
 	# tabuSettings = TabuSearchSettings(500, 60, 5000)
 	# solution = modularTabuSearch5(tabuSettings, sf, rand(samp), true)
 	println(solution.score,' ',res.time)
 end
-=#
+
+#=
 probSize = 200
 probNum = 6
 machineCount = 4
@@ -161,3 +164,4 @@ println("$time1 $time4 $time5")
 df=CSV.File("exp/times.tsv")|>DataFrame
 push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
 CSV.write("exp/times.tsv",df,delim='\t')
+=#
