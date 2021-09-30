@@ -214,10 +214,10 @@ function tabuAdd3!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
 end
 function tabuAdd4!(tabu, newChange, restoreChange, solution::PermutationEncoding)
 	if newChange[1] ≡ PERMUTATION_MOVE
-		push!(tabu, (solution.permutation[newChange[2]], newChange[3]))
+		push!(tabu, (solution.permutation[newChange[2]], newChange[2]))
 	elseif newChange[1] ≡ PERMUTATION_SWAP
-		push!(tabu, (solution.permutation[newChange[2]], newChange[3]))
-		push!(tabu, (solution.permutation[newChange[3]], newChange[2]))
+		push!(tabu, (solution.permutation[newChange[2]], newChange[2]))
+		push!(tabu, (solution.permutation[newChange[3]], newChange[3]))
 	else
 		@assert false
 	end
