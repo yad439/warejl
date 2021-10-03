@@ -560,9 +560,9 @@ open("$folder/results.tsv","w") do mins
 end
 end
 ##
-instance = createInstance(20, 4, ['A'], missing, 6, 30, 6)
-problem = instanceToProblem(instance)
-open("out/data.txt","w") do file
+instance = createInstance(200, 6, ['A'], missing, 4, 30, 6)
+problem = instanceToProblem(instance,skipZeros=true)
+open("out/data_$(problem.jobCount).txt","w") do file
 	println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
 	for p ∈ problem.jobLengths;print(file, p, ' ');end
 	println(file)
