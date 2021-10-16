@@ -561,14 +561,40 @@ end
 end
 ##
 instance = createInstance(200, 6, ['A'], missing, 4, 30, 6)
-problem = instanceToProblem(instance,skipZeros=true)
+problem = instanceToProblem(instance, skipZeros=true)
 open("out/data_$(problem.jobCount).txt","w") do file
 	println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
 	for p ∈ problem.jobLengths;print(file, p, ' ');end
 	println(file)
 	for s ∈ problem.itemsNeeded
-		print(file, length(s),' ')
+		print(file, length(s), ' ')
 		for it ∈ s;print(file, it, ' ');end
 		println(file)
 	end
+end
+##
+errs = map(results[collect(Iterators.flatten(groups))]) do instance
+	problem = instanceToProblem(instance,skipZeros=instance.problemSize ≥ 50 && !(
+		# (instance.problemSize == 200 && instance.problemNumber == 6)
+		(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
+		))
+	scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+	annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
+	tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+	bestAnn = argmin(map(mean, annRess))
+	bestTabu = argmin(map(mean, tabuRess))
+	bestLB = 0
+	if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
+		bestLB = instance.modelResults.fullModel.bound
+	end
+	if instance.modelResults.bufferOnly ≢ nothing && instance.modelResults.bufferOnly.bound > bestLB
+		bestLB = instance.modelResults.bufferOnly.bound
+	end
+	if instance.modelResults.transportOnly ≢ nothing && instance.modelResults.transportOnly.bound > bestLB
+		bestLB = instance.modelResults.transportOnly.bound
+	end
+	if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
+		bestLB = instance.modelResults.assignmentOnly.bound
+	end
+	(mean(annRess[bestAnn]) - bestLB) / bestLB, (mean(tabuRess[bestTabu]) - bestLB) / bestLB
 end
