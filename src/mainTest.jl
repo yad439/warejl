@@ -113,7 +113,7 @@ tmap = Threads.nthreads() > 1 ? (f, x) -> ThreadsX.map(f, 10 ÷ Threads.nthreads
 ##
 df = CSV.File("exp/tabuRes.tsv") |> DataFrame
 ##
-CSV.write("exp/tabuRes.tsv",df,delim='\t')
+CSV.write("exp/tabuRes.tsv", df, delim = '\t')
 ##
 rest = tmap(1:10) do _
 	modularTabuSearch5(tabuSettings, sf, rand(sample1)).score
@@ -128,21 +128,21 @@ resl = map(1:10) do _
 	modularLocalSearch(localSettings, sf, rand(sample1)).score
 end
 ##
-println(minimum(rest),' ',maximum(rest),' ',mean(rest))
-println(minimum(resa),' ',maximum(resa),' ',mean(resa))
+println(minimum(rest), ' ', maximum(rest), ' ', mean(rest))
+println(minimum(resa), ' ', maximum(resa), ' ', mean(resa))
 ##
 starts = rand(sample1, 10);
 starts = fill(st4, 10)
 starts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), rand(1:problem.jobCount))) for _ = 1:10]
 ##
 ress = ThreadsX.map(1:10) do i
-		println("Start $i")
-		sc = modularTabuSearch5(tabuSettings, sf, deepcopy(starts[i]), i == 1).score
-		# ProgressMeter.next!(prog)
-		println("End $i")
-		sc
-	end
-push!(df,(20, 4, "A", missing, problem.jobCount, machineCount, carCount, bufferSize, false, 5, tabuSettings.searchTries, tabuSettings.tabuSize, 1458, minimum(ress), maximum(ress), mean(ress)))
+	println("Start $i")
+	sc = modularTabuSearch5(tabuSettings, sf, deepcopy(starts[i]), i == 1).score
+	# ProgressMeter.next!(prog)
+	println("End $i")
+	sc
+end
+push!(df, (20, 4, "A", missing, problem.jobCount, machineCount, carCount, bufferSize, false, 5, tabuSettings.searchTries, tabuSettings.tabuSize, 1458, minimum(ress), maximum(ress), mean(ress)))
 println((minimum(ress), maximum(ress), mean(ress)))
 ##
 baseIter = 1500
@@ -151,7 +151,7 @@ neighSize = 2000
 tabuSettings = TabuSearchSettings(baseIter, tabuSize, neighSize)
 # rdm=PermutationRandomIterable(problem.jobCount,neighSize,0.5,jobDistance(problem.itemsNeeded))
 # tabuSettings=TabuSearchSettings4(baseIter,tabuSize,rdm)
-ress2 = progress_map(mapfun=ThreadsX.map, 1:10) do i
+ress2 = progress_map(mapfun = ThreadsX.map, 1:10) do i
 	# println("Start $i")
 	sc = modularTabuSearch5(tabuSettings, sf, deepcopy(starts[i]), i == 1)
 	# ProgressMeter.next!(prog)
@@ -160,21 +160,21 @@ ress2 = progress_map(mapfun=ThreadsX.map, 1:10) do i
 end
 ress = map(first, ress2)
 iters = map(secondElement, ress2)
-push!(df,(50, 1, "A", missing, problem.jobCount, machineCount, carCount, bufferSize, true, 5, tabuSettings.searchTries, tabuSettings.tabuSize, neighSize, 0.5, "bestStart", minimum(ress), maximum(ress), mean(ress), minimum(iters), maximum(iters), mean(iters)))
+push!(df, (50, 1, "A", missing, problem.jobCount, machineCount, carCount, bufferSize, true, 5, tabuSettings.searchTries, tabuSettings.tabuSize, neighSize, 0.5, "bestStart", minimum(ress), maximum(ress), mean(ress), minimum(iters), maximum(iters), mean(iters)))
 ##
 sol = computeTimeLazyReturn(st1, problem, Val(true));
 ##
 sol = computeTimeLazyReturn(annealingRes.solution, problem, Val(true));
 ##
 exactModel = buildModel(problem, ORDER_FIRST_STRICT, SHARED_EVENTS)
-setStartValues(exactModel,sol.schedule,problem)
+setStartValues(exactModel, sol.schedule, problem)
 exactRes = runModel(exactModel, 10)
 ##
 cars = normalizeHistory(sol[3], problem.carTravelTime)
-pl1 = gantt(sol[1], problem.jobLengths, false, string.(collect.(problem.itemsNeeded)), bw=false)
-pl2 = plotDetailedCarUsage(cars, problem.carTravelTime, problem.carCount, (0, sol[2]), bw=false, text=false)
-pl3 = plotDetailedBufferUsage(cars, problem.carTravelTime, problem.bufferSize, (0, sol[2]), bw=false)
-plr = plot(pl1, pl3, pl2, layout=(3, 1), size=(640, 360))
+pl1 = gantt(sol[1], problem.jobLengths, false, string.(collect.(problem.itemsNeeded)), bw = false)
+pl2 = plotDetailedCarUsage(cars, problem.carTravelTime, problem.carCount, (0, sol[2]), bw = false, text = false)
+pl3 = plotDetailedBufferUsage(cars, problem.carTravelTime, problem.bufferSize, (0, sol[2]), bw = false)
+plr = plot(pl1, pl3, pl2, layout = (3, 1), size = (640, 360))
 ##
 res = progress_map(prm -> (computeTimeLazyReturn(prm, problem, Val(false), false), computeTimeLazyReturn(prm, problem, Val(false), true)), rand(sample1, 1_000_000))
 res2 = map(r -> r[1] / r[2], res)
@@ -184,13 +184,13 @@ mn2 = argmin(map(secondElement, res))
 println(mn1 == mn2)
 println((res[mn1], res[mn2]))
 ##
-prob = Problem(9, 3, 2, 2, 8, 3, [10,2,8,5,6,6,4,2,1], BitSet.([[1],[2],[2],[3],[4],[5],[6],[6,7],[6,7,8]]))
+prob = Problem(9, 3, 2, 2, 8, 3, [10, 2, 8, 5, 6, 6, 4, 2, 1], BitSet.([[1], [2], [2], [3], [4], [5], [6], [6, 7], [6, 7, 8]]))
 @assert isValid(prob)
 ##
 model = buildModel(prob, ORDER_FIRST_STRICT, SHARED_EVENTS, 12, 20)
 addItems = model.inner[:addItems]
 removeItems = model.inner[:removeItems]
-@constraint(model.inner,[τ = 1:12],sum(addItems[τ,:]) ≥ sum(removeItems[τ,:]))
+@constraint(model.inner, [τ = 1:12], sum(addItems[τ, :]) ≥ sum(removeItems[τ, :]))
 res = runModel(model, 60 * 60)
 ##
 res = minimum(allPermutations(prob.jobCount)) do perm
@@ -211,13 +211,13 @@ end
 ##
 sol, = computeTimeLazyReturn(PermutationEncoding(1:9), prob, Val(true))
 sol2 = improveSolution(sol, prob)
-validate(sol2,prob)
+validate(sol2, prob)
 ##
 sol, = computeTimeLazyReturn(st1, problem, Val(true))
 sol2 = improveSolution(sol, problem)
-validate(sol2,problem)
+validate(sol2, problem)
 ##
-toJson("out/problem.json",problem)
+toJson("out/problem.json", problem)
 ##
 sf2 = let problem = problem
 	jobs -> computeTimeBufferOnly(jobs, problem)
@@ -230,7 +230,7 @@ rat = orig ./ buffer
 ##
 df = CSV.File("exp/annRes.tsv") |> DataFrame
 ##
-CSV.write("exp/annRes.tsv",df,delim='\t')
+CSV.write("exp/annRes.tsv", df, delim = '\t')
 ##
 starts = fill(st4, 10)
 dif = maxDif(st4, sf)
@@ -246,7 +246,7 @@ ress = ThreadsX.map(1:10) do i
 	println("End $i")
 	sc
 end
-push!(df,(100, 1, "A", missing, problem.jobCount, machineCount, carCount, bufferSize, true, annealingSettings.searchTries, dyn, annealingSettings.sameTemperatureTries, annealingSettings.startTheshold, power, 0.5, "bestStart", minimum(ress), maximum(ress), mean(ress)))
+push!(df, (100, 1, "A", missing, problem.jobCount, machineCount, carCount, bufferSize, true, annealingSettings.searchTries, dyn, annealingSettings.sameTemperatureTries, annealingSettings.startTheshold, power, 0.5, "bestStart", minimum(ress), maximum(ress), mean(ress)))
 ##
 @time for change ∈ changeIterator(st1)
 	restore = change!(st1, change)
@@ -259,45 +259,45 @@ sols = rand(sample1, 10^5)
 @time foreach(sf2, sols)
 ##
 df = CSV.File("exp/annRes.tsv") |> DataFrame
-df2 = df[[6:10;25:25;111:111;26:29],:]
-df2 = df[[11:17;30:34],:]
-df2 = df[[18:24;113:113;112:112;35:39],:]
+df2 = df[[6:10; 25:25; 111:111; 26:29], :]
+df2 = df[[11:17; 30:34], :]
+df2 = df[[18:24; 113:113; 112:112; 35:39], :]
 theme(:dark)
-berr = (df2[:,:mean] - df2[:,:best])
-werr = (df2[:,:worst] - df2[:,:mean])
+berr = (df2[:, :mean] - df2[:, :best])
+werr = (df2[:, :worst] - df2[:, :mean])
 err = zip(berr, werr) |> collect
-plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,series_annotations=string.(df2[:,:sameTemperature]),yerror=err)
-plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,series_annotations=string.(df2[:,:sameTemperature]),label=false)
-plot(df2[:,:sameTemperature],df2[:,:mean],xscale=:log10,marker=:circle,label=false,yerror=err)
+plot(df2[:, :sameTemperature], df2[:, :mean], xscale = :log10, marker = :circle, series_annotations = string.(df2[:, :sameTemperature]), yerror = err)
+plot(df2[:, :sameTemperature], df2[:, :mean], xscale = :log10, marker = :circle, series_annotations = string.(df2[:, :sameTemperature]), label = false)
+plot(df2[:, :sameTemperature], df2[:, :mean], xscale = :log10, marker = :circle, label = false, yerror = err)
 plt = plot(
-	df2[:,:sameTemperature],
-	df2[:,:mean],
-	xscale=:log10,
-	marker=:circle,
-	label=false,
-	xlabel="Iterations at the same temperature",
-	ylabel="Mean schedule length",
+	df2[:, :sameTemperature],
+	df2[:, :mean],
+	xscale = :log10,
+	marker = :circle,
+	label = false,
+	xlabel = "Iterations at the same temperature",
+	ylabel = "Mean schedule length",
 	# annotations=tuple.(df2[:,:sameTemperature],df2[:,:mean] .+ 1,string.(df2[:,:sameTemperature])),
-	xticks=setdiff(df2[:,:sameTemperature], [5000,20000,80000]),
-	xformatter=x -> true ? round(Int, x) : @sprintf("%.0e",x),
+	xticks = setdiff(df2[:, :sameTemperature], [5000, 20000, 80000]),
+	xformatter = x -> true ? round(Int, x) : @sprintf("%.0e", x),
 	# xtickfontsize=6,
 	# palette=:grays,
-	size=(600, 300)
+	size = (600, 300)
 )
 # savefig(plt,"out/sameTemp_form_27.svg")
 ##
 df = CSV.File("exp/tabuRes.tsv") |> DataFrame
-df2 = df[22:28,:]
-df2 = df[29:36,:]
-df2 = df[46:50,:]
+df2 = df[22:28, :]
+df2 = df[29:36, :]
+df2 = df[46:50, :]
 theme(:dark)
-berr = (df2[:,:mean] - df2[:,:best])
-werr = (df2[:,:worst] - df2[:,:mean])
+berr = (df2[:, :mean] - df2[:, :best])
+werr = (df2[:, :worst] - df2[:, :mean])
 err = zip(berr, werr) |> collect
-plot(df2[:,:tabuSize],df2[:,:mean],xscale=:log10,xlabel="l",ylabel="Cmax",yerror=err)
-plot(df2[:,:tabuSize],df2[:,:mean],xscale=:log10,xlabel="l",ylabel="Cmax",series_annotations=string.(df2[:,:tabuSize]))
+plot(df2[:, :tabuSize], df2[:, :mean], xscale = :log10, xlabel = "l", ylabel = "Cmax", yerror = err)
+plot(df2[:, :tabuSize], df2[:, :mean], xscale = :log10, xlabel = "l", ylabel = "Cmax", series_annotations = string.(df2[:, :tabuSize]))
 ##
-ress = progress_map(mapfun=ThreadsX.map, 1:1_000_000) do _
+ress = progress_map(mapfun = ThreadsX.map, 1:1_000_000) do _
 	st = rand(sample1)
 	sf(st), sf2(st)
 end
@@ -305,13 +305,13 @@ rat = secondElement.(ress) ./ first.(ress)
 ##
 ress1 = readdlm("out/random_100_1.tsv")
 ress2 = readdlm("out/random_500_1.tsv")
-rat1 = ress1[:,2] ./ ress1[:,1]
-rat2 = ress2[:,2] ./ ress2[:,1]
+rat1 = ress1[:, 2] ./ ress1[:, 1]
+rat2 = ress2[:, 2] ./ ress2[:, 1]
 ##
-plt1 = histogram(rat1, label=false, normalize=:pdf, xlabel="f'(s)/f(s)")
-plt2 = histogram(rat2, label=false, normalize=:pdf, xlabel="f'(s)/f(s)")
-plt = plot(plt1, plt2, size=(800, 480))
-savefig(plt,"out/hist_alt_double.svg")
+plt1 = histogram(rat1, label = false, normalize = :pdf, xlabel = "f'(s)/f(s)")
+plt2 = histogram(rat2, label = false, normalize = :pdf, xlabel = "f'(s)/f(s)")
+plt = plot(plt1, plt2, size = (800, 480))
+savefig(plt, "out/hist_alt_double.svg")
 ##
 limitCounter = Counter(10)
 probSize = 50
@@ -337,7 +337,7 @@ sol = computeTimeLazyReturn(modularAnnealing(annealingSettings, sf, deepcopy(st1
 cars = normalizeHistory(sol[3], problem.carTravelTime)
 fnt = 8
 # pl1=gantt(sol[1],problem.jobLengths,false,string.(collect.(problem.itemsNeeded)),bw=false)
-pl1 = plot(xlims=(0, :auto), ylabel="Machines")
+pl1 = plot(xlims = (0, :auto), ylabel = "Machines")
 jobs = sol[1]
 useLabel = false
 jobLengths = problem.jobLengths
@@ -347,9 +347,9 @@ for i = 1:length(jobLengths)
 	job = GanttJob(jobs.assignment[i], jobs.times[i], jobLengths[i])
 	cent = center(job)
 	if bw
-		plot!(pl1, job, label=(useLabel ? "job $i" : nothing), annotations=(text ≢ nothing ? (cent..., Plots.text(txt[i], fnt)) : nothing), fillcolor=:lightgrey)
+		plot!(pl1, job, label = (useLabel ? "job $i" : nothing), annotations = (text ≢ nothing ? (cent..., Plots.text(txt[i], fnt)) : nothing), fillcolor = :lightgrey)
 	else
-		plot!(pl1, job, label=(useLabel ? "job $i" : nothing), annotations=(text ≢ nothing ? (cent..., Plots.text(txt[i], fnt)) : nothing), fillalpha=(bw ? 0 : 1))
+		plot!(pl1, job, label = (useLabel ? "job $i" : nothing), annotations = (text ≢ nothing ? (cent..., Plots.text(txt[i], fnt)) : nothing), fillalpha = (bw ? 0 : 1))
 	end
 end
 
@@ -361,14 +361,14 @@ carTravelTime = problem.carTravelTime
 txt = false
 maxTime = zeros(carNumber)
 jobs = map(carHistory) do event
-	map(event.items) do item
-		car = findfirst(≤(event.time), maxTime)
-		job = GanttJob(car, event.time, carTravelTime)
-		maxTime[car] = event.time + carTravelTime
-		job, item
-	end
-end |> Iterators.flatten |> collect
-pl2 = plot(label=false, xlims=(0, sol[2]), ylabel="Robots")
+		   map(event.items) do item
+			   car = findfirst(≤(event.time), maxTime)
+			   job = GanttJob(car, event.time, carTravelTime)
+			   maxTime[car] = event.time + carTravelTime
+			   job, item
+		   end
+	   end |> Iterators.flatten |> collect
+pl2 = plot(label = false, xlims = (0, sol[2]), ylabel = "Robots")
 adds = filter(job -> job[2][2], jobs)
 removes = filter(job -> !job[2][2], jobs)
 addsShapes = map(toShape ∘ first, adds)
@@ -377,16 +377,16 @@ removesShapes = map(toShape ∘ first, removes)
 removesAnnotations = map(job -> (center(job[1])..., Plots.text(string(job[2][1]), fnt)), removes)
 for i ∈ eachindex(addsShapes)
 	if bw
-	plot!(pl2, addsShapes[i], annotations=(txt ? addsAnnotations[i] : []), label=false, fillcolor=:grey)
+		plot!(pl2, addsShapes[i], annotations = (txt ? addsAnnotations[i] : []), label = false, fillcolor = :grey)
 	else
-	plot!(pl2, addsShapes[i], annotations=(txt ? addsAnnotations[i] : []), label=false, fillalpha=(bw ? 0 : 1), fillcolor=theme_palette(:default)[1])
+		plot!(pl2, addsShapes[i], annotations = (txt ? addsAnnotations[i] : []), label = false, fillalpha = (bw ? 0 : 1), fillcolor = theme_palette(:default)[1])
 	end
 end
 for i ∈ eachindex(removesShapes)
 	if bw
-	plot!(pl2, removesShapes[i], annotations=(txt ? removesAnnotations[i] : []), label=false, fillcolor=:lightgrey)
+		plot!(pl2, removesShapes[i], annotations = (txt ? removesAnnotations[i] : []), label = false, fillcolor = :lightgrey)
 	else
-	plot!(pl2, removesShapes[i], annotations=(txt ? removesAnnotations[i] : []), label=false, fillalpha=(bw ? 0 : 1), fillcolor=theme_palette(:default)[2])
+		plot!(pl2, removesShapes[i], annotations = (txt ? removesAnnotations[i] : []), label = false, fillalpha = (bw ? 0 : 1), fillcolor = theme_palette(:default)[2])
 	end
 end
 
@@ -409,28 +409,28 @@ jobs = map(itemsInBuffer) do item
 	maxTime[car] = item[3]
 	job, item[1]
 end
-pl3 = plot(label=false, xlims=(0, sol[2]), ylabel="Buffer")
+pl3 = plot(label = false, xlims = (0, sol[2]), ylabel = "Buffer")
 if bw
-foreach(job -> plot!(pl3, job[1], label=false, annotations=(center(job[1])..., Plots.text(string(job[2]), fnt)), fillcolor=:lightgrey), jobs)
+	foreach(job -> plot!(pl3, job[1], label = false, annotations = (center(job[1])..., Plots.text(string(job[2]), fnt)), fillcolor = :lightgrey), jobs)
 else
-foreach(job -> plot!(pl3, job[1], label=false, annotations=(center(job[1])..., Plots.text(string(job[2]), fnt)), fillalpha=(bw ? 0 : 1)), jobs)
+	foreach(job -> plot!(pl3, job[1], label = false, annotations = (center(job[1])..., Plots.text(string(job[2]), fnt)), fillalpha = (bw ? 0 : 1)), jobs)
 end
 
-plr = plot(pl1, pl3, pl2, layout=(3, 1), size=(720, 480), xlabel="Time")
+plr = plot(pl1, pl3, pl2, layout = (3, 1), size = (720, 480), xlabel = "Time")
 ##
 resFile = "exp/results.json"
 results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 open(resFile, "w") do file
-	JSON.print(file, results, 4);
+	JSON.print(file, results, 4)
 end;
 ##
 results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
 ##
 tab = resultsToTable(results)
-CSV.write("out/results.tsv",tab,delim='\t')
+CSV.write("out/results.tsv", tab, delim = '\t')
 ##
 tab2 = resultsToArtTable(results)
-open(f -> show(f, MIME("text/latex"), sort(tab2, :jobCount)),"out/results.tex","w")
+open(f -> show(f, MIME("text/latex"), sort(tab2, :jobCount)), "out/results.tex", "w")
 ##
 ress = []
 cnt = 1
@@ -470,16 +470,16 @@ for instance ∈ results
 		end
 	end
 end
-count(r -> r[1] ≠ r[2],ress)
+count(r -> r[1] ≠ r[2], ress)
 ##
 df = CSV.File("exp/tabuRes.tsv") |> DataFrame
-for ins∈results
+for ins ∈ results
 	prob = instanceToProblem(ins)
-	for res∈ins.tabuResults
+	for res ∈ ins.tabuResults
 		if res.type == "count" || res.type == "itemCount"
-			sols = [computeTimeLazyReturn(PermutationEncoding(result.solution), prob, Val(false)) for result∈res.results]
-			itrs = [result.foundIteration for result∈res.results]
-			push!(df,(
+			sols = [computeTimeLazyReturn(PermutationEncoding(result.solution), prob, Val(false)) for result ∈ res.results]
+			itrs = [result.foundIteration for result ∈ res.results]
+			push!(df, (
 				ins.problemSize,
 				ins.problemNumber,
 				join(ins.lineTypes),
@@ -506,78 +506,86 @@ for ins∈results
 	end
 end
 ##
-group1 = [1:9;20:23;31:33;43:43]
-group2 = [11:19;24:27;37:39]
-group3 = [30:30;44:49]
-groups = [group1,group2,group3]
+group1 = [1:9; 20:23; 31:33; 43:43]
+group2 = [11:19; 24:27; 37:39]
+group3 = [30:30; 44:49]
+groups = [group1, group2, group3]
 ##
 for gr = 1:3
-folder = "out/export/group$gr"
-mkpath(folder)
-names = Set{String}()
-open("$folder/results.tsv","w") do mins
-	for instance ∈ results[groups[gr]]
-		problem = instanceToProblem(instance,skipZeros=instance.problemSize ≥ 50 && !(
+	folder = "out/export/group$gr"
+	mkpath(folder)
+	names = Set{String}()
+	open("$folder/results.tsv", "w") do mins
+		for instance ∈ results[groups[gr]]
+			problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
 			# (instance.problemSize == 200 && instance.problemNumber == 6)
-			(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
+				(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
 			))
-		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
-		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
-		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
-		bestAnn = argmin(map(mean, annRess))
-		bestTabu = argmin(map(mean, tabuRess))
-		bestLB = 0
-		if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
-			bestLB = instance.modelResults.fullModel.bound
-		end
-		if instance.modelResults.bufferOnly ≢ nothing && instance.modelResults.bufferOnly.bound > bestLB
-			bestLB = instance.modelResults.bufferOnly.bound
-		end
-		if instance.modelResults.transportOnly ≢ nothing && instance.modelResults.transportOnly.bound > bestLB
-			bestLB = instance.modelResults.transportOnly.bound
-		end
-		if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
-			bestLB = instance.modelResults.assignmentOnly.bound
-		end
-		counter = findfirst(i -> "$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$i" ∉ names, 1:10)
-		name = "$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$counter"
-		push!(names, name)
-		fld = "$folder/$name"
-		mkpath(fld)
-		open("$fld/data_$name.txt", "w") do file
-			println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
-			for p ∈ problem.jobLengths;print(file, p, ' ');end
-			println(file)
-			for s ∈ problem.itemsNeeded
-				for it ∈ s;print(file, it, ' ');end
-				println(file)
+			scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+			annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
+			tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+			bestAnn = argmin(map(mean, annRess))
+			bestTabu = argmin(map(mean, tabuRess))
+			bestLB = 0
+			if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
+				bestLB = instance.modelResults.fullModel.bound
 			end
+			if instance.modelResults.bufferOnly ≢ nothing && instance.modelResults.bufferOnly.bound > bestLB
+				bestLB = instance.modelResults.bufferOnly.bound
+			end
+			if instance.modelResults.transportOnly ≢ nothing && instance.modelResults.transportOnly.bound > bestLB
+				bestLB = instance.modelResults.transportOnly.bound
+			end
+			if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
+				bestLB = instance.modelResults.assignmentOnly.bound
+			end
+			counter = findfirst(i -> "$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$i" ∉ names, 1:10)
+			name = "$(problem.jobCount)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$counter"
+			push!(names, name)
+			fld = "$folder/$name"
+			mkpath(fld)
+			open("$fld/data_$name.txt", "w") do file
+				println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
+				for p ∈ problem.jobLengths
+					print(file, p, ' ')
+				end
+				println(file)
+				for s ∈ problem.itemsNeeded
+					for it ∈ s
+						print(file, it, ' ')
+					end
+					println(file)
+				end
+			end
+			write("$fld/tabu_$name.txt", join(tabuRess[bestTabu], ' '))
+			write("$fld/annealing_$name.txt", join(annRess[bestAnn], ' '))
+			println(mins, problem.jobCount, '\t', problem.machineCount, '\t', problem.carCount, '\t', problem.bufferSize, '\t', "$name.zip", '\t', min(minimum(minimum, annRess), minimum(minimum, tabuRess)), '\t', bestLB)
 		end
-		write("$fld/tabu_$name.txt", join(tabuRess[bestTabu], ' '))
-		write("$fld/annealing_$name.txt", join(annRess[bestAnn], ' '))
-		println(mins, problem.jobCount, '\t', problem.machineCount, '\t', problem.carCount, '\t', problem.bufferSize, '\t', "$name.zip", '\t', min(minimum(minimum, annRess), minimum(minimum, tabuRess)), '\t', bestLB)
 	end
-end
 end
 ##
 instance = createInstance(200, 6, ['A'], missing, 4, 30, 6)
-problem = instanceToProblem(instance, skipZeros=true)
-open("out/data_$(problem.jobCount).txt","w") do file
+problem = instanceToProblem(instance, skipZeros = true)
+open("out/data_$(problem.jobCount).txt", "w") do file
 	println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
-	for p ∈ problem.jobLengths;print(file, p, ' ');end
+	for p ∈ problem.jobLengths
+		print(file, p, ' ')
+	end
 	println(file)
 	for s ∈ problem.itemsNeeded
 		print(file, length(s), ' ')
-		for it ∈ s;print(file, it, ' ');end
+		for it ∈ s
+			print(file, it, ' ')
+		end
 		println(file)
 	end
 end
 ##
 errs = map(results[collect(Iterators.flatten(groups))]) do instance
-	problem = instanceToProblem(instance,skipZeros=instance.problemSize ≥ 50 && !(
-		# (instance.problemSize == 200 && instance.problemNumber == 6)
+	problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
+	# (instance.problemSize == 200 && instance.problemNumber == 6)
 		(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
-		))
+	))
 	scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 	annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 	tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
@@ -597,4 +605,52 @@ errs = map(results[collect(Iterators.flatten(groups))]) do instance
 		bestLB = instance.modelResults.assignmentOnly.bound
 	end
 	(mean(annRess[bestAnn]) - bestLB) / bestLB, (mean(tabuRess[bestTabu]) - bestLB) / bestLB
+end
+##
+let results = results, groups = groups
+	names = Set{String}()
+	for instance ∈ results[collect(Iterators.flatten(groups))]
+		GC.gc()
+		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
+		# (instance.problemSize == 200 && instance.problemNumber == 6)
+			(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
+		))
+		counter = findfirst(i -> "$(instance.problemSize)_$(instance.problemNumber)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$i" ∉ names, 1:10)
+		prefix = "$(instance.problemSize)_$(instance.problemNumber)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$counter"
+		push!(names, prefix)
+		println(prefix)
+		prefix = "out/models/" * prefix
+		samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+		sol = let s = computeTimeLazyReturn(rand(samp), problem, Val(true))
+			(schedule = s.schedule, time = s.time)
+		end
+		T = sol.schedule.carTasks |> ffilter(e -> e.isAdd) |> fmap(e -> e.time) |> unique |> length
+		M = sol.time
+		GC.gc()
+
+		if problem.jobCount < 400 && !isfile(prefix * "_full.mps")
+			model = buildModel(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, T, M, optimizer = nothing)
+			setStartValues(model, sol.schedule, problem)
+			write_to_file(model.inner, prefix * "_full.mps")
+			writeMIPStart(model.inner, prefix * "_full.mst")
+		end
+		GC.gc()
+
+		if problem.jobCount < 400 && !isfile(prefix * "_buffer.mps")
+			model = buildModel(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, T, M, optimizer = nothing)
+			write_to_file(model.inner, prefix * "_buffer.mps")
+		end
+		GC.gc()
+
+		if problem.jobCount < 400 && !isfile(prefix * "_deliver.mps")
+			model = buildModel(problem, ORDER_FIRST_STRICT, DELIVER_ONLY, T, M, optimizer = nothing)
+			write_to_file(model.inner, prefix * "_deliver.mps")
+		end
+		GC.gc()
+
+		if !isfile(prefix * "_assign.mps")
+			model = buildModel(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, T, M, optimizer = nothing)
+			write_to_file(model.inner, prefix * "_assign.mps")
+		end
+	end
 end

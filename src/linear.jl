@@ -1,4 +1,4 @@
-using JuMP,Gurobi
+using JuMP, Gurobi
 
 include("hardLinear.jl")
 include("simplifiedLinears.jl")
@@ -12,7 +12,7 @@ struct ModelWrapper
 	inner
 end
 
-function buildModel(problem, machineModelType, carModelType, T=0, M=0)
+function buildModel(problem, machineModelType, carModelType, T = 0, M = 0; optimizer = Gurobi.Optimizer)
 	jobCount = problem.jobCount
 	itemsNeeded = problem.itemsNeeded
 
@@ -22,9 +22,9 @@ function buildModel(problem, machineModelType, carModelType, T=0, M=0)
 	TE = T == 0 ? max(TR, jobCount, ceil(Int, allItemsCount / problem.bufferSize)) : T
 	M = M == 0 ? problem.carTravelTime + sum(problem.jobLengths) : M
 
-	model = Model(Gurobi.Optimizer)
-	@variable(model,startTime[1:jobCount] ≥ 0)
-	@variable(model,res)
+	model = optimizer ≢ nothing ? Model(optimizer) : Model()
+	@variable(model, startTime[1:jobCount] ≥ 0)
+	@variable(model, res)
 
 	if machineModelType ≡ ORDER_FIRST
 		machinesModel(model, problem, M)
@@ -57,13 +57,13 @@ function buildModel(problem, machineModelType, carModelType, T=0, M=0)
 		@assert carModelType ≡ NO_CARS
 	end
 
-	@constraint(model,[i = 1:jobCount],res ≥ startTime[i] + problem.jobLengths[i])
-	@objective(model,Min,res)
+	@constraint(model, [i = 1:jobCount], res ≥ startTime[i] + problem.jobLengths[i])
+	@objective(model, Min, res)
 
 	ModelWrapper(machineModelType, carModelType, model)
 end
 
-function runModel(model, timeout=0;attributes=[])
+function runModel(model, timeout = 0; attributes = [])
 	timeout ≠ 0 && set_time_limit_sec(model.inner, timeout)
 	for attr ∈ attributes
 		set_optimizer_attribute(model.inner, attr[1], attr[2])
@@ -88,5 +88,13 @@ function setStartValues(model, schedule, problem)
 		toCarsModel4Q(model.inner, schedule, problem)
 	else
 		@assert false
+	end
+end
+
+function writeMIPStart(model, filename)
+	open(filename, "w") do file
+		for variable ∈ all_variables(model)
+			println(file, name(variable), ' ', start_value(variable))
+		end
 	end
 end
