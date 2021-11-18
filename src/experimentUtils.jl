@@ -10,7 +10,7 @@ using ThreadsX
 using DataFrames
 
 
-const ModelResult = @NamedTuple{solution::Union{Float32,Missing},bound::Union{Float32,Missing}}
+const ModelResult = @NamedTuple {solution::Union{Float32,Missing}, bound::Union{Float32,Missing}}
 
 mutable struct ModelResults
 	fullModel::Union{ModelResult,Nothing}
@@ -69,7 +69,7 @@ struct ProblemInstance
 	annealingResults::Vector{AnnealingExperiment}
 end
 
-createInstance(problemSize,problemNumber,lineTypes,boxLimit,machineCount,carCount,bufferSize)::ProblemInstance =
+createInstance(problemSize, problemNumber, lineTypes, boxLimit, machineCount, carCount, bufferSize)::ProblemInstance =
 	ProblemInstance(
 		problemSize,
 		problemNumber,
@@ -87,29 +87,28 @@ function findInstance(data, problemSize, problemNumber, lineTypes, boxLimit, mac
 	lineTypeSet = Set(lineTypes)
 
 	ind = findfirst(it ->
-		it.problemSize == problemSize
-		&& it.problemNumber == problemNumber
-		&& it.lineTypes == lineTypeSet
-		&& isequal(it.boxLimit, boxLimit)
-		&& it.machineCount == machineCount
-		&& it.carCount == carCount
-		&& it.bufferSize == bufferSize
-	,data)
+			it.problemSize == problemSize
+				&& it.problemNumber == problemNumber
+				&& it.lineTypes == lineTypeSet
+				&& isequal(it.boxLimit, boxLimit)
+				&& it.machineCount == machineCount
+				&& it.carCount == carCount
+				&& it.bufferSize == bufferSize, data)
 	ind ≡ nothing ? nothing : data[ind]
 end
 
-function instanceToProblem(instance::ProblemInstance; skipZeros::Bool=false)::Problem
+function instanceToProblem(instance::ProblemInstance; skipZeros::Bool = false)::Problem
 	limitCounter = instance.boxLimit ≢ missing ? Counter(instance.boxLimit) : () -> true
 	Problem(
 		parseRealData("res/benchmark - automatic warehouse", instance.problemSize, instance.problemNumber),
 		instance.machineCount,
 		instance.carCount,
 		instance.bufferSize,
-		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!skipZeros || box.packingTime ≠ 0)  && limitCounter()
+		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!skipZeros || box.packingTime ≠ 0) && limitCounter()
 	)
 end
 
-function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple{jobCount::Int,items::Int,maxItems::Int,travelTime::Int}
+function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple {jobCount::Int, items::Int, maxItems::Int, travelTime::Int}
 	lineTypesSet = Set(lineTypes)
 	data = toModerateJobs(parseRealData("res/benchmark - automatic warehouse", problemSize, problemNum), box -> box.lineType[1] ∈ lineTypesSet && !isempty(box.items))
 	(
@@ -122,32 +121,38 @@ end
 
 function resultsToTable(results::Vector{ProblemInstance})
 	df = DataFrame(
-		probSize=Int[],
-		probNum=Int[],
-		machineCount=Int[],
-		carCount=Int[],
-		bufSize=Int[],
-		fullSol=Union{Float64,Missing}[],
-		fullLB=Union{Float64,Missing}[],
-		bufferSol=Union{Float64,Missing}[],
-		bufferLB=Union{Float64,Missing}[],
-		carsSol=Union{Float64,Missing}[],
-		carsLB=Union{Float64,Missing}[],
-		simpleSol=Union{Float64,Missing}[],
-		simpleLB=Union{Float64,Missing}[],
-		annMean=Union{Float64,Missing}[],
-		tabuMean=Union{Float64,Missing}[]
+		probSize = Int[],
+		probNum = Int[],
+		jobCount = Int[],
+		machineCount = Int[],
+		carCount = Int[],
+		bufSize = Int[],
+		fullSol = Union{Float64,Missing}[],
+		fullLB = Union{Float64,Missing}[],
+		bufferSol = Union{Float64,Missing}[],
+		bufferLB = Union{Float64,Missing}[],
+		carsSol = Union{Float64,Missing}[],
+		carsLB = Union{Float64,Missing}[],
+		simpleSol = Union{Float64,Missing}[],
+		simpleLB = Union{Float64,Missing}[],
+		annMin = Union{Int,Missing}[],
+		annMean = Union{Float64,Missing}[],
+		tabuMin = Union{Int,Missing}[],
+		tabuMean = Union{Float64,Missing}[]
 	)
 	for instance ∈ results
-		problem = instanceToProblem(instance, skipZeros=instance.problemSize ≥ 50)
+		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50)
 		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
 		annMean = isempty(annRess) ? missing : minimum(mean, annRess)
 		tabuMean = isempty(tabuRess) ? missing : minimum(mean, tabuRess)
-		push!(df,(
+		annMin = isempty(annRess) ? missing : minimum(minimum, annRess)
+		tabuMin = isempty(tabuRess) ? missing : minimum(minimum, tabuRess)
+		push!(df, (
 			instance.problemSize,
 			instance.problemNumber,
+			problem.jobCount,
 			instance.machineCount,
 			instance.carCount,
 			instance.bufferSize,
@@ -159,7 +164,9 @@ function resultsToTable(results::Vector{ProblemInstance})
 			instance.modelResults.transportOnly ≢ nothing ? instance.modelResults.transportOnly.bound : missing,
 			instance.modelResults.assignmentOnly ≢ nothing ? instance.modelResults.assignmentOnly.solution : missing,
 			instance.modelResults.assignmentOnly ≢ nothing ? instance.modelResults.assignmentOnly.bound : missing,
+			annMin,
 			annMean,
+			tabuMin,
 			tabuMean
 		))
 	end
@@ -168,19 +175,19 @@ end
 
 function resultsToArtTable(results::Vector{ProblemInstance})
 	df = DataFrame(
-		jobCount=Int[],
-		tabuBest=Union{Int,Missing}[],
-		tabuWorst=Union{Int,Missing}[],
-		tabuMean=Union{Float64,Missing}[],
-		annBest=Union{Int,Missing}[],
-		annWorst=Union{Int,Missing}[],
-		annMean=Union{Float64,Missing}[],
-		fullSol=Union{Int,Missing}[],
-		fullLB=Union{Int,Missing}[],
-		bestLB=Int[]
+		jobCount = Int[],
+		tabuBest = Union{Int,Missing}[],
+		tabuWorst = Union{Int,Missing}[],
+		tabuMean = Union{Float64,Missing}[],
+		annBest = Union{Int,Missing}[],
+		annWorst = Union{Int,Missing}[],
+		annMean = Union{Float64,Missing}[],
+		fullSol = Union{Int,Missing}[],
+		fullLB = Union{Int,Missing}[],
+		bestLB = Int[]
 	)
 	for instance ∈ results
-		problem = instanceToProblem(instance, skipZeros=instance.problemSize ≥ 50)
+		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50)
 		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
@@ -217,7 +224,7 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 		if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
 			bestLB = instance.modelResults.assignmentOnly.bound
 		end
-		push!(df,(
+		push!(df, (
 			problem.jobCount,
 			tabuBest,
 			tabuWorst,
@@ -233,7 +240,7 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 	df
 end
 
-function runLinear(problem::Problem, machineType::MachineModelType, carType::CarModelType;timeLimit::Int=0,startSolution::Union{Bool,PermutationEncoding}=false)
+function runLinear(problem::Problem, machineType::MachineModelType, carType::CarModelType; timeLimit::Int = 0, startSolution::Union{Bool,PermutationEncoding} = false)
 	sample = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 	sol = computeTimeLazyReturn(isa(startSolution, PermutationEncoding) ? startSolution : rand(sample), problem, Val(true))
 	T = sol.schedule.carTasks |> ffilter(e -> e.isAdd) |> fmap(e -> e.time) |> unique |> length
@@ -251,7 +258,7 @@ function runLinear(problem::Problem, machineType::MachineModelType, carType::Car
 	res
 end
 
-function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, same::Int, temp::Float64;uniform::Bool=true,fast::Bool=false,improvements::Vector{String}=String[],type::String="")
+function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, same::Int, temp::Float64; uniform::Bool = true, fast::Bool = false, improvements::Vector{String} = String[], type::String = "")
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
 
@@ -317,7 +324,7 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 	AnnealingExperiment(false, 0, false, 0, 0.0, 0.0, 0.0, Set{String}(), "", AnnealingResult[])
 end
 
-function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSize::Int;distribution::String="uniform",fast::Bool=false,improvements::Vector{String}=String[],type::String="")
+function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSize::Int; distribution::String = "uniform", fast::Bool = false, improvements::Vector{String} = String[], type::String = "")
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val(false), true)
 
