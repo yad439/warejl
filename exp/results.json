@@ -4260,10 +4260,19 @@
 		"carCount": 20,
 		"bufferSize": 5,
 		"modelResults": {
-			"fullModel": null,
-			"bufferOnly": null,
+			"fullModel": {
+				"solution": 23198.0,
+				"bound": 2359.0
+			},
+			"bufferOnly": {
+				"solution": 8291.0,
+				"bound": 2359.0
+			},
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 8270.0,
+				"bound": 8269.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -5720,9 +5729,15 @@
 		"bufferSize": 6,
 		"modelResults": {
 			"fullModel": null,
-			"bufferOnly": null,
+			"bufferOnly": {
+				"solution": 27713.0,
+				"bound": 2348.0
+			},
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 27351.0,
+				"bound": 27351.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -5863,10 +5878,19 @@
 		"carCount": 30,
 		"bufferSize": 6,
 		"modelResults": {
-			"fullModel": null,
-			"bufferOnly": null,
+			"fullModel": {
+				"solution": 8146.0,
+				"bound": 877.0
+			},
+			"bufferOnly": {
+				"solution": 7415.0,
+				"bound": 1605.0
+			},
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 7408.0,
+				"bound": 7408.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -6007,10 +6031,19 @@
 		"carCount": 20,
 		"bufferSize": 5,
 		"modelResults": {
-			"fullModel": null,
-			"bufferOnly": null,
+			"fullModel": {
+				"solution": 8095.0,
+				"bound": 877.0
+			},
+			"bufferOnly": {
+				"solution": 5201.0,
+				"bound": 1605.0
+			},
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 5183.0,
+				"bound": 5181.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -6151,10 +6184,19 @@
 		"carCount": 20,
 		"bufferSize": 6,
 		"modelResults": {
-			"fullModel": null,
-			"bufferOnly": null,
+			"fullModel": {
+				"solution": 8313.0,
+				"bound": 794.0
+			},
+			"bufferOnly": {
+				"solution": 3824.0,
+				"bound": 1512.0
+			},
 			"transportOnly": null,
-			"assignmentOnly": null
+			"assignmentOnly": {
+				"solution": 3809.0,
+				"bound": 3808.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -6295,10 +6337,22 @@
 		"carCount": 30,
 		"bufferSize": 6,
 		"modelResults": {
-			"fullModel": null,
-			"bufferOnly": null,
-			"transportOnly": null,
-			"assignmentOnly": null
+			"fullModel": {
+				"solution": 2538.0,
+				"bound": 1417.0
+			},
+			"bufferOnly": {
+				"solution": 2611.0,
+				"bound": 1745.0
+			},
+			"transportOnly": {
+				"solution": 2128.0,
+				"bound": 1417.0
+			},
+			"assignmentOnly": {
+				"solution": 2128.0,
+				"bound": 2128.0
+			}
 		},
 		"tabuResults": [
 			{
@@ -6439,10 +6493,19 @@
 		"carCount": 40,
 		"bufferSize": 8,
 		"modelResults": {
-			"fullModel": null,
+			"fullModel": {
+				"solution": 2832.0,
+				"bound": 1417.0
+			},
 			"bufferOnly": null,
-			"transportOnly": null,
-			"assignmentOnly": null
+			"transportOnly": {
+				"solution": 2782.0,
+				"bound": 1417.0
+			},
+			"assignmentOnly": {
+				"solution": 2775.0,
+				"bound": 2775.0
+			}
 		},
 		"tabuResults": [
 			{

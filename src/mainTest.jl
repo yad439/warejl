@@ -654,3 +654,24 @@ let results = results, groups = groups
 		end
 	end
 end
+##
+oldRes = CSV.File("exp/results.tsv") |> DataFrame
+##
+for inst ∈ results[group3]
+	for row ∈ eachrow(oldRes)
+		if inst.problemSize == row.problemSize && inst.problemNumber == row.problemNum && inst.machineCount == row.machineCount && inst.carCount == row.carCount && inst.bufferSize == row.bufferSize
+			if inst.modelResults.fullModel ≡ nothing && row.linSol ≢ missing && row.linLB ≢ missing
+				inst.modelResults.fullModel = (solution = row.linSol, bound = row.linLB)
+			end
+			if inst.modelResults.bufferOnly ≡ nothing && row.bLinSol ≢ missing && row.bLinLB ≢ missing
+				inst.modelResults.bufferOnly = (solution = row.bLinSol, bound = row.bLinLB)
+			end
+			if inst.modelResults.transportOnly ≡ nothing && row.dLinSol ≢ missing && row.dLinLB ≢ missing
+				inst.modelResults.transportOnly = (solution = row.dLinSol, bound = row.dLinLB)
+			end
+			if inst.modelResults.assignmentOnly ≡ nothing && row.sLinSol ≢ missing && row.sLinLB ≢ missing
+				inst.modelResults.assignmentOnly = (solution = row.sLinSol, bound = row.sLinLB)
+			end
+		end
+	end
+end
