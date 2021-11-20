@@ -621,37 +621,53 @@ let results = results, groups = groups
 		println(prefix)
 		prefix = "out/models/" * prefix
 		samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+		minS = let
+			scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+			solutions = Iterators.flatten((
+				Iterators.flatten(Iterators.map(r -> Iterators.map(t -> t.solution, r.results), instance.annealingResults)),
+				Iterators.flatten(Iterators.map(r -> Iterators.map(t -> t.solution, r.results), instance.tabuResults))
+			)) |> collect
+			best = argmin(map(scoreFunction, solutions))
+			solutions[best]
+		end
 		sol = let s = computeTimeLazyReturn(rand(samp), problem, Val(true))
+			(schedule = s.schedule, time = s.time)
+		end
+		sol2 = let s = computeTimeLazyReturn(PermutationEncoding(minS), problem, Val(true))
 			(schedule = s.schedule, time = s.time)
 		end
 		T = sol.schedule.carTasks |> ffilter(e -> e.isAdd) |> fmap(e -> e.time) |> unique |> length
 		M = sol.time
 		GC.gc()
 
-		if problem.jobCount < 400 && !isfile(prefix * "_full.mps")
-			model = buildModel(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, T, M, optimizer = nothing)
-			setStartValues(model, sol.schedule, problem)
-			write_to_file(model.inner, prefix * "_full.mps")
-			writeMIPStart(model.inner, prefix * "_full.mst")
-		end
-		GC.gc()
+		model = read_from_file(prefix * "_full.mps")
+		setStartValues(ModelWrapper(ORDER_FIRST_STRICT, SHARED_EVENTS, model), sol2.schedule, problem)
+		writeMIPStart(model.inner, prefix * "_full_best.mst")
 
-		if problem.jobCount < 400 && !isfile(prefix * "_buffer.mps")
-			model = buildModel(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, T, M, optimizer = nothing)
-			write_to_file(model.inner, prefix * "_buffer.mps")
-		end
-		GC.gc()
+		# if problem.jobCount < 400 && !isfile(prefix * "_full.mps")
+		# 	model = buildModel(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, T, M, optimizer = nothing)
+		# 	setStartValues(model, sol.schedule, problem)
+		# 	write_to_file(model.inner, prefix * "_full.mps")
+		# 	writeMIPStart(model.inner, prefix * "_full.mst")
+		# end
+		# GC.gc()
 
-		if problem.jobCount < 400 && !isfile(prefix * "_deliver.mps")
-			model = buildModel(problem, ORDER_FIRST_STRICT, DELIVER_ONLY, T, M, optimizer = nothing)
-			write_to_file(model.inner, prefix * "_deliver.mps")
-		end
-		GC.gc()
+		# if problem.jobCount < 400 && !isfile(prefix * "_buffer.mps")
+		# 	model = buildModel(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, T, M, optimizer = nothing)
+		# 	write_to_file(model.inner, prefix * "_buffer.mps")
+		# end
+		# GC.gc()
 
-		if !isfile(prefix * "_assign.mps")
-			model = buildModel(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, T, M, optimizer = nothing)
-			write_to_file(model.inner, prefix * "_assign.mps")
-		end
+		# if problem.jobCount < 400 && !isfile(prefix * "_deliver.mps")
+		# 	model = buildModel(problem, ORDER_FIRST_STRICT, DELIVER_ONLY, T, M, optimizer = nothing)
+		# 	write_to_file(model.inner, prefix * "_deliver.mps")
+		# end
+		# GC.gc()
+
+		# if !isfile(prefix * "_assign.mps")
+		# 	model = buildModel(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, T, M, optimizer = nothing)
+		# 	write_to_file(model.inner, prefix * "_assign.mps")
+		# end
 	end
 end
 ##
