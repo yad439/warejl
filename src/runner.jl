@@ -45,7 +45,7 @@ let
 				instance::ProblemInstance
 
 				problem = try
-					instanceToProblem(instance, skipZeros=false)
+					instanceToProblem(instance)
 				catch e
 					println(stderr, "Can't parse problem ", probNum)
 					continue
@@ -176,10 +176,7 @@ let
 	names = Set{String}()
 	for instance ∈ results[collect(Iterators.flatten(groups))]
 		GC.gc()
-		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
-		# (instance.problemSize == 200 && instance.problemNumber == 6)
-			(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
-		))
+		problem = instanceToProblem(instance)
 		counter = findfirst(i -> "$(instance.problemSize)_$(instance.problemNumber)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$i" ∉ names, 1:10)
 		prefix = "$(instance.problemSize)_$(instance.problemNumber)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$counter"
 		push!(names, prefix)

@@ -525,10 +525,7 @@ for gr = 1:3
 	names = Set{String}()
 	open("$folder/results.tsv", "w") do mins
 		for instance ∈ results[groups[gr]]
-			problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
-			# (instance.problemSize == 200 && instance.problemNumber == 6)
-				(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
-			))
+			problem = instanceToProblem(instance)
 			scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 			annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 			tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
@@ -573,7 +570,7 @@ for gr = 1:3
 end
 ##
 instance = createInstance(200, 6, ['A'], missing, 4, 30, 6)
-problem = instanceToProblem(instance, skipZeros = true)
+problem = instanceToProblem(instance)
 open("out/data_$(problem.jobCount).txt", "w") do file
 	println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
 	for p ∈ problem.jobLengths
@@ -590,10 +587,7 @@ open("out/data_$(problem.jobCount).txt", "w") do file
 end
 ##
 errs = map(results[collect(Iterators.flatten(groups))]) do instance
-	problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
-	# (instance.problemSize == 200 && instance.problemNumber == 6)
-		(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
-	))
+	problem = instanceToProblem(instance)
 	scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 	annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 	tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
@@ -619,10 +613,7 @@ let results = results, groups = groups
 	names = Set{String}()
 	for instance ∈ results[collect(Iterators.flatten(groups))]
 		GC.gc()
-		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50 && !(
-		# (instance.problemSize == 200 && instance.problemNumber == 6)
-			(instance.problemSize == 100 && instance.problemNumber == 1 && instance.machineCount == 8 && instance.carCount == 20 && instance.bufferSize == 5)
-		))
+		problem = instanceToProblem(instance)
 		counter = findfirst(i -> "$(instance.problemSize)_$(instance.problemNumber)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$i" ∉ names, 1:10)
 		prefix = "$(instance.problemSize)_$(instance.problemNumber)_$(problem.machineCount)_$(problem.carCount)_$(problem.bufferSize)_$counter"
 		push!(names, prefix)
