@@ -8,7 +8,6 @@ include("hybridTabu.jl");
 include("realDataUtility.jl");
 include("linear.jl");
 include("extendedRandoms.jl");
-include("io.jl");
 include("simlpeHeuristic.jl");
 include("plots.jl");
 include("experimentUtils.jl");
@@ -22,6 +21,7 @@ using DataFrames
 using CSV
 using ThreadsX
 using JuMP
+using JSON
 ##
 cnt = 0
 function flt(box)
@@ -698,4 +698,12 @@ for inst ∈ results[group3]
 			end
 		end
 	end
+end
+##
+for inst ∈ results
+	inst["otherResults"] = []
+	inst["skipZeros"] = inst["problemSize"] ≥ 50 && !(
+	# (instance.problemSize == 200 && instance.problemNumber == 6)
+		(inst["problemSize"] == 100 && inst["problemNumber"] == 1 && inst["machineCount"] == 8 && inst["carCount"] == 20 && inst["bufferSize"] == 5)
+	)
 end

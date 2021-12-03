@@ -56,6 +56,35 @@ struct AnnealingExperiment
 	results::Vector{AnnealingResult}
 end
 
+struct HybridResult1
+	startSolution::Vector{UInt16}
+	solution::Vector{UInt16}
+	foundIteration::UInt16
+end
+
+struct HybridExperiment1
+	sortReturns::Bool
+	version::UInt8
+	baseIterations::UInt16
+	tabuSize::UInt16
+	neigborhoodSize::UInt16
+	annealingIterations::UInt32
+	sameTemperatureIterations::UInt32
+	startThreshold::Float32
+	power::Float64
+	restarts::UInt8
+	other::Set{String}
+	type::String
+	results::Vector{TabuResult}
+end
+
+@enum OtherTypes::UInt8 HYBRID1_TYPE = 1
+
+struct OtherResult
+	type::OtherTypes
+	result::Union{HybridExperiment1}
+end
+
 struct ProblemInstance
 	problemSize::UInt16
 	problemNumber::UInt8
@@ -64,12 +93,14 @@ struct ProblemInstance
 	machineCount::UInt8
 	carCount::UInt8
 	bufferSize::UInt8
+	skipZeros::Bool
 	modelResults::ModelResults
 	tabuResults::Vector{TabuExperiment}
 	annealingResults::Vector{AnnealingExperiment}
+	otherResults::Vector{OtherResult}
 end
 
-createInstance(problemSize, problemNumber, lineTypes, boxLimit, machineCount, carCount, bufferSize)::ProblemInstance =
+createInstance(problemSize, problemNumber, lineTypes, boxLimit, machineCount, carCount, bufferSize, skipZeros = true)::ProblemInstance =
 	ProblemInstance(
 		problemSize,
 		problemNumber,
@@ -78,12 +109,14 @@ createInstance(problemSize, problemNumber, lineTypes, boxLimit, machineCount, ca
 		machineCount,
 		carCount,
 		bufferSize,
+		skipZeros,
 		ModelResults(nothing, nothing, nothing, nothing),
 		TabuExperiment[],
-		AnnealingExperiment[]
+		AnnealingExperiment[],
+		OtherResult[]
 	)
 
-function findInstance(data, problemSize, problemNumber, lineTypes, boxLimit, machineCount, carCount, bufferSize)::Union{ProblemInstance,Nothing}
+function findInstance(data, problemSize, problemNumber, lineTypes, boxLimit, machineCount, carCount, bufferSize, skipZeros = nothing)::Union{ProblemInstance,Nothing}
 	lineTypeSet = Set(lineTypes)
 
 	ind = findfirst(it ->
@@ -93,7 +126,8 @@ function findInstance(data, problemSize, problemNumber, lineTypes, boxLimit, mac
 				&& isequal(it.boxLimit, boxLimit)
 				&& it.machineCount == machineCount
 				&& it.carCount == carCount
-				&& it.bufferSize == bufferSize, data)
+				&& it.bufferSize == bufferSize
+				&& (skipZeros ≢ nothing ? it.skipZeos == skipZeros : true), data)
 	ind ≡ nothing ? nothing : data[ind]
 end
 
@@ -104,7 +138,7 @@ function instanceToProblem(instance::ProblemInstance; skipZeros::Bool = false)::
 		instance.machineCount,
 		instance.carCount,
 		instance.bufferSize,
-		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!skipZeros || box.packingTime ≠ 0) && limitCounter()
+		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!instance.skipZeros || box.packingTime ≠ 0) && limitCounter()
 	)
 end
 

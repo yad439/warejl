@@ -1,3 +1,5 @@
+include("experimentUtils.jl")
+
 function fromJson(T, data)
 	@assert isstructtype(T)
 	fields = fieldnames(T)
@@ -5,21 +7,33 @@ function fromJson(T, data)
 	arguments = broadcast((field, type) -> fromJson(type, data[string(field)]), fields, types)
 	T(arguments...)
 end
-function fromJson(::Type{T}, data) where {T <: NamedTuple}
+function fromJson(::Type{T}, data) where {T<:NamedTuple}
 	fields = fieldnames(T)
 	types = fieldtypes(T)
 	arguments = broadcast((field, type) -> fromJson(type, data[string(field)]), fields, types)
 	T(arguments)
 end
-fromJson(::Type{Union{T,Nothing}},data) where {T} = data ≡ nothing ? nothing : fromJson(T, data)
-fromJson(::Type{Union{T,Missing}},data) where {T} = data ≡ nothing ? missing : fromJson(T, data)
-fromJson(::Type{Vector{T}},data) where {T} = map(it -> fromJson(T, it), data)
-fromJson(::Type{Set{T}},data) where {T} = Set(Iterators.map(it -> fromJson(T, it), data))
-fromJson(::Type{T},data) where {T <: Number} = convert(T, data)
-fromJson(::Type{String},data) = data
-fromJson(::Type{Char},data) = (@assert(length(data) == 1);data[1])
+fromJson(::Type{Union{T,Nothing}}, data) where {T} = data ≡ nothing ? nothing : fromJson(T, data)
+fromJson(::Type{Union{T,Missing}}, data) where {T} = data ≡ nothing ? missing : fromJson(T, data)
+fromJson(::Type{Vector{T}}, data) where {T} = map(it -> fromJson(T, it), data)
+fromJson(::Type{Set{T}}, data) where {T} = Set(Iterators.map(it -> fromJson(T, it), data))
+fromJson(::Type{T}, data) where {T<:Number} = convert(T, data)
+fromJson(::Type{String}, data) = data
+fromJson(::Type{Char}, data) = (@assert(length(data) == 1); data[1])
+fromJsom(type::Type{Enum{T}}, data) where {T} = type(data)
 
-toJson(output::IO,object) = toJson(output, object, 0)
+function fromJson(::Type{OtherResult}, data)
+	resultType = data["type"]
+	exactType = Nothing
+	if resultType ≡ HYBRID1_TYPE
+		exactType = HybridExperiment1
+	else
+		@assert false
+	end
+	OtherResult(resultType, fromJson(exactType, data["result"]))
+end
+
+toJson(output::IO, object) = toJson(output, object, 0)
 function toJson(output::IO, object, indent::Int)
 	@assert isstructtype(typeof(object))
 	print(output, "{\n")
@@ -36,7 +50,7 @@ function toJson(output::IO, object, indent::Int)
 	print(output, '\n', repeat('\t', indent), '}')
 	nothing
 end
-function toJson(output::IO, object::T, indent::Int) where {T <: NamedTuple}
+function toJson(output::IO, object::T, indent::Int) where {T<:NamedTuple}
 	print(output, "{\n")
 	fields = fieldnames(typeof(object))
 	firstField, rest = Iterators.peel(fields)
@@ -52,18 +66,20 @@ function toJson(output::IO, object::T, indent::Int) where {T <: NamedTuple}
 	nothing
 end
 
-toJson(output::IO, object::T, indent::Int) where {T <: AbstractVector} = toJsonCollection(output, object, indent)
-toJson(output::IO, object::Vector{T}, indent::Int) where {T <: Number} = toJsonCollectionCompact(output, object, indent)
-toJson(output::IO, object::Vector{T}, indent::Int) where {T <: AbstractString} = toJsonCollectionCompact(output, object, indent)
-toJson(output::IO, object::T, indent::Int) where {T <: AbstractSet} = toJsonCollection(output, object, indent)
-toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractChar} = toJsonCollectionCompact(output, object, indent)
-toJson(output::IO, object::Set{T}, indent::Int) where {T <: AbstractString} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::T, indent::Int) where {T<:AbstractVector} = toJsonCollection(output, object, indent)
+toJson(output::IO, object::Vector{T}, indent::Int) where {T<:Number} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::Vector{T}, indent::Int) where {T<:AbstractString} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::T, indent::Int) where {T<:AbstractSet} = toJsonCollection(output, object, indent)
+toJson(output::IO, object::Set{T}, indent::Int) where {T<:AbstractChar} = toJsonCollectionCompact(output, object, indent)
+toJson(output::IO, object::Set{T}, indent::Int) where {T<:AbstractString} = toJsonCollectionCompact(output, object, indent)
 
-toJson(output::IO,object::T,::Int) where {T <: AbstractString} = (print(output, '"', object, '"');nothing)
-toJson(output::IO,object::T,::Int) where {T <: AbstractChar} = (print(output, '"', object, '"');nothing)
-toJson(output::IO,object::T,::Int) where {T <: Number} = (print(output, object);nothing)
-toJson(output::IO,::Missing,::Int) = (print(output, "null");nothing)
-toJson(output::IO,::Nothing,::Int) = (print(output, "null");nothing)
+toJson(output::IO, object::T, ::Int) where {T<:AbstractString} = (print(output, '"', object, '"'); nothing)
+toJson(output::IO, object::T, ::Int) where {T<:AbstractChar} = (print(output, '"', object, '"'); nothing)
+toJson(output::IO, object::T, ::Int) where {T<:Number} = (print(output, object); nothing)
+toJson(output::IO, ::Missing, ::Int) = (print(output, "null"); nothing)
+toJson(output::IO, ::Nothing, ::Int) = (print(output, "null"); nothing)
+
+toJson(output::IO, object::Enum{T}, ::Int) where {T} = (print(output, Integer(object)); nothing)
 
 function toJsonCollection(output::IO, object, indent::Int)
 	if !isempty(object)
