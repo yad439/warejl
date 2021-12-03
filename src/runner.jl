@@ -114,7 +114,7 @@ GC.gc()
 # 	println(solution.score,' ',res.time)
 # end
 
-#=
+
 probSize = 200
 probNum = 6
 machineCount = 4
@@ -164,8 +164,8 @@ println("$time1 $time4 $time5")
 df=CSV.File("exp/times.tsv")|>DataFrame
 push!(df,(problem.jobCount,gethostname(),time0,time2,time3,time1,time4,time5))
 CSV.write("exp/times.tsv",df,delim='\t')
-=#
 
+#=
 let
 	results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
 	group1 = [1:9; 20:23; 31:33; 43:43]
@@ -232,3 +232,4 @@ let
 		end
 	end
 end
+=#
