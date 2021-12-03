@@ -4,6 +4,7 @@ include("auxiliary.jl")
 include("tabu.jl");
 include("local.jl");
 include("annealing.jl");
+include("hybridTabu.jl");
 include("realDataUtility.jl");
 include("linear.jl");
 include("extendedRandoms.jl");
@@ -37,11 +38,11 @@ function flt(box)
 end
 ##
 limitCounter = Counter(10)
-probSize = 100
-probNum = 1
-machineCount = 8
-carCount = 20
-bufferSize = 5
+probSize = 20
+probNum = 4
+machineCount = 6
+carCount = 30
+bufferSize = 6
 problem = Problem(parseRealData("res/benchmark - automatic warehouse", probSize, probNum), machineCount, carCount, bufferSize, box -> box.lineType == "A")
 # problem=Problem(parseRealData("res/benchmark - automatic warehouse",probSize,probNum),machineCount,carCount,bufferSize,box->box.lineType=="A" && !isempty(box.items) && limitCounter())
 @assert bufferSize ≥ maximum(length, problem.itemsNeeded)
@@ -108,6 +109,11 @@ annealingSettings = AnnealingSettings2(steps, false, same, 2dif, it -> it * powe
 localRes1 = modularLocalSearch(localSettings, sf, deepcopy(st1))
 tabuRes1 = modularTabuSearch5(tabuSettings, sf, deepcopy(st1))
 annealingRes = modularAnnealing(annealingSettings, sf, deepcopy(st1))
+##
+tabuSettings = TabuSearchSettings(200, 60, 2 * 27^2)
+annealingSettings = AnnealingSettings(200, false, 1, 500, it -> it * 0.99999, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+hybridSettings = HybridTabuSettings1(tabuSettings, annealingSettings, 5)
+res = hybridTabuSearch(hybridSettings, sf, deepcopy(st1), true)
 ##
 tmap = Threads.nthreads() > 1 ? (f, x) -> ThreadsX.map(f, 10 ÷ Threads.nthreads(), x) : map
 ##
