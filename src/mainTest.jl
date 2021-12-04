@@ -115,6 +115,9 @@ annealingSettings = AnnealingSettings(200, false, 1, 500, it -> it * 0.99999, (o
 hybridSettings = HybridTabuSettings1(tabuSettings, annealingSettings, 5)
 res = hybridTabuSearch(hybridSettings, sf, deepcopy(st1), true)
 ##
+hybridSettings = HybridTabuSettings2(200, 60, 2 * 27^2, 10, 50, 5)
+res = hybridTabuSearch(hybridSettings, sf, deepcopy(st1), true)
+##
 tmap = Threads.nthreads() > 1 ? (f, x) -> ThreadsX.map(f, 10 ÷ Threads.nthreads(), x) : map
 ##
 df = CSV.File("exp/tabuRes.tsv") |> DataFrame

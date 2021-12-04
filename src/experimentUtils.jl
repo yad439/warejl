@@ -3,6 +3,7 @@ include("linear.jl");
 include("mainAuxiliary.jl");
 include("annealing.jl");
 include("tabu.jl");
+include("hybridTabu.jl")
 
 using Statistics
 
@@ -78,11 +79,25 @@ struct HybridExperiment1
 	results::Vector{TabuResult}
 end
 
-@enum OtherTypes::UInt8 HYBRID1_TYPE = 1
+struct HybridExperiment2
+	sortReturns::Bool
+	version::UInt8
+	baseIterations::UInt16
+	tabuSize::UInt16
+	neigborhoodSize1::UInt16
+	neigborhoodSize2::UInt16
+	size2Iterations::UInt16
+	restarts::UInt8
+	other::Set{String}
+	type::String
+	results::Vector{TabuResult}
+end
+
+@enum OtherTypes::UInt8 HYBRID1_TYPE = 1 HYBRID2_TYPE
 
 struct OtherResult
 	type::OtherTypes
-	result::Union{HybridExperiment1}
+	result::Union{HybridExperiment1,HybridExperiment2}
 end
 
 struct ProblemInstance
@@ -474,4 +489,85 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 	end
 	@assert false
 	TabuExperiment(false, 0, 0, 0, 0, 0.0, Set{String}(), "", TabuResult[])
+end
+
+function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "")
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
+	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
+
+	tabuSettings = TabuSearchSettings(tabuSteps, tabuLength, neigborhoodSize)
+	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	hybridSettings = HybridTabuSettings1(tabuSettings, annealingSettings, restarts)
+
+
+	ress = ThreadsX.map(1:length(starts)) do i
+		println("Start $i")
+		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false)
+		println("End $i")
+		solution
+	end
+	results = map(starts, ress) do st, sol
+		TabuResult(
+			st.permutation,
+			sol.solution.permutation,
+			argmin(get(sol.history)[2])
+		)
+	end
+
+	return OtherResult(
+		HYBRID1_TYPE,
+		HybridExperiment1(
+			!fast,
+			1,
+			tabuSteps,
+			tabuLength,
+			neigborhoodSize,
+			annealingSteps,
+			1,
+			annealingTemp,
+			annealingPower,
+			restarts,
+			Set(improvements),
+			type,
+			results
+		)
+	)
+end
+
+function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "")
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
+	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
+
+	hybridSettings = HybridTabuSettings2(tabuSteps, tabuLength, neigborhoodSize1, neigborhoodSize2, anotherSteps, restarts)
+
+	ress = ThreadsX.map(1:length(starts)) do i
+		println("Start $i")
+		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false)
+		println("End $i")
+		solution
+	end
+	results = map(starts, ress) do st, sol
+		TabuResult(
+			st.permutation,
+			sol.solution.permutation,
+			argmin(get(sol.history)[2])
+		)
+	end
+
+	return OtherResult(
+		HYBRID2_TYPE,
+		HybridExperiment2(
+			!fast,
+			1,
+			tabuSteps,
+			tabuLength,
+			neigborhoodSize1,
+			neigborhoodSize2,
+			anotherSteps,
+			restarts,
+			Set(improvements),
+			type,
+			results
+		)
+	)
 end
