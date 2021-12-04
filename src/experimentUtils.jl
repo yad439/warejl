@@ -175,7 +175,7 @@ function resultsToTable(results::Vector{ProblemInstance})
 		tabuMean = Union{Float64,Missing}[]
 	)
 	for instance ∈ results
-		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50)
+		problem = instanceToProblem(instance)
 		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
@@ -221,7 +221,7 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 		bestLB = Int[]
 	)
 	for instance ∈ results
-		problem = instanceToProblem(instance, skipZeros = instance.problemSize ≥ 50)
+		problem = instanceToProblem(instance)
 		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
