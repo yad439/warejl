@@ -25,12 +25,14 @@ fromJsom(type::Type{Enum{T}}, data) where {T} = type(data)
 function fromJson(::Type{OtherResult}, data)
 	resultType = data["type"]
 	exactType = Nothing
-	if resultType ≡ HYBRID1_TYPE
-		exactType = HybridExperiment1
+	if resultType == Integer(HYBRID1_TYPE)
+	    exactType = HybridExperiment1
+	elseif resultType == Integer(HYBRID2_TYPE)
+		exactType = HybridExperiment2
 	else
-		@assert false
+	    @assert false resultType
 	end
-	OtherResult(resultType, fromJson(exactType, data["result"]))
+	OtherResult(OtherTypes(resultType), fromJson(exactType, data["result"]))
 end
 
 toJson(output::IO, object) = toJson(output, object, 0)
