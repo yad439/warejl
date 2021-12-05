@@ -23,6 +23,8 @@ using ThreadsX
 using JuMP
 using JSON
 ##
+results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
+##
 cnt = 0
 function flt(box)
 	if box.lineType != "A"
@@ -115,7 +117,7 @@ annealingSettings = AnnealingSettings(200, false, 1, 500, it -> it * 0.99999, (o
 hybridSettings = HybridTabuSettings1(tabuSettings, annealingSettings, 5)
 res = hybridTabuSearch(hybridSettings, sf, deepcopy(st1), true)
 ##
-hybridSettings = HybridTabuSettings2(200, 60, 2 * 27^2, 10, 50, 5)
+hybridSettings = HybridTabuSettings2(100, 60, 2 * 27^2, 5, 100, 10)
 res = hybridTabuSearch(hybridSettings, sf, deepcopy(st1), true)
 ##
 tmap = Threads.nthreads() > 1 ? (f, x) -> ThreadsX.map(f, 10 ÷ Threads.nthreads(), x) : map
@@ -434,8 +436,6 @@ results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
 open(resFile, "w") do file
 	JSON.print(file, results, 4)
 end;
-##
-results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
 ##
 tab = resultsToTable(results)
 CSV.write("out/results.tsv", tab, delim = '\t')

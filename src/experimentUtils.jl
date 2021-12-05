@@ -491,7 +491,7 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 	TabuExperiment(false, 0, 0, 0, 0, 0.0, Set{String}(), "", TabuResult[])
 end
 
-function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "")
+function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower::Float64 = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
@@ -499,10 +499,13 @@ function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
 	hybridSettings = HybridTabuSettings1(tabuSettings, annealingSettings, restarts)
 
+	outerThreading = threading ∈ (:outer, :both)
+	innerThreading = threading ∈ (:inner, :both)
+	mapFunc = outerThreading ? ThreadsX.map : map
 
-	ress = ThreadsX.map(1:length(starts)) do i
+	ress = mapFunc(1:length(starts)) do i
 		println("Start $i")
-		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false)
+		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false, threaded = Val(innerThreading))
 		println("End $i")
 		solution
 	end
@@ -534,15 +537,19 @@ function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 	)
 end
 
-function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "")
+function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
 	hybridSettings = HybridTabuSettings2(tabuSteps, tabuLength, neigborhoodSize1, neigborhoodSize2, anotherSteps, restarts)
 
-	ress = ThreadsX.map(1:length(starts)) do i
+	outerThreading = threading ∈ (:outer, :both)
+	innerThreading = threading ∈ (:inner, :both)
+	mapFunc = outerThreading ? ThreadsX.map : map
+
+	ress = mapFunc(1:length(starts)) do i
 		println("Start $i")
-		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false)
+		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false, threaded = Val(innerThreading))
 		println("End $i")
 		solution
 	end
