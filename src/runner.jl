@@ -93,11 +93,17 @@ let
 		        # res = runTabu(problem, starts, 2000, 600, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
 		        # push!(instance.tabuResults, res)
 
-		        # res = runHybrid1(problem, starts, 200, 100, 10, 89 * 3, 2000, 500.0, 0.99999)
-		        # push!(instance.otherResults, res)
+		        # for power ∈ [0.75,0.8,0.9,0.95,0.99,0.999,0.9999,0.99999,0.999999]
+		        	# @show power
+		        	# res = runHybrid1(problem, starts, 200, 100, 10, problem.jobCount*3, 2000, 500.0, power,type="hybrid1_power",threading=:both,distributed=true)
+		        	# push!(instance.otherResults, res)
+		    	# end
 
-		        res = runHybrid2(problem, starts, 200, 200, 10, 89 * 3,2000,20)
-		        push!(instance.otherResults, res)
+		        for iter ∈ [10,50,100,200,500,1000,2000]
+		        	@show iter
+		        	res = runHybrid2(problem, starts, 200, iter, 10, problem.jobCount * 3,2000,20,type="other_iter", threading=:both,distributed=true)
+		        	push!(instance.otherResults, res)
+		    	end
 		    end
 		    GC.gc()
 		end

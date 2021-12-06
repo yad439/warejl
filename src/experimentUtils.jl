@@ -1,14 +1,27 @@
 include("realDataUtility.jl");
 include("linear.jl");
-include("mainAuxiliary.jl");
+
 include("annealing.jl");
 include("tabu.jl");
-include("hybridTabu.jl")
+include("hybridTabu.jl");
 
 using Statistics
+using Distributed
 
 using ThreadsX
 using DataFrames
+
+if nprocs()>1
+	@everywhere begin
+		#import Pkg;
+		#Pkg.activate(".");
+
+		include("mainAuxiliary.jl");
+		include("annealing.jl");
+		include("tabu.jl");
+		include("hybridTabu.jl");
+	end
+end
 
 
 const ModelResult = @NamedTuple {solution::Union{Float32,Missing}, bound::Union{Float32,Missing}}
@@ -491,7 +504,7 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 	TabuExperiment(false, 0, 0, 0, 0, 0.0, Set{String}(), "", TabuResult[])
 end
 
-function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower::Float64 = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer)
+function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower::Float64 = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool=false)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
@@ -501,7 +514,7 @@ function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 
 	outerThreading = threading ∈ (:outer, :both)
 	innerThreading = threading ∈ (:inner, :both)
-	mapFunc = outerThreading ? ThreadsX.map : map
+	mapFunc = outerThreading ? distributed ? pmap : ThreadsX.map : map
 
 	ress = mapFunc(1:length(starts)) do i
 		println("Start $i")
@@ -537,7 +550,7 @@ function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 	)
 end
 
-function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer)
+function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool=false)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
@@ -545,7 +558,7 @@ function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 
 	outerThreading = threading ∈ (:outer, :both)
 	innerThreading = threading ∈ (:inner, :both)
-	mapFunc = outerThreading ? ThreadsX.map : map
+	mapFunc = outerThreading ? distributed ? pmap : ThreadsX.map : map
 
 	ress = mapFunc(1:length(starts)) do i
 		println("Start $i")
