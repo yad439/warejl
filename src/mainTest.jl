@@ -701,3 +701,15 @@ for inst ∈ results
 		(inst["problemSize"] == 100 && inst["problemNumber"] == 1 && inst["machineCount"] == 8 && inst["carCount"] == 20 && inst["bufferSize"] == 5)
 	)
 end
+##
+rss = results[collect(Iterators.flatten(groups))]
+df = DataFrame(
+	id = collect(eachindex(rss)),
+	size = map(it -> it.problemSize, rss),
+	num = map(it -> it.problemNumber, rss),
+	jobs = map(it -> instanceToProblem(it).jobCount, rss),
+	machines = map(it -> it.machineCount, rss),
+	cars = map(it -> it.carCount, rss),
+	buffer = map(it -> it.bufferSize, rss),
+	time = map(it -> instanceToProblem(it).carTravelTime, rss)
+)
