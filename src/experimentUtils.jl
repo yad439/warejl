@@ -11,15 +11,15 @@ using Distributed
 using ThreadsX
 using DataFrames
 
-if nprocs()>1
+if nprocs() > 1
 	@everywhere begin
 		#import Pkg;
 		#Pkg.activate(".");
 
-		include("mainAuxiliary.jl");
-		include("annealing.jl");
-		include("tabu.jl");
-		include("hybridTabu.jl");
+		include("mainAuxiliary.jl")
+		include("annealing.jl")
+		include("tabu.jl")
+		include("hybridTabu.jl")
 	end
 end
 
@@ -302,6 +302,64 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 	df
 end
 
+function hybrid1Table(results::Vector{ProblemInstance})
+	dataframe = DataFrame(
+		probSize = Int[],
+		probNum = Int[],
+		machines = Int[],
+		carCount = Int[],
+		bufSize = Int[],
+		baseIter = Int[],
+		tabuSize = Int[],
+		neigh = Int[],
+		annIter = Int[],
+		sameTemp = Int[],
+		threshold = Float64[],
+		power = Float64[],
+		restarts = Int[],
+		type = String[],
+		best = Int[],
+		worst = Int[],
+		mean = Float64[],
+		minIter = Int[],
+		maxIter = Int[],
+		meanIter = Float64[]
+	)
+	for instance ∈ results
+		actual = map(x -> x.result, Iterators.filter(x -> x.type ≡ HYBRID1_TYPE, instance.otherResults))
+		isempty(actual) && continue
+		problem = instanceToProblem(instance)
+		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		for result ∈ actual
+			scores = map(it -> scoreFunction(it.solution), result.results)
+			iterations = map(it -> it.foundIteration, result.results)
+			push!(dataframe, (
+				instance.problemSize,
+				instance.problemNumber,
+				instance.machineCount,
+				instance.carCount,
+				instance.bufferSize,
+				result.baseIterations,
+				result.tabuSize,
+				result.neigborhoodSize,
+				result.annealingIterations,
+				result.sameTemperatureIterations,
+				result.startThreshold,
+				result.power,
+				result.restarts,
+				result.type,
+				minimum(scores),
+				maximum(scores),
+				mean(scores),
+				minimum(iterations),
+				maximum(iterations),
+				mean(iterations)
+			))
+		end
+	end
+	dataframe
+end
+
 function runLinear(problem::Problem, machineType::MachineModelType, carType::CarModelType; timeLimit::Int = 0, startSolution::Union{Bool,PermutationEncoding} = false)
 	sample = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 	sol = computeTimeLazyReturn(isa(startSolution, PermutationEncoding) ? startSolution : rand(sample), problem, Val(true))
@@ -504,7 +562,7 @@ function runTabu(problem::Problem, starts::Vector{PermutationEncoding}, steps::I
 	TabuExperiment(false, 0, 0, 0, 0, 0.0, Set{String}(), "", TabuResult[])
 end
 
-function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower::Float64 = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool=false)
+function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize::Int, annealingTemp::Float64, annealingPower::Float64 = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool = false)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
@@ -550,7 +608,7 @@ function runHybrid1(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 	)
 end
 
-function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool=false)
+function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, anotherSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSize1::Int, neigborhoodSize2::Int; fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool = false)
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
