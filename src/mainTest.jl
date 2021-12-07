@@ -23,7 +23,7 @@ using ThreadsX
 using JuMP
 using JSON
 ##
-results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"))
+results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"));
 ##
 cnt = 0
 function flt(box)
@@ -521,6 +521,8 @@ group1 = [1:9; 20:23; 31:33; 43:43]
 group2 = [11:19; 24:27; 37:39]
 group3 = [30:30; 44:49]
 groups = [group1, group2, group3]
+allExp = collect(Iterators.flatten(groups))
+allSorted = [3, 13, 6, 7, 9, 16, 17, 19, 5, 15, 4, 14, 48, 49, 8, 18, 2, 12, 1, 11, 25, 22, 26, 23, 27, 21, 47, 24, 20, 45, 46, 33, 39, 38, 32, 37, 31, 30, 43, 44]
 ##
 for gr = 1:3
 	folder = "out/export/group$gr"

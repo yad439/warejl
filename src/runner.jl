@@ -1,111 +1,114 @@
-include("mainAuxiliary.jl");
-include("tabu.jl");
-include("annealing.jl");
-include("hybridTabu.jl");
-include("realDataUtility.jl");
-include("linear.jl");
-include("extendedRandoms.jl");
-include("simlpeHeuristic.jl");
-include("utility.jl");
-include("experimentUtils.jl")
-include("json.jl")
+# include("mainAuxiliary.jl");
+# include("tabu.jl");
+# include("annealing.jl");
+# include("hybridTabu.jl");
+# include("realDataUtility.jl");
+# include("linear.jl");
+# include("extendedRandoms.jl");
+# include("simlpeHeuristic.jl");
+# include("utility.jl");
+# include("experimentUtils.jl");
+# include("json.jl");
 
-using Random
-import JSON
+# using Random
+# import JSON
 
 ##
 
 let
-	resFile = "exp/results.json"
+	# resFile = "exp/results.json"
 
-	probSize = 20
+	# probSize = 20
 	# probNum = 1
-	machineCount = 4
-	carCount = 40
-	bufferSize = 8
+	# machineCount = 4
+	# carCount = 40
+	# bufferSize = 8
 
-	results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
+	# results = fromJson(Vector{ProblemInstance}, JSON.parsefile(resFile))
+	# experiments = [3, 13, 6, 7, 9, 16, 17, 19, 5, 15, 4, 14, 48, 49, 8, 18, 2, 12, 1, 11, 25, 22, 26, 23, 27, 21, 47, 24, 20, 45, 46, 33, 39, 38, 32, 37, 31, 30, 43, 44]
 	try
 		# for probNum = [4] # [1, 4, 8] [2, 7, 10]
-		for _ in [0]
-		    # println("Instance ", probNum)
-		    let
-		        # bufferSize = problemStats(probSize, probNum, ['A']).maxItems
+		for (ind, val) in Iterators.enumerate(experiments)
+			println("Instance ", ind)
+			let
+				# bufferSize = problemStats(probSize, probNum, ['A']).maxItems
 
-		        # instance = findInstance(
-		        # 					results,probSize,probNum,['A'],
-		        # 					missing,machineCount,carCount,bufferSize
-		        # 			)
-		        instance = results[47]
-		        @assert instance.problemSize == 50
-		        @assert instance.problemNumber == 2
-		        probNum = 2
-		        # if instance ≡ nothing
-		        # 	instance = createInstance(
-		        # 					probSize,probNum,['A'],
-		        # 					missing,machineCount,carCount,bufferSize
-		        # 			)
-		        # 	push!(results, instance)
-		        # end
-		        instance::ProblemInstance
+				# instance = findInstance(
+				# 					results,probSize,probNum,['A'],
+				# 					missing,machineCount,carCount,bufferSize
+				# 			)
+				instance = results[val]
+				@assert instance.problemSize == 50
+				@assert instance.problemNumber == 2
+				probNum = 2
+				# if instance ≡ nothing
+				# 	instance = createInstance(
+				# 					probSize,probNum,['A'],
+				# 					missing,machineCount,carCount,bufferSize
+				# 			)
+				# 	push!(results, instance)
+				# end
+				instance::ProblemInstance
 
-		        problem = try
-		            instanceToProblem(instance)
-		        catch e
-		            println(stderr, "Can't parse problem ", probNum)
-		            continue
-		        end
-		        problem::Problem
-		        if !isValid(problem)
-		            println(stderr, "Problem ", probNum, " is invalid!")
-		            continue
-		        end
+				problem = try
+					instanceToProblem(instance)
+				catch e
+					println(stderr, "Can't parse problem ", probNum)
+					continue
+				end
+				problem::Problem
+				if !isValid(problem)
+					println(stderr, "Problem ", probNum, " is invalid!")
+					continue
+				end
 
-		        # if instance.modelResults.fullModel !== nothing
-		        #	continue
-		        # end
+				# if instance.modelResults.fullModel !== nothing
+				#	continue
+				# end
 
-		        # res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
-		        # instance.modelResults.fullModel = (solution = res[1], bound = res[2])
-		        # if !ismissing(res[1])
-		        #	instance.modelResults.fullModel = (solution = res[1], bound = res[2])
-		        # end
+				# res = runLinear(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, timeLimit=60 * 60, startSolution=true)
+				# instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# if !ismissing(res[1])
+				#	instance.modelResults.fullModel = (solution = res[1], bound = res[2])
+				# end
 
-		        # res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
-		        # instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ORDER_FIRST_STRICT, BUFFER_ONLY, timeLimit=60 * 60)
+				# instance.modelResults.bufferOnly = (solution = res[1], bound = res[2])
 
-		        # res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
-		        # instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
+				# res = runLinear(problem, ASSIGNMENT_ONLY_SHARED, NO_CARS, timeLimit=60 * 60)
+				# instance.modelResults.assignmentOnly = (solution = res[1], bound = res[2])
 
-		        samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
-		        sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
-		        starts = rand(samp, 10)
-		        # goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
-		        # bestInd = argmin(map(sf, goodStarts))
-		        # bestStart = goodStarts[bestInd]
-		        # starts = fill(bestStart, 10)
+				samp = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
+				sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
+				# starts = rand(samp, 10)
+				# goodStarts = [PermutationEncoding(likehoodBased(jobDistance(problem.itemsNeeded), i)) for i = 1:problem.jobCount]
+				# bestInd = argmin(map(sf, goodStarts))
+				# bestStart = goodStarts[bestInd]
+				bestStart = PermutationEncoding(greedyConstructive(problem, sf))
+				# println("Constructed")
+				starts = fill(bestStart, 10)
 
-		        # dif = maxDif(starts[1], sf)
-		        # res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=true, fast=false)
-		        # push!(instance.annealingResults, res)
+				# dif = maxDif(starts[1], sf)
+				# res = runAnnealing(problem, starts, 10^7, problem.jobCount^2, dif / 2, uniform=true, fast=false)
+				# push!(instance.annealingResults, res)
 
-		        # res = runTabu(problem, starts, 1000, 3 * problem.jobCount, min(2 * problem.jobCount^2, 5000))
-		        # res = runTabu(problem, starts, 2000, 600, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
-		        # push!(instance.tabuResults, res)
+				# res = runTabu(problem, starts, 1000, 3 * problem.jobCount, min(2 * problem.jobCount^2, 5000))
+				# res = runTabu(problem, starts, 2000, 600, 5000, distribution="item",fast=true, improvements=["itemBased","bestStart","fast"])
+				# push!(instance.tabuResults, res)
 
-		        # for power ∈ [0.75,0.8,0.9,0.95,0.99,0.999,0.9999,0.99999,0.999999]
-		        	# @show power
-		        	# res = runHybrid1(problem, starts, 200, 100, 10, problem.jobCount*3, 2000, 500.0, power,type="hybrid1_power",threading=:both,distributed=true)
-		        	# push!(instance.otherResults, res)
-		    	# end
+				# for power ∈ [0.75,0.8,0.9,0.95,0.99,0.999,0.9999,0.99999,0.999999]
+				# @show power
+				res = runHybrid1(problem, starts, 1000, 1000000, 10, problem.jobCount * 3, 4000, 50.0, 0.99999, improvements = ["greed_start"], type = "final_run1", threading = :both, distributed = true)
+				push!(instance.otherResults, res)
+				# end
 
-		        for iter ∈ [10,50,100,200,500,1000,2000]
-		        	@show iter
-		        	res = runHybrid2(problem, starts, 200, iter, 10, problem.jobCount * 3,2000,20,type="other_iter", threading=:both,distributed=true)
-		        	push!(instance.otherResults, res)
-		    	end
-		    end
-		    GC.gc()
+				# for iter ∈ [5, 10, 50, 100, 200, 500, 1000]
+				#     @show iter
+				#     res = runHybrid2(problem, starts, 200, iter, 10, problem.jobCount * 3, 2000, 20, type = "other_iter", threading = :both, distributed = true)
+				#     push!(instance.otherResults, res)
+				# end
+			end
+			GC.gc()
 		end
 	finally
 		open(resFile, "w") do file
