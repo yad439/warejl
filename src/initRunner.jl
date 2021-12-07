@@ -9,7 +9,7 @@ include("hybridTabu.jl");
 include("realDataUtility.jl");
 include("linear.jl");
 include("extendedRandoms.jl");
-include("simlpeHeuristic.jl");
+include("simpleHeuristic.jl");
 include("utility.jl");
 include("experimentUtils.jl");
 include("json.jl");
