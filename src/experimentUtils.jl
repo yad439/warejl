@@ -360,6 +360,60 @@ function hybrid1Table(results::Vector{ProblemInstance})
 	dataframe
 end
 
+function hybrid2Table(results::Vector{ProblemInstance})
+	dataframe = DataFrame(
+		probSize = Int[],
+		probNum = Int[],
+		machines = Int[],
+		carCount = Int[],
+		bufSize = Int[],
+		baseIter = Int[],
+		otherIter = Int[],
+		tabuSize = Int[],
+		neigh = Int[],
+		otherNeigh = Int[],
+		restarts = Int[],
+		type = String[],
+		best = Int[],
+		worst = Int[],
+		mean = Float64[],
+		minIter = Int[],
+		maxIter = Int[],
+		meanIter = Float64[]
+	)
+	for instance ∈ results
+		actual = map(x -> x.result, Iterators.filter(x -> x.type ≡ HYBRID2_TYPE, instance.otherResults))
+		isempty(actual) && continue
+		problem = instanceToProblem(instance)
+		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		for result ∈ actual
+			scores = map(it -> scoreFunction(it.solution), result.results)
+			iterations = map(it -> it.foundIteration, result.results)
+			push!(dataframe, (
+				instance.problemSize,
+				instance.problemNumber,
+				instance.machineCount,
+				instance.carCount,
+				instance.bufferSize,
+				result.baseIterations,
+				result.size2Iterations,
+				result.tabuSize,
+				result.neigborhoodSize1,
+				result.neigborhoodSize2,
+				result.restarts,
+				result.type,
+				minimum(scores),
+				maximum(scores),
+				mean(scores),
+				minimum(iterations),
+				maximum(iterations),
+				mean(iterations)
+			))
+		end
+	end
+	dataframe
+end
+
 function runLinear(problem::Problem, machineType::MachineModelType, carType::CarModelType; timeLimit::Int = 0, startSolution::Union{Bool,PermutationEncoding} = false)
 	sample = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
 	sol = computeTimeLazyReturn(isa(startSolution, PermutationEncoding) ? startSolution : rand(sample), problem, Val(true))
