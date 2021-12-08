@@ -244,6 +244,9 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 		annBest = Union{Int,Missing}[],
 		annWorst = Union{Int,Missing}[],
 		annMean = Union{Float64,Missing}[],
+		hyb1Best = Union{Int,Missing}[],
+		hyb1Worst = Union{Int,Missing}[],
+		hyb1Mean = Union{Float64,Missing}[],
 		fullSol = Union{Int,Missing}[],
 		fullLB = Union{Int,Missing}[],
 		bestLB = Int[]
@@ -253,12 +256,16 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+		hybrid1Res = [[scoreFunction(r.solution) for r ∈ res.result.results] for res ∈ instance.otherResults if res.type ≡ HYBRID1_TYPE]
 		annMean = missing
 		annBest = missing
 		annWorst = missing
 		tabuMean = missing
 		tabuBest = missing
 		tabuWorst = missing
+		hyb1Mean = missing
+		hyb1Best = missing
+		hyb1Worst = missing
 		if !isempty(annRess)
 			means = map(mean, annRess)
 			i = argmin(means)
@@ -272,6 +279,13 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 			tabuBest = minimum(tabuRess[i])
 			tabuWorst = maximum(tabuRess[i])
 			tabuMean = mean(tabuRess[i])
+		end
+		if !isempty(hybrid1Res)
+		    means = map(mean, hybrid1Res)
+		    i = argmin(means)
+		    hyb1Best = minimum(hybrid1Res[i])
+		    hyb1Worst = maximum(hybrid1Res[i])
+		    hyb1Mean = mean(hybrid1Res[i])
 		end
 		bestLB = 0
 		if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
@@ -294,6 +308,9 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 			annBest,
 			annWorst,
 			annMean,
+			hyb1Best,
+			hyb1Worst,
+			hyb1Mean,
 			instance.modelResults.fullModel ≢ nothing ? round(Int, instance.modelResults.fullModel.solution) : missing,
 			instance.modelResults.fullModel ≢ nothing ? ceil(Int, instance.modelResults.fullModel.bound) : missing,
 			ceil(Int, bestLB)
