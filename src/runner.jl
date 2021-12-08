@@ -38,9 +38,9 @@ let
 				# 					missing,machineCount,carCount,bufferSize
 				# 			)
 				instance = results[val]
-				@assert instance.problemSize == 50
-				@assert instance.problemNumber == 2
-				probNum = 2
+				# @assert instance.problemSize == 50
+				# @assert instance.problemNumber == 2
+				# probNum = 2
 				# if instance ≡ nothing
 				# 	instance = createInstance(
 				# 					probSize,probNum,['A'],
@@ -53,12 +53,12 @@ let
 				problem = try
 					instanceToProblem(instance)
 				catch e
-					println(stderr, "Can't parse problem ", probNum)
+					println(stderr, "Can't parse problem ", val)
 					continue
 				end
 				problem::Problem
 				if !isValid(problem)
-					println(stderr, "Problem ", probNum, " is invalid!")
+					println(stderr, "Problem ", val, " is invalid!")
 					continue
 				end
 
@@ -107,6 +107,9 @@ let
 				#     res = runHybrid2(problem, starts, 200, iter, 10, problem.jobCount * 3, 2000, 20, type = "other_iter", threading = :both, distributed = true)
 				#     push!(instance.otherResults, res)
 				# end
+			end
+			open(resFile, "w") do file
+				toJson(file, results)
 			end
 			GC.gc()
 		end
