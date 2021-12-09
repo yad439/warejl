@@ -106,11 +106,22 @@ struct HybridExperiment2
 	results::Vector{TabuResult}
 end
 
-@enum OtherTypes::UInt8 HYBRID1_TYPE = 1 HYBRID2_TYPE
+struct HybridExperiment3
+	sortReturns::Bool
+	version::UInt8
+	baseIterations::UInt16
+	tabuSize::UInt16
+	neigborhoodSizes::Vector{UInt16}
+	other::Set{String}
+	type::String
+	results::Vector{TabuResult}
+end
+
+@enum OtherTypes::UInt8 HYBRID1_TYPE = 1 HYBRID2_TYPE HYBRID3_TYPE
 
 struct OtherResult
 	type::OtherTypes
-	result::Union{HybridExperiment1,HybridExperiment2}
+	result::Union{HybridExperiment1,HybridExperiment2,HybridExperiment3}
 end
 
 struct ProblemInstance
@@ -714,6 +725,45 @@ function runHybrid2(problem::Problem, starts::Vector{PermutationEncoding}, tabuS
 			neigborhoodSize2,
 			anotherSteps,
 			restarts,
+			Set(improvements),
+			type,
+			results
+		)
+	)
+end
+
+function runHybrid3(problem::Problem, starts::Vector{PermutationEncoding}, steps::Int, tabuLength::Int, neigborhoodSizes::Vector{Int}; fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool = false)
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
+	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
+
+	hybridSettings = HybridTabuSettings3(steps, tabuLength, neigborhoodSizes)
+
+	outerThreading = threading ∈ (:outer, :both)
+	innerThreading = threading ∈ (:inner, :both)
+	mapFunc = outerThreading ? distributed ? pmap : ThreadsX.map : map
+
+	ress = mapFunc(1:length(starts)) do i
+		println("Start $i")
+		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false, threaded = Val(innerThreading))
+		println("End $i")
+		solution
+	end
+	results = map(starts, ress) do st, sol
+		TabuResult(
+			st.permutation,
+			sol.solution.permutation,
+			argmin(get(sol.history)[2])
+		)
+	end
+
+	return OtherResult(
+		HYBRID3_TYPE,
+		HybridExperiment3(
+			!fast,
+			1,
+			steps,
+			tabuLength,
+			neigborhoodSizes,
 			Set(improvements),
 			type,
 			results

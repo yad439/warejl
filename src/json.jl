@@ -29,6 +29,8 @@ function fromJson(::Type{OtherResult}, data)
 	    exactType = HybridExperiment1
 	elseif resultType == Integer(HYBRID2_TYPE)
 		exactType = HybridExperiment2
+	elseif resultType == Integer(HYBRID3_TYPE)
+		exactType = HybridExperiment3
 	else
 	    @assert false resultType
 	end
