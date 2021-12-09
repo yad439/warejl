@@ -16,6 +16,12 @@ struct HybridTabuSettings2
 	maxRestarts::Int
 end
 
+struct HybridTabuSettings3
+	searchTries::Int
+	tabuSize::Int
+	neighborhoodSizes::Vector{Int}
+end
+
 function hybridTabuSearch(settings::HybridTabuSettings1, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
 	tabuSettings = settings.tabuSettings
 	progress = ProgressUnknown("Local tabu search:")
@@ -107,6 +113,46 @@ function hybridTabuSearch(settings::HybridTabuSettings2, scoreFunction, startTim
 					currentSize = settings.neighbourhoodSize1
 					restartCouner += 1
 				end
+			end
+		end
+		while length(tabu) > settings.tabuSize
+			delete!(tabu.dict, first(tabu))
+		end
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Score", score), ("Min score", minval)))
+	end
+	ProgressMeter.finish!(progress)
+	(score = minval, solution = minsol, history)
+end
+
+function hybridTabuSearch(settings::HybridTabuSettings3, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
+	progress = ProgressUnknown("Hybrid tabu search 3:")
+
+	timeTable = startTimeTable
+	tabu = OrderedSet{Tuple{Int,Int}}()
+	minval = scoreFunction(timeTable)
+	minsol = copy(timeTable)
+	innerCounter = 0
+	currentSize = 1
+
+	history = QHistory(typeof(minval))
+	push!(history, minval)
+	while currentSize ≤ length(settings.neighborhoodSizes)
+		newTimeTableChange = modularTabuImprove(timeTable, tabu, settings.neighborhoodSizes[currentSize], scoreFunction, tabuCanChange3, threaded)
+		restoreChange = change!(timeTable, newTimeTableChange)
+		tabuAdd5!(tabu, newTimeTableChange, restoreChange, timeTable)
+		score = scoreFunction(timeTable)
+		push!(history, score)
+		if score < minval
+			innerCounter = 0
+			currentSize = 1
+			minval = score
+			copy!(minsol, timeTable)
+		else
+			innerCounter += 1
+			if innerCounter > settings.searchTries
+				innerCounter = 0
+				currentSize += 1
+				timeTable = deepcopy(minsol)
 			end
 		end
 		while length(tabu) > settings.tabuSize
