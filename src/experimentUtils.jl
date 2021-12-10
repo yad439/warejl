@@ -117,11 +117,27 @@ struct HybridExperiment3
 	results::Vector{TabuResult}
 end
 
-@enum OtherTypes::UInt8 HYBRID1_TYPE = 1 HYBRID2_TYPE HYBRID3_TYPE
+struct HybridExperiment13
+	sortReturns::Bool
+	version::UInt8
+	baseIterations::UInt16
+	tabuSize::UInt16
+	neigborhoodSizes::Vector{UInt16}
+	annealingIterations::UInt32
+	sameTemperatureIterations::UInt32
+	startThreshold::Float32
+	power::Float64
+	restarts::UInt8
+	other::Set{String}
+	type::String
+	results::Vector{TabuResult}
+end
+
+@enum OtherTypes::UInt8 HYBRID1_TYPE = 1 HYBRID2_TYPE HYBRID3_TYPE HYBRID13_TYPE
 
 struct OtherResult
 	type::OtherTypes
-	result::Union{HybridExperiment1,HybridExperiment2,HybridExperiment3}
+	result::Union{HybridExperiment1,HybridExperiment2,HybridExperiment3,HybridExperiment13}
 end
 
 struct ProblemInstance
@@ -764,6 +780,51 @@ function runHybrid3(problem::Problem, starts::Vector{PermutationEncoding}, steps
 			steps,
 			tabuLength,
 			neigborhoodSizes,
+			Set(improvements),
+			type,
+			results
+		)
+	)
+end
+
+function runHybrid13(problem::Problem, starts::Vector{PermutationEncoding}, tabuSteps::Int, annealingSteps::Int, restarts::Int, tabuLength::Int, neigborhoodSizes::Vector{Int}, annealingTemp::Float64, annealingPower::Float64 = (-annealingTemp * log(10^-3))^(-1 / (annealingSteps)); fast::Bool = false, improvements::Vector{String} = String[], type::String = "", threading::Symbol = :outer, distributed::Bool = false)
+	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
+	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
+
+	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	hybridSettings = HybridTabuSettings13(tabuSteps, tabuLength, neigborhoodSize, annealingSettings,(), restarts)
+
+	outerThreading = threading ∈ (:outer, :both)
+	innerThreading = threading ∈ (:inner, :both)
+	mapFunc = outerThreading ? distributed ? pmap : ThreadsX.map : map
+
+	ress = mapFunc(1:length(starts)) do i
+		println("Start $i")
+		solution = hybridTabuSearch(hybridSettings, sf, deepcopy(starts[i]), false, threaded = Val(innerThreading))
+		println("End $i")
+		solution
+	end
+	results = map(starts, ress) do st, sol
+		TabuResult(
+			st.permutation,
+			sol.solution.permutation,
+			argmin(get(sol.history)[2])
+		)
+	end
+
+	return OtherResult(
+		HYBRID13_TYPE,
+		HybridExperiment13(
+			!fast,
+			1,
+			tabuSteps,
+			tabuLength,
+			neigborhoodSizes,
+			annealingSteps,
+			1,
+			annealingTemp,
+			annealingPower,
+			restarts,
 			Set(improvements),
 			type,
 			results

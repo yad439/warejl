@@ -22,6 +22,15 @@ struct HybridTabuSettings3
 	neighborhoodSizes::Vector{Int}
 end
 
+struct HybridTabuSettings13{T}
+	searchTries::Int
+	tabuSize::Int
+	neighborhoodSizes::Vector{Int}
+	annealingSettings::AnnealingSettings
+	chooser::T
+	maxRestarts::Int
+end
+
 function hybridTabuSearch(settings::HybridTabuSettings1, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
 	tabuSettings = settings.tabuSettings
 	progress = ProgressUnknown("Local tabu search:")
@@ -162,6 +171,61 @@ function hybridTabuSearch(settings::HybridTabuSettings3, scoreFunction, startTim
 	end
 	ProgressMeter.finish!(progress)
 	(score = minval, solution = minsol, history)
+end
+
+function hybridTabuSearch(settings::HybridTabuSettings13, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
+	progress = ProgressUnknown("Hybrid tabu search:")
+
+	timeTable = startTimeTable
+	tabu = OrderedSet{Tuple{Int,Int}}()
+	minval = scoreFunction(timeTable)
+	minsol = copy(timeTable)
+	restartCouner = 0
+	innerCounter = 0
+	currentSize = 1
+
+	history = QHistory(typeof(minval))
+	push!(history, minval)
+	foundByAnnealing = false
+	while restartCouner ≤ settings.maxRestarts
+		newTimeTableChange = modularTabuImprove(timeTable, tabu, settins.neighborhoodSizes[currentSize], scoreFunction, tabuCanChange3, threaded)
+		restoreChange = change!(timeTable, newTimeTableChange)
+		tabuAdd5!(tabu, newTimeTableChange, restoreChange, timeTable)
+		score = scoreFunction(timeTable)
+		push!(history, score)
+		if score < minval
+			innerCounter = 0
+			restartCouner = 0
+			minval = score
+			copy!(minsol, timeTable)
+			foundByAnnealing = false
+		else
+			innerCounter += 1
+			if innerCounter > settings.searchTries
+				innerCounter = 0
+				currentSize += 1
+				currentSize≤length(settings.neighborhoodSizes) && timeTable = deepcopy(minsol)
+			end
+			if currentSize>length(settings.neighborhoodSizes)
+				annRes = randomAnnealing(settings.annealingSettings, scoreFunction, timeTable, false)
+				timeTable = annRes.endSolution
+				if annRes.bestScore < minval
+					minval = annRes.bestScore
+					minsol = annRes.bestSolution
+					foundByAnnealing = true
+				end
+				empty!(tabu)
+				currentSize = 1
+				restartCouner += 1
+			end
+		end
+		while length(tabu) > tabuSettings.tabuSize
+			delete!(tabu.dict, first(tabu))
+		end
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Score", score), ("Min score", minval)))
+	end
+	ProgressMeter.finish!(progress)
+	(score = minval, solution = minsol, history, foundByAnnealing)
 end
 
 function randomAnnealing(settings::AnnealingSettings, scoreFunction, startTimeTable, showProgress = true)
