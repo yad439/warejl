@@ -204,7 +204,7 @@ function hybridTabuSearch(settings::HybridTabuSettings13, scoreFunction, startTi
 			if innerCounter > settings.searchTries
 				innerCounter = 0
 				currentSize += 1
-				currentSize≤length(settings.neighborhoodSizes) && timeTable = deepcopy(minsol)
+				currentSize≤length(settings.neighborhoodSizes) && (timeTable = deepcopy(minsol))
 			end
 			if currentSize>length(settings.neighborhoodSizes)
 				annRes = randomAnnealing(settings.annealingSettings, scoreFunction, timeTable, false)
