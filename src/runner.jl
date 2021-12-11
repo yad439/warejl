@@ -98,7 +98,7 @@ let
 
 				# for power ∈ [0.75,0.8,0.9,0.95,0.99,0.999,0.9999,0.99999,0.999999]
 				# @show power
-				res = runHybrid1(problem, starts, 1000, 1000000, 10, problem.jobCount * 3, 4000, 50.0, 0.99999, improvements = ["greed_start"], type = "final_run1", threading = :both, distributed = true)
+				res = runHybrid13(problem, starts, 1000, 1000000, 10, problem.jobCount * 3, [1000, 4000, 10, 8000], 50.0, 0.99999, improvements = ["greed_start"], type = "final_run1", threading = :both, distributed = true)
 				push!(instance.otherResults, res)
 				# end
 
