@@ -308,11 +308,11 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 			tabuMean = mean(tabuRess[i])
 		end
 		if !isempty(hybrid1Res)
-		    means = map(mean, hybrid1Res)
-		    i = argmin(means)
-		    hyb1Best = minimum(hybrid1Res[i])
-		    hyb1Worst = maximum(hybrid1Res[i])
-		    hyb1Mean = mean(hybrid1Res[i])
+			means = map(mean, hybrid1Res)
+			i = argmin(means)
+			hyb1Best = minimum(hybrid1Res[i])
+			hyb1Worst = maximum(hybrid1Res[i])
+			hyb1Mean = mean(hybrid1Res[i])
 		end
 		bestLB = 0
 		if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
@@ -792,7 +792,7 @@ function runHybrid13(problem::Problem, starts::Vector{PermutationEncoding}, tabu
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
 	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
-	hybridSettings = HybridTabuSettings13(tabuSteps, tabuLength, neigborhoodSizes, annealingSettings,(), restarts)
+	hybridSettings = HybridTabuSettings13(tabuSteps, tabuLength, neigborhoodSizes, annealingSettings, (), restarts)
 
 	outerThreading = threading ∈ (:outer, :both)
 	innerThreading = threading ∈ (:inner, :both)
