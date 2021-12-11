@@ -188,7 +188,7 @@ function hybridTabuSearch(settings::HybridTabuSettings13, scoreFunction, startTi
 	push!(history, minval)
 	foundByAnnealing = false
 	while restartCouner ≤ settings.maxRestarts
-		newTimeTableChange = modularTabuImprove(timeTable, tabu, settins.neighborhoodSizes[currentSize], scoreFunction, tabuCanChange3, threaded)
+		newTimeTableChange = modularTabuImprove(timeTable, tabu, settings.neighborhoodSizes[currentSize], scoreFunction, tabuCanChange3, threaded)
 		restoreChange = change!(timeTable, newTimeTableChange)
 		tabuAdd5!(tabu, newTimeTableChange, restoreChange, timeTable)
 		score = scoreFunction(timeTable)
@@ -219,7 +219,7 @@ function hybridTabuSearch(settings::HybridTabuSettings13, scoreFunction, startTi
 				restartCouner += 1
 			end
 		end
-		while length(tabu) > tabuSettings.tabuSize
+		while length(tabu) > settings.tabuSize
 			delete!(tabu.dict, first(tabu))
 		end
 		showProgress && ProgressMeter.next!(progress, showvalues = (("Score", score), ("Min score", minval)))

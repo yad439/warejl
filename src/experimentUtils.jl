@@ -792,7 +792,7 @@ function runHybrid13(problem::Problem, starts::Vector{PermutationEncoding}, tabu
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
 	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
-	hybridSettings = HybridTabuSettings13(tabuSteps, tabuLength, neigborhoodSize, annealingSettings,(), restarts)
+	hybridSettings = HybridTabuSettings13(tabuSteps, tabuLength, neigborhoodSizes, annealingSettings,(), restarts)
 
 	outerThreading = threading ∈ (:outer, :both)
 	innerThreading = threading ∈ (:inner, :both)
