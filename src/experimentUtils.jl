@@ -36,7 +36,7 @@ end
 struct TabuResult
 	startSolution::Vector{UInt16}
 	solution::Vector{UInt16}
-	foundIteration::UInt16
+	foundIteration::UInt32
 end
 
 struct TabuExperiment
