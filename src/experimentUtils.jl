@@ -274,6 +274,9 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 		hyb1Best = Union{Int,Missing}[],
 		hyb1Worst = Union{Int,Missing}[],
 		hyb1Mean = Union{Float64,Missing}[],
+		hyb13Best = Union{Int,Missing}[],
+		hyb13Worst = Union{Int,Missing}[],
+		hyb13Mean = Union{Float64,Missing}[],
 		fullSol = Union{Int,Missing}[],
 		fullLB = Union{Int,Missing}[],
 		bestLB = Int[]
@@ -284,6 +287,7 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
 		hybrid1Res = [[scoreFunction(r.solution) for r ∈ res.result.results] for res ∈ instance.otherResults if res.type ≡ HYBRID1_TYPE]
+		hybrid13Res = [[scoreFunction(r.solution) for r ∈ res.result.results] for res ∈ instance.otherResults if res.type ≡ HYBRID13_TYPE]
 		annMean = missing
 		annBest = missing
 		annWorst = missing
@@ -314,6 +318,13 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 			hyb1Worst = maximum(hybrid1Res[i])
 			hyb1Mean = mean(hybrid1Res[i])
 		end
+		if !isempty(hybrid13Res)
+			means = map(mean, hybrid13Res)
+			i = argmin(means)
+			hyb13Best = minimum(hybrid13Res[i])
+			hyb13Worst = maximum(hybrid13Res[i])
+			hyb13Mean = mean(hybrid13Res[i])
+		end
 		bestLB = 0
 		if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
 			bestLB = instance.modelResults.fullModel.bound
@@ -338,6 +349,9 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 			hyb1Best,
 			hyb1Worst,
 			hyb1Mean,
+			hyb13Best,
+			hyb13Worst,
+			hyb13Mean,
 			instance.modelResults.fullModel ≢ nothing ? round(Int, instance.modelResults.fullModel.solution) : missing,
 			instance.modelResults.fullModel ≢ nothing ? ceil(Int, instance.modelResults.fullModel.bound) : missing,
 			ceil(Int, bestLB)
