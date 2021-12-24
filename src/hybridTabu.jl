@@ -39,6 +39,14 @@ struct HybridTabuSettings14
 	maxRestarts::Int
 end
 
+struct HybridTabuSettings145
+	searchTries::Vector{Int}
+	tabuSize::Int
+	neighborhoodSizes::Vector{Int}
+	annealingSettings::AnnealingSettings2
+	maxRestarts::Int
+end
+
 function hybridTabuSearch(settings::HybridTabuSettings1, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
 	tabuSettings = settings.tabuSettings
 	progress = ProgressUnknown("Local tabu search:")
@@ -239,7 +247,7 @@ function hybridTabuSearch(settings::HybridTabuSettings13, scoreFunction, startTi
 	(score = minval, solution = minsol, history, foundByAnnealing)
 end
 
-function hybridTabuSearch(settings::HybridTabuSettings14, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
+function hybridTabuSearch(settings<:Union{HybridTabuSettings14,HybridTabuSettings145}, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
 	progress = ProgressUnknown("Hybrid tabu search:")
 
 	timeTable = startTimeTable
