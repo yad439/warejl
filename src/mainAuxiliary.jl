@@ -175,6 +175,96 @@ function computeTimeLazyReturn(timetable, problem, ::Val{false}, sortRemoves=tru
 	maximum(sums)
 end
 
+function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves=true)
+	machineCount = problem.machineCount
+	jobLengths = problem.jobLengths
+	itemsNeeded = problem.itemsNeeded
+	carCount = problem.carCount
+	carTravelTime = problem.carTravelTime
+	bufferSize = problem.bufferSize
+
+	sums = fill(zero(eltype(jobLengths)), machineCount)
+	idles=Tuple{Int,Int}[]
+	inUseCars = EventQueue()
+	carsAvailable = carCount
+	availableFromTime = 0 # points at last add travel start
+	bufferState = BitSet()
+	itemNum = problem.itemCount
+	lockTime = zeros(Int, itemNum)
+	nexts = similar(lockTime)
+	minLocks = Vector{Int}(undef, bufferSize)
+	itemsLeft = BitSet()
+	sizehint!(itemsLeft, itemNum)
+	for (ind, job) ∈ Iterators.enumerate(timetable.permutation)
+		setdiff!(itemsLeft, itemsLeft)
+		union!(itemsLeft, itemsNeeded[job])
+		setdiff!(itemsLeft, bufferState)
+		while !isempty(itemsLeft)
+			while carsAvailable ≤ 0
+				(availableFromTime, carChange) = popfirst!(inUseCars)
+				carsAvailable += carChange
+			end
+			if length(bufferState) < bufferSize
+				carsUsed = min(carsAvailable, bufferSize - length(bufferState), length(itemsLeft))
+				toAdd = Iterators.take(itemsLeft, carsUsed)
+				carsAvailable -= carsUsed
+				push!(inUseCars, availableFromTime + carTravelTime, carsUsed)
+				union!(bufferState, toAdd)
+				setdiff!(itemsLeft, toAdd)
+			else
+				minLocksLen = 0
+				minLockTime = typemax(Int)
+				@inbounds for item ∈ bufferState
+					item ∉ itemsNeeded[job] || continue
+					if lockTime[item] < minLockTime && minLockTime > availableFromTime + carTravelTime
+						minLockTime = lockTime[item]
+						minLocksLen = 1
+						minLocks[1] = item
+					elseif lockTime[item] == minLockTime || lockTime[item] ≤ availableFromTime + carTravelTime
+						minLocksLen += 1
+						@inbounds minLocks[minLocksLen] = item
+						if lockTime[item] > minLockTime
+							minLockTime = lockTime[item]
+						end
+					end
+				end
+				if sortRemoves
+					for i = 1:minLocksLen
+						item = minLocks[i]
+						nxt = findnext(jb -> item ∈ itemsNeeded[jb], timetable.permutation, ind + 1)
+						nexts[item] = nxt ≡ nothing ? typemax(Int) : nxt
+					end
+					sort!(view(minLocks, 1:minLocksLen), by=it -> nexts[it], rev=true)
+				end
+				while !isempty(inUseCars) && first(inUseCars)[1] ≤ minLockTime - carTravelTime
+					(availableFromTime, carChange) = popfirst!(inUseCars)
+					carsAvailable += carChange
+				end
+				availableFromTime = max(availableFromTime, minLockTime - carTravelTime)
+				changesNum = min(carsAvailable, minLocksLen, length(itemsLeft))
+				toRemove = Iterators.take(minLocks, changesNum)
+				toAdd = Iterators.take(itemsLeft, changesNum)
+				carsAvailable -= changesNum
+				push!(inUseCars, availableFromTime + 2carTravelTime, changesNum)
+				setdiff!(bufferState, toRemove)
+				union!(bufferState, toAdd)
+				setdiff!(itemsLeft, toAdd)
+			end
+		end
+		machine = selectMachine(job, timetable, sums)
+		startTime = max(sums[machine], availableFromTime + carTravelTime)
+		idle=availableFromTime + carTravelTime-sums[machine]
+		if idle > 0
+			push!(idles, (ind, idle))
+		end
+		sums[machine] = startTime + jobLengths[job]
+		@inbounds for item ∈ itemsNeeded[job]
+			@inbounds lockTime[item] = max(lockTime[item], startTime + jobLengths[job])
+		end
+	end
+	maximum(sums),idles
+end
+
 function computeTimeBufferOnly(timetable, problem)
 	sums = fill(zero(eltype(problem.jobLengths)), problem.machineCount)
 	bufferState = BitSet()
