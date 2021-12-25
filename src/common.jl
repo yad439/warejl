@@ -109,6 +109,17 @@ function randomChange!(jobs::PermutationEncoding, canDo)
 		return (type, arg1, arg2), change!(jobs, type, arg1, arg2)
 	end
 end
+function randomChange!(jobs::PermutationEncoding, canDo, dist)
+	jobCount = length(jobs.permutation)
+	while true
+		type = rand((PERMUTATION_MOVE, PERMUTATION_SWAP))
+		arg1 = rand(dist)
+		arg2 = rand(1:jobCount)
+		arg1 == arg2 && continue
+		canDo((type, arg1, arg2)) || continue
+		return (type, arg1, arg2), change!(jobs, type, arg1, arg2)
+	end
+end
 function randomChange!(timetable::StateEncoding{T}, canDo) where {T}
 	rand() < 0.5 && return randomChange!(timetable.machineEncoding, canDo)
 	ax = axes(timetable.states)

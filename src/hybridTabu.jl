@@ -39,12 +39,14 @@ struct HybridTabuSettings14
 	maxRestarts::Int
 end
 
-struct HybridTabuSettings145
+struct HybridTabuSettings145{T}
 	searchTries::Vector{Int}
 	tabuSize::Int
 	neighborhoodSizes::Vector{Int}
-	annealingSettings::AnnealingSettings2
+	annealingSettings::AnnealingSettings
 	maxRestarts::Int
+	idleCoef::Float64
+	idleFunc::T
 end
 
 function hybridTabuSearch(settings::HybridTabuSettings1, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
@@ -247,7 +249,7 @@ function hybridTabuSearch(settings::HybridTabuSettings13, scoreFunction, startTi
 	(score = minval, solution = minsol, history, foundByAnnealing)
 end
 
-function hybridTabuSearch(settings<:Union{HybridTabuSettings14,HybridTabuSettings145}, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
+function hybridTabuSearch(settings::HybridTabuSettings14, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
 	progress = ProgressUnknown("Hybrid tabu search:")
 
 	timeTable = startTimeTable
@@ -305,6 +307,65 @@ function hybridTabuSearch(settings<:Union{HybridTabuSettings14,HybridTabuSetting
 	(score = minval, solution = minsol, history, foundByAnnealing)
 end
 
+function hybridTabuSearch(settings::HybridTabuSettings145, scoreFunction, startTimeTable, showProgress = true; threaded = Val{true}())
+	progress = ProgressUnknown("Hybrid tabu search:")
+
+	timeTable = startTimeTable
+	tabu = OrderedSet{Tuple{Int,Int}}()
+	minval = scoreFunction(timeTable)
+	minsol = copy(timeTable)
+	restartCouner = 0
+	innerCounter = 0
+	currentSize = 1
+
+	history = QHistory(typeof(minval))
+	push!(history, minval)
+	foundByAnnealing = false
+	while restartCouner ≤ settings.maxRestarts
+		newTimeTableChange = modularTabuImprove(timeTable, tabu, settings.neighborhoodSizes[currentSize], scoreFunction, tabuCanChange3, threaded)
+		restoreChange = change!(timeTable, newTimeTableChange)
+		tabuAdd5!(tabu, newTimeTableChange, restoreChange, timeTable)
+		score = scoreFunction(timeTable)
+		push!(history, score)
+		if score < minval
+			innerCounter = 0
+			restartCouner = 0
+			minval = score
+			copy!(minsol, timeTable)
+			foundByAnnealing = false
+		else
+			innerCounter += 1
+			if innerCounter > settings.searchTries[currentSize]
+				innerCounter = 0
+				currentSize += 1
+				if currentSize ≤ length(settings.neighborhoodSizes)
+					timeTable = deepcopy(minsol)
+					empty!(tabu)
+				end
+			end
+			if currentSize > length(settings.neighborhoodSizes)
+				_, idles = settings.idleFunc(timeTable)
+				annRes = randomAnnealingExt(settings.annealingSettings, idleBasedRandom(length(timeTable.permutation), idles, settings.idleCoef), scoreFunction, timeTable, false)
+				timeTable = annRes.endSolution::typeof(startTimeTable)
+				if annRes.bestScore < minval
+					minval = annRes.bestScore
+					minsol = annRes.bestSolution
+					foundByAnnealing = true
+				end
+				empty!(tabu)
+				currentSize = 1
+				restartCouner += 1
+			end
+		end
+		while length(tabu) > settings.tabuSize
+			delete!(tabu.dict, first(tabu))
+		end
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Score", score), ("Min score", minval)))
+	end
+	ProgressMeter.finish!(progress)
+	(score = minval, solution = minsol, history, foundByAnnealing)
+end
+
 function randomAnnealing(settings::AnnealingSettings, scoreFunction, startTimeTable, showProgress = true)
 	progress = ProgressUnknown("Annealing:")
 
@@ -320,6 +381,51 @@ function randomAnnealing(settings::AnnealingSettings, scoreFunction, startTimeTa
 	scounter = 1
 	while counter < settings.searchTries
 		newChange, restoreChange = randomChange!(timeTable, change -> true)
+		score = scoreFunction(timeTable)
+		if settings.applyChange(prevScore, score, threshold)
+			prevScore = score
+		else
+			change!(timeTable, restoreChange)
+		end
+		if score < minval
+			if settings.isDynamic
+				counter = 0
+			else
+				counter += 1
+			end
+			minval = score
+			copy!(minsol, timeTable)
+		else
+			counter += 1
+		end
+		if scounter ≥ settings.sameTemperatureTries
+			threshold = settings.decreasingFunction(threshold)
+			scounter = 1
+		else
+			scounter += 1
+		end
+		# push!(history, prevScore)
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Min score", minval),))
+	end
+	ProgressMeter.finish!(progress)
+	(bestScore = minval, endSolution = timeTable, bestSolution = minsol)
+end
+
+function randomAnnealingExt(settings::AnnealingSettings, changeGen, scoreFunction, startTimeTable, showProgress = true)
+	progress = ProgressUnknown("Annealing:")
+
+	timeTable = startTimeTable
+	minval = scoreFunction(timeTable)
+	minsol = copy(timeTable)
+	counter = 0
+	threshold = settings.startTheshold
+
+	prevScore = minval
+	# history = QHistory(typeof(minval))
+	# push!(history, minval)
+	scounter = 1
+	while counter < settings.searchTries
+		newChange, restoreChange = changeGen(timeTable)
 		score = scoreFunction(timeTable)
 		if settings.applyChange(prevScore, score, threshold)
 			prevScore = score
