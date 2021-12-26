@@ -2,14 +2,15 @@ using ProgressMeter
 using ValueHistories
 
 include("common.jl")
+include("utility.jl")
 
 struct AnnealingSettings
 	searchTries::Int
 	isDynamic::Bool
 	sameTemperatureTries::Int
 	startTheshold::Float64
-	decreasingFunction::Function
-	applyChange::Function
+	decreasingFunction::Func1{Float64,Float64}
+	applyChange::Func3{Bool,Int,Int,Float64}
 end
 struct AnnealingSettings2
 	searchTries::Int
@@ -21,7 +22,7 @@ struct AnnealingSettings2
 	changeGenerator::Function
 end
 
-function modularAnnealing(settings::AnnealingSettings, scoreFunction, startTimeTable, showProgress=true)
+function modularAnnealing(settings::AnnealingSettings, scoreFunction, startTimeTable, showProgress = true)
 	progress = ProgressUnknown("Annealing:")
 
 	timeTable = startTimeTable
@@ -60,13 +61,13 @@ function modularAnnealing(settings::AnnealingSettings, scoreFunction, startTimeT
 			scounter += 1
 		end
 		push!(history, prevScore)
-		showProgress && ProgressMeter.next!(progress, showvalues=(("Min score", minval),))
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Min score", minval),))
 	end
 	ProgressMeter.finish!(progress)
 	(score = minval, solution = minsol, history = history)
 end
 
-function modularAnnealing(settings::AnnealingSettings2, scoreFunction, startTimeTable, showProgress=true)
+function modularAnnealing(settings::AnnealingSettings2, scoreFunction, startTimeTable, showProgress = true)
 	progress = ProgressUnknown("Annealing:")
 
 	timeTable = startTimeTable
@@ -106,7 +107,7 @@ function modularAnnealing(settings::AnnealingSettings2, scoreFunction, startTime
 			scounter += 1
 		end
 		push!(history, prevScore)
-		showProgress && ProgressMeter.next!(progress, showvalues=(("Min score", minval),))
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Min score", minval),))
 	end
 	ProgressMeter.finish!(progress)
 	(score = minval, solution = minsol, history = history)
@@ -115,7 +116,7 @@ end
 function maxDif(jobs::PermutationEncoding, scoreFunction)
 	minval = typemax(Int)
 	maxval = typemin(Int)
-	for type∈[PERMUTATION_MOVE,PERMUTATION_SWAP],arg1 in 1:length(jobs),arg2 in 1:length(jobs)
+	for type ∈ [PERMUTATION_MOVE, PERMUTATION_SWAP], arg1 in 1:length(jobs), arg2 in 1:length(jobs)
 		arg1 == arg2 && continue
 		restoreChange = change!(jobs, type, arg1, arg2)
 		score = scoreFunction(jobs)
@@ -129,7 +130,7 @@ end
 function maxDif(jobs::TwoVectorEncoding, scoreFunction)
 	minval = typemax(Int)
 	maxval = typemin(Int)
-	for type∈[TWO_VECTOR_SWAP_ASSIGNMENT,TWO_VECTOR_MOVE_ORDER,TWO_VECTOR_SWAP_ORDER],arg1 in 1:length(jobs),arg2 in 1:length(jobs)
+	for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT, TWO_VECTOR_MOVE_ORDER, TWO_VECTOR_SWAP_ORDER], arg1 in 1:length(jobs), arg2 in 1:length(jobs)
 		arg1 == arg2 && continue
 		restoreChange = change!(jobs, type, arg1, arg2)
 		score = scoreFunction(jobs)
@@ -137,7 +138,7 @@ function maxDif(jobs::TwoVectorEncoding, scoreFunction)
 		score < minval && (minval = score)
 		score > maxval && (maxval = score)
 	end
-	for arg1 in 1:length(jobs),arg2 in 1:jobs.machineCount
+	for arg1 in 1:length(jobs), arg2 in 1:jobs.machineCount
 		restoreChange = change!(jobs, TWO_VECTOR_MOVE_ASSIGNMENT, arg1, arg2)
 		score = scoreFunction(jobs)
 		change!(jobs, restoreChange)

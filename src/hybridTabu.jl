@@ -346,7 +346,7 @@ function hybridTabuSearch(settings::HybridTabuSettings145, scoreFunction, startT
 			if currentSize > length(settings.neighborhoodSizes)
 				_, idles = settings.idleFunc(timeTable)
 				annRes = randomAnnealingExt(settings.annealingSettings, idleBasedRandom(length(timeTable.permutation), idles, settings.idleCoef), scoreFunction, timeTable, false)
-				timeTable = annRes.endSolution::typeof(startTimeTable)
+				timeTable = annRes.endSolution
 				if annRes.bestScore < minval
 					minval = annRes.bestScore
 					minsol = annRes.bestSolution

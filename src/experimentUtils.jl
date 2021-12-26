@@ -587,7 +587,7 @@ function runAnnealing(problem::Problem, starts::Vector{PermutationEncoding}, ste
 
 	power = (-temp * log(10^-3))^(-1 / (steps / same))
 	if uniform
-		annealingSettings = AnnealingSettings(steps, false, same, temp, it -> it * power, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+		annealingSettings = AnnealingSettings(steps, false, same, temp, Func1{Float64,Float64}(it -> it * power), Func3{Bool,Int,Int,Float64}((old, new, threshold) -> rand() < exp((old - new) / threshold)))
 		ress = ThreadsX.map(1:length(starts)) do i
 			println("Start $i")
 			solution = modularAnnealing(annealingSettings, sf, deepcopy(starts[i]), false)
@@ -896,7 +896,7 @@ function runHybrid13(problem::Problem, starts::Vector{PermutationEncoding}, tabu
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
-	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, Func1{Float64,Float64}(it -> it * annealingPower), Func3{Bool,Int,Int,Float64}((old, new, threshold) -> rand() < exp((old - new) / threshold)))
 	hybridSettings = HybridTabuSettings13(tabuSteps, tabuLength, neigborhoodSizes, annealingSettings, (), restarts)
 
 	outerThreading = threading ∈ (:outer, :both)
@@ -941,7 +941,7 @@ function runHybrid14(problem::Problem, starts::Vector{PermutationEncoding}, tabu
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
-	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, Func1{Float64,Float64}(it -> it * annealingPower), Func3{Bool,Int,Int,Float64}((old, new, threshold) -> rand() < exp((old - new) / threshold)))
 	hybridSettings = HybridTabuSettings14(tabuSteps, tabuLength, neigborhoodSizes, annealingSettings, restarts)
 
 	outerThreading = threading ∈ (:outer, :both)
@@ -986,7 +986,7 @@ function runHybrid145(problem::Problem, starts::Vector{PermutationEncoding}, tab
 	sf(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), !fast)
 	sf2(jobs) = computeTimeLazyReturn(jobs, problem, Val{false}(), true)
 
-	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, it -> it * annealingPower, (old, new, threshold) -> rand() < exp((old - new) / threshold))
+	annealingSettings = AnnealingSettings(annealingSteps, false, 1, annealingTemp, Func1{Float64,Float64}(it -> it * annealingPower), Func3{Bool,Int,Int,Float64}((old, new, threshold) -> rand() < exp((old - new) / threshold)))
 	hybridSettings = HybridTabuSettings145(tabuSteps, tabuLength, neigborhoodSizes, annealingSettings, restarts, idleCoef, jobs -> computeTimeLazyReturn(jobs, problem, Val{0.5}(), !fast))
 
 	outerThreading = threading ∈ (:outer, :both)
