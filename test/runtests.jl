@@ -2,7 +2,7 @@ using Test
 using Random
 
 include("../src/utility.jl")
-include("../src/mainAuxiliary.jl")
+include("../src/mainproblemStructures.jl")
 
 Random.seed!(1234)
 @testset "Score function tests" begin

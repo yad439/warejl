@@ -1,26 +1,23 @@
-using Distributed
-
-addprocs(10, exeflags = ["-O3", "-t12", "-g0", "--math-mode=fast", "--project"])
-
-include("mainAuxiliary.jl");
-include("tabu.jl");
-include("annealing.jl");
-include("hybridTabu.jl");
-include("realDataUtility.jl");
-include("linear.jl");
-include("extendedRandoms.jl");
+include("jsonExt.jl");
 include("simpleHeuristic.jl");
-include("utility.jl");
-include("experimentUtils.jl");
-include("json.jl");
 
-using Random
 import JSON
+
+function addWorkers(procs, threads)
+	started = addprocs(procs, exeflags = ["-O3", "-t$threads", "-g0", "--math-mode=fast", "--project"])
+	@everywhere started begin
+		include("annealing.jl")
+		include("tabu.jl")
+		include("hybridTabu.jl")
+		include("scoreFunctions.jl")
+		include("randomUtils.jl")
+	end
+end
 
 const resFile = "exp/results.json"
 
 # const probSize = 20
-#const probNum = 1
+# const probNum = 1
 # const machineCount = 4
 # const carCount = 40
 # const bufferSize = 8

@@ -18,7 +18,7 @@ function buildModel(problem, machineModelType, carModelType, T = 0, M = 0; optim
 
 	itemsCount = itemsNeeded |> Iterators.flatten |> maximum
 	allItemsCount = sum(length.(itemsNeeded))
-	TR = T == 0 ? ceil(Int, allItemsCount / carCount) : T
+	TR = T == 0 ? ceil(Int, allItemsCount / problem.carCount) : T
 	TE = T == 0 ? max(TR, jobCount, ceil(Int, allItemsCount / problem.bufferSize)) : T
 	M = M == 0 ? problem.carTravelTime + sum(problem.jobLengths) : M
 

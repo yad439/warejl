@@ -1,5 +1,3 @@
-include("experimentUtils.jl")
-
 function fromJson(T, data)
 	@assert isstructtype(T)
 	fields = fieldnames(T)
@@ -21,27 +19,6 @@ fromJson(::Type{T}, data) where {T<:Number} = convert(T, data)
 fromJson(::Type{String}, data) = data
 fromJson(::Type{Char}, data) = (@assert(length(data) == 1); data[1])
 fromJsom(type::Type{Enum{T}}, data) where {T} = type(data)
-
-function fromJson(::Type{OtherResult}, data)
-	resultType = data["type"]
-	exactType = Nothing
-	if resultType == Integer(HYBRID1_TYPE)
-		exactType = HybridExperiment1
-	elseif resultType == Integer(HYBRID2_TYPE)
-		exactType = HybridExperiment2
-	elseif resultType == Integer(HYBRID3_TYPE)
-		exactType = HybridExperiment3
-	elseif resultType == Integer(HYBRID13_TYPE)
-		exactType = HybridExperiment13
-	elseif resultType == Integer(HYBRID14_TYPE)
-		exactType = HybridExperiment14
-	elseif resultType == Integer(HYBRID145_TYPE)
-		exactType = HybridExperiment145
-	else
-		@assert false resultType
-	end
-	OtherResult(OtherTypes(resultType), fromJson(exactType, data["result"]))
-end
 
 toJson(output::IO, object) = toJson(output, object, 0)
 function toJson(output::IO, object, indent::Int)

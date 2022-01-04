@@ -2,8 +2,7 @@ using DataStructures
 using ProgressMeter
 using ValueHistories
 
-include("common.jl")
-include("utility.jl")
+include("encodings.jl")
 
 struct TabuSearchSettings
 	searchTries::Int
@@ -14,13 +13,6 @@ struct TabuSearchSettings2
 	searchTries::Int
 	tabuSize::Int
 	neighbourhoodSize::Float64
-end
-struct TabuSearchSettings3
-	searchTries::Int
-	tabuSize::Int
-	neighbourhoodSize::Int
-	wavePeriod::Int
-	waveMultiplier::Float64
 end
 struct TabuSearchSettings4{T}
 	searchTries::Int
@@ -63,46 +55,6 @@ function modularTabuSearch(settings, scoreFunction, startTimeTable, tabuInit, ta
 		end
 		while length(tabu) > settings.tabuSize
 			delete!(tabu.dict, first(tabu))
-		end
-		showProgress && ProgressMeter.next!(progress, showvalues = (("Score", score), ("Min score", minval)))
-	end
-	ProgressMeter.finish!(progress)
-	(score = minval, solution = minsol, history = history)
-end
-function modularTabuSearch(settings::TabuSearchSettings3, scoreFunction, startTimeTable, tabuInit, tabuAdd!, tabuCanChange, showProgress = true)
-	progress = ProgressUnknown("Local tabu search:")
-
-	timeTable = startTimeTable
-	waveCenter = deepcopy(timeTable)
-	tabu = tabuInit
-	minval = scoreFunction(timeTable)
-	minsol = copy(timeTable)
-	counter = 0
-	waveCounter = 1
-
-	history = QHistory(typeof(minval))
-	push!(history, minval)
-	while counter < settings.searchTries
-		newTimeTableChange = modularTabuImprove(timeTable, tabu, settings.neighbourhoodSize, scoreFunction, tabuCanChange, waveCenter, waveCounter * settings.waveMultiplier)
-		restoreChange = change!(timeTable, newTimeTableChange)
-		tabuAdd!(tabu, newTimeTableChange, restoreChange, timeTable)
-		score = scoreFunction(timeTable)
-		push!(history, score)
-		if score < minval
-			counter = 0
-			minval = score
-			copy!(minsol, timeTable)
-		else
-			counter += 1
-		end
-		while length(tabu) > settings.tabuSize
-			delete!(tabu.dict, first(tabu))
-		end
-		if waveCounter < settings.wavePeriod
-			waveCounter += 1
-		else
-			waveCenter = deepcopy(timeTable)
-			waveCounter = 1
 		end
 		showProgress && ProgressMeter.next!(progress, showvalues = (("Score", score), ("Min score", minval)))
 	end
@@ -155,21 +107,6 @@ function modularTabuImprove(timetable, tabu, settings::TabuSearchSettings2, scor
 		if score < minval
 			minval = score
 			toApply = change
-		end
-	end
-	toApply
-end
-
-function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings3, scoreFunction, canChange, center, coef)
-	minval = typemax(Float64)
-	toApply = (defaultChange(timeTable), 0, 0)
-	for _ = 1:settings.neighbourhoodSize
-		newChange, restoreChange = randomChange!(timeTable, change -> canChange(timeTable, change, tabu))
-		score = scoreFunction(timeTable) + coef / distance(center, timeTable)
-		change!(timeTable, restoreChange)
-		if score < minval
-			minval = score
-			toApply = newChange
 		end
 	end
 	toApply

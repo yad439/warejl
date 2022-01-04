@@ -1,8 +1,9 @@
 include("realDataUtility.jl");
-include("linear.jl");
+include("utility.jl");
+include("randomUtils.jl");
+include("scoreFunctions.jl");
 
-include("annealing.jl");
-include("tabu.jl");
+include("linear.jl");
 include("hybridTabu.jl");
 
 using Statistics
@@ -10,19 +11,6 @@ using Distributed
 
 using ThreadsX
 using DataFrames
-
-if nprocs() > 1
-	@everywhere begin
-		#import Pkg;
-		#Pkg.activate(".");
-
-		include("mainAuxiliary.jl")
-		include("annealing.jl")
-		include("tabu.jl")
-		include("hybridTabu.jl")
-	end
-end
-
 
 const ModelResult = @NamedTuple {solution::Union{Float32,Missing}, bound::Union{Float32,Missing}}
 

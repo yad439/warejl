@@ -1,8 +1,7 @@
-using CSV,DataFrames
-using Dates,Statistics
+using CSV, DataFrames
+using Statistics
 
-include("utility.jl")
-include("auxiliary.jl")
+include("problemStructures.jl")
 
 struct Batch
 	id
@@ -31,7 +30,7 @@ end
 
 function parseRealData(batchInfo, boxInfo, boxProcessingTime, itemInfo, itemProcessingTime)
 	items = map(it -> it.ITEM_ID => Item(it.ITEM_ID, it.WAREHOUSE_TO_PICK_TIME), eachrow(itemProcessingTime)) |> Dict
-	boxes = map(innerjoin(boxInfo, boxProcessingTime, on=:BOX_ID) |> eachrow) do box
+	boxes = map(innerjoin(boxInfo, boxProcessingTime, on = :BOX_ID) |> eachrow) do box
 		box.BOX_ID => Box(
 			box.BOX_ID,
 			box.PRODUCTION_LINE_TYPE,
@@ -65,17 +64,16 @@ end
 function parseRealData(directory, instanceSize, instanceNum)
 	dir = "$directory/$instanceSize/$instanceNum"
 	data = ["batch_info",
-		  "box_info",
-		  "box_processing_time",
-		  "item_info",
-		  "item_processing_time"] |>
-		fmap(i -> "$dir/$(instanceSize)_$(instanceNum)_$i.csv") |>
-		fmap(CSV.File ▷ DataFrame)
-	transform!(data[1], :END_ESTIMATED_PACKAGE_DATE => (it -> DateTime.(it, "y-m-d H:M:S")) => :END_ESTIMATED_PACKAGE_DATE)
+			   "box_info",
+			   "box_processing_time",
+			   "item_info",
+			   "item_processing_time"] |>
+		   fmap(i -> "$dir/$(instanceSize)_$(instanceNum)_$i.csv") |>
+		   fmap(CSV.File ▷ DataFrame)
 	parseRealData(data...)
 end
 
-function toModerateJobs(batches, boxFilter=_ -> true)
+function toModerateJobs(batches, boxFilter = _ -> true)
 	orders = map(batch -> batch.orders, batches) |> Iterators.flatten
 	boxes = map(order -> order.boxes, orders) |> Iterators.flatten |> iffilter(boxFilter) |> collect
 	jobLengths = map(box -> box.packingTime, boxes)
@@ -86,7 +84,7 @@ function toModerateJobs(batches, boxFilter=_ -> true)
 	(lengths = Int.(jobLengths), itemsForJob, carTravelTime)
 end
 
-function Problem(batches::AbstractVector{Batch}, machineCount, carsCount, bufferSize, boxFilter=_ -> true)
+function Problem(batches::AbstractVector{Batch}, machineCount, carsCount, bufferSize, boxFilter = _ -> true)
 	jobs = toModerateJobs(batches, boxFilter)
 	Problem(length(jobs.lengths), machineCount, carsCount, jobs.carTravelTime, maximum(Iterators.flatten(jobs.itemsForJob)), bufferSize, jobs.lengths, BitSet.(jobs.itemsForJob))
 end

@@ -1,27 +1,4 @@
-include("mainAuxiliary.jl");
-include("utility.jl");
-include("auxiliary.jl")
-include("tabu.jl");
-include("local.jl");
-include("annealing.jl");
-include("hybridTabu.jl");
-include("realDataUtility.jl");
-include("linear.jl");
-include("extendedRandoms.jl");
-include("simpleHeuristic.jl");
-include("plots.jl");
-include("experimentUtils.jl");
-include("json.jl");
-
-using Random
-using Printf
-using DelimitedFiles
-
-using DataFrames
-using CSV
-using ThreadsX
-using JuMP
-using JSON
+include("singleInclude.jl")
 ##
 results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"));
 ##
@@ -292,7 +269,7 @@ plt = plot(
 	ylabel = "Mean schedule length",
 	# annotations=tuple.(df2[:,:sameTemperature],df2[:,:mean] .+ 1,string.(df2[:,:sameTemperature])),
 	xticks = setdiff(df2[:, :sameTemperature], [5000, 20000, 80000]),
-	xformatter = x -> true ? round(Int, x) : @sprintf("%.0e", x),
+	xformatter = x -> round(Int, x),
 	# xtickfontsize=6,
 	# palette=:grays,
 	size = (600, 300)
@@ -316,15 +293,15 @@ ress = progress_map(mapfun = ThreadsX.map, 1:1_000_000) do _
 end
 rat = secondElement.(ress) ./ first.(ress)
 ##
-ress1 = readdlm("out/random_100_1.tsv")
-ress2 = readdlm("out/random_500_1.tsv")
-rat1 = ress1[:, 2] ./ ress1[:, 1]
-rat2 = ress2[:, 2] ./ ress2[:, 1]
+# ress1 = readdlm("out/random_100_1.tsv")
+# ress2 = readdlm("out/random_500_1.tsv")
+# rat1 = ress1[:, 2] ./ ress1[:, 1]
+# rat2 = ress2[:, 2] ./ ress2[:, 1]
 ##
-plt1 = histogram(rat1, label = false, normalize = :pdf, xlabel = "f'(s)/f(s)")
-plt2 = histogram(rat2, label = false, normalize = :pdf, xlabel = "f'(s)/f(s)")
-plt = plot(plt1, plt2, size = (800, 480))
-savefig(plt, "out/hist_alt_double.svg")
+# plt1 = histogram(rat1, label = false, normalize = :pdf, xlabel = "f'(s)/f(s)")
+# plt2 = histogram(rat2, label = false, normalize = :pdf, xlabel = "f'(s)/f(s)")
+# plt = plot(plt1, plt2, size = (800, 480))
+# savefig(plt, "out/hist_alt_double.svg")
 ##
 limitCounter = Counter(10)
 probSize = 50

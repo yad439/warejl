@@ -1,9 +1,8 @@
 using DataStructures
 using OffsetArrays
 
-include("auxiliary.jl")
+include("problemStructures.jl")
 include("structures.jl")
-include("utility.jl")
 
 function computeTimeLazyReturn(timetable, problem, ::Val{true})
 	machineCount = problem.machineCount
@@ -54,7 +53,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{true})
 				minLocks = Iterators.map(first, Iterators.filter(it -> it[2] ≤ minLockTime, activeLocks)) |> collect
 				nexts = map(item -> findnext(jb -> item ∈ itemsNeeded[jb], timetable.permutation, ind + 1), minLocks) |> fmap(it -> it ≡ nothing ? typemax(Int) : it)
 				nextsDict = Dict(Iterators.zip(minLocks, nexts))
-				sort!(minLocks, by=it -> nextsDict[it], rev=true)
+				sort!(minLocks, by = it -> nextsDict[it], rev = true)
 				changesNum = min(carsAvailable, length(minLocks), length(itemsLeft))
 				toRemove = Iterators.take(minLocks, changesNum)
 				toAdd = Iterators.take(itemsLeft, changesNum)
@@ -90,7 +89,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{true})
 	(schedule = Schedule(assignment, times, normHistory), time = maximum(sums), history = carHistory, bigHistory = bigHistory)
 end
 
-function computeTimeLazyReturn(timetable, problem, ::Val{false}, sortRemoves=true)
+function computeTimeLazyReturn(timetable, problem, ::Val{false}, sortRemoves = true)
 	machineCount = problem.machineCount
 	jobLengths = problem.jobLengths
 	itemsNeeded = problem.itemsNeeded
@@ -148,7 +147,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{false}, sortRemoves=tru
 						nxt = findnext(jb -> item ∈ itemsNeeded[jb], timetable.permutation, ind + 1)
 						nexts[item] = nxt ≡ nothing ? typemax(Int) : nxt
 					end
-					sort!(view(minLocks, 1:minLocksLen), by=it -> nexts[it], rev=true)
+					sort!(view(minLocks, 1:minLocksLen), by = it -> nexts[it], rev = true)
 				end
 				while !isempty(inUseCars) && first(inUseCars)[1] ≤ minLockTime - carTravelTime
 					(availableFromTime, carChange) = popfirst!(inUseCars)
@@ -175,7 +174,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{false}, sortRemoves=tru
 	maximum(sums)
 end
 
-function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves=true)
+function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves = true)
 	machineCount = problem.machineCount
 	jobLengths = problem.jobLengths
 	itemsNeeded = problem.itemsNeeded
@@ -184,7 +183,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves=true)
 	bufferSize = problem.bufferSize
 
 	sums = fill(zero(eltype(jobLengths)), machineCount)
-	idles=Tuple{Int,Int}[]
+	idles = Tuple{Int,Int}[]
 	inUseCars = EventQueue()
 	carsAvailable = carCount
 	availableFromTime = 0 # points at last add travel start
@@ -234,7 +233,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves=true)
 						nxt = findnext(jb -> item ∈ itemsNeeded[jb], timetable.permutation, ind + 1)
 						nexts[item] = nxt ≡ nothing ? typemax(Int) : nxt
 					end
-					sort!(view(minLocks, 1:minLocksLen), by=it -> nexts[it], rev=true)
+					sort!(view(minLocks, 1:minLocksLen), by = it -> nexts[it], rev = true)
 				end
 				while !isempty(inUseCars) && first(inUseCars)[1] ≤ minLockTime - carTravelTime
 					(availableFromTime, carChange) = popfirst!(inUseCars)
@@ -253,7 +252,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves=true)
 		end
 		machine = selectMachine(job, timetable, sums)
 		startTime = max(sums[machine], availableFromTime + carTravelTime)
-		idle=availableFromTime + carTravelTime-sums[machine]
+		idle = availableFromTime + carTravelTime - sums[machine]
 		if idle > 0
 			push!(idles, (ind, idle))
 		end
@@ -262,7 +261,7 @@ function computeTimeLazyReturn(timetable, problem, ::Val{0.5}, sortRemoves=true)
 			@inbounds lockTime[item] = max(lockTime[item], startTime + jobLengths[job])
 		end
 	end
-	maximum(sums),idles
+	maximum(sums), idles
 end
 
 function computeTimeBufferOnly(timetable, problem)
@@ -323,13 +322,13 @@ end
 
 function improveSolution(solution, problem)
 	jobs = [Job(
-			solution.times[i],
-			solution.times[i] + problem.jobLengths[i]
-		) for i = 1:problem.jobCount]
+		solution.times[i],
+		solution.times[i] + problem.jobLengths[i]
+	) for i = 1:problem.jobCount]
 	tasks = [CarTask(t.time,
-					t.time + problem.carTravelTime,
-					t.item,t.isAdd
-		) for t ∈ solution.carTasks]
+		t.time + problem.carTravelTime,
+		t.item, t.isAdd
+	) for t ∈ solution.carTasks]
 	fullTime = max(
 		maximum(i -> i.endTime, jobs),
 		maximum(t -> t.endTime, tasks)
@@ -337,12 +336,12 @@ function improveSolution(solution, problem)
 	changed = true
 	machineUsage = OffsetVector(zeros(Int, fullTime + 1), 0:fullTime)
 	for job ∈ jobs
-		machineUsage[job.startTime:job.endTime - 1] .+= 1
+		machineUsage[job.startTime:job.endTime-1] .+= 1
 	end
 	@assert all(≤(problem.machineCount), machineUsage)
 	carUsage = OffsetVector(zeros(Int, fullTime + 1), 0:fullTime)
 	for task ∈ tasks
-		for t = task.startTime:task.endTime - 1
+		for t = task.startTime:task.endTime-1
 			carUsage[t] += 1
 		end
 	end
@@ -350,8 +349,8 @@ function improveSolution(solution, problem)
 	itemLocks = OffsetMatrix(falses(fullTime + 1, problem.itemCount), 0:fullTime, :)
 	for j = 1:problem.jobCount
 		for i ∈ problem.itemsNeeded[j]
-			for t = jobs[j].startTime:jobs[j].endTime - 1
-				itemLocks[t,i] = true
+			for t = jobs[j].startTime:jobs[j].endTime-1
+				itemLocks[t, i] = true
 			end
 		end
 	end
@@ -368,33 +367,33 @@ function improveSolution(solution, problem)
 	bufferItems = OffsetMatrix(falses(fullTime + 1, problem.itemCount), 0:fullTime, :)
 	for task ∈ tasks
 		if task.isAdd
-			bufferItems[task.endTime:end,task.item] .= true
+			bufferItems[task.endTime:end, task.item] .= true
 		else
-			bufferItems[task.startTime:end,task.item] .= false
+			bufferItems[task.startTime:end, task.item] .= false
 		end
 	end
-	@assert all(t -> sum(bufferItems[t,:]) ≤ problem.bufferSize, 0:fullTime)
+	@assert all(t -> sum(bufferItems[t, :]) ≤ problem.bufferSize, 0:fullTime)
 	while changed
 		changed = false
 		for task ∈ tasks
 			task.isAdd && continue
-			itemFreed = findprev(itemLocks[:,task.item], task.startTime - 1) + 1
+			itemFreed = findprev(itemLocks[:, task.item], task.startTime - 1) + 1
 			@assert !isnothing(itemFreed)
 			itemFreed ≥ task.startTime && continue
 			carFreed = something(findprev(==(problem.carCount), carUsage, task.startTime - 1), -1) + 1
 			carFreed ≥ task.startTime && continue
 
 			newTime = max(itemFreed, carFreed)
-			for t = newTime:task.startTime - 1
+			for t = newTime:task.startTime-1
 				bufferUsage[t] -= 1
-				bufferItems[t,task.item] = false
+				bufferItems[t, task.item] = false
 			end
-			for t = task.startTime:task.endTime - 1
+			for t = task.startTime:task.endTime-1
 				carUsage[t] -= 1
 			end
 			task.startTime = newTime
 			task.endTime = newTime + problem.carTravelTime
-			for t = task.startTime:task.endTime - 1
+			for t = task.startTime:task.endTime-1
 				carUsage[t] += 1
 			end
 			changed = true
@@ -410,7 +409,7 @@ function improveSolution(solution, problem)
 				minNext = typemax(Int)
 				for task2 ∈ tasks
 					(task2.isAdd || task2.startTime ≠ task.endTime) && continue
-					itemFreed = findprev(itemLocks[:,task2.item], task2.startTime - 1) + 1
+					itemFreed = findprev(itemLocks[:, task2.item], task2.startTime - 1) + 1
 					if itemFreed < minNext
 						nextTask = task2
 						minNext = itemFreed
@@ -419,36 +418,36 @@ function improveSolution(solution, problem)
 				@assert nextTask ≢ nothing
 				minNext < task.endTime || continue
 				newTime = max(carFreed, minNext - problem.carTravelTime)
-				for t = newTime + problem.carTravelTime:task.endTime - 1
+				for t = newTime+problem.carTravelTime:task.endTime-1
 					bufferUsage[t] += 1
-					bufferItems[t,task.item] = true
+					bufferItems[t, task.item] = true
 				end
-				for t = newTime + problem.carTravelTime:nextTask.startTime - 1
+				for t = newTime+problem.carTravelTime:nextTask.startTime-1
 					bufferUsage[t] -= 1
-					bufferItems[t,nextTask.item] = false
+					bufferItems[t, nextTask.item] = false
 				end
-				for t = task.startTime:nextTask.endTime - 1
+				for t = task.startTime:nextTask.endTime-1
 					carUsage[t] -= 1
 				end
 				task.startTime = newTime
 				task.endTime = newTime + problem.carTravelTime
 				nextTask.startTime = newTime + problem.carTravelTime
 				nextTask.endTime = newTime + 2problem.carTravelTime
-				for t = task.startTime:nextTask.endTime - 1
+				for t = task.startTime:nextTask.endTime-1
 					carUsage[t] += 1
 				end
 			else
 				newTime = max(bufferFreed - problem.carTravelTime, carFreed)
-				for t = newTime + problem.carTravelTime:task.endTime - 1
+				for t = newTime+problem.carTravelTime:task.endTime-1
 					bufferUsage[t] += 1
-					bufferItems[t,task.item] = true
+					bufferItems[t, task.item] = true
 				end
-				for t = task.startTime:task.endTime - 1
+				for t = task.startTime:task.endTime-1
 					carUsage[t] -= 1
 				end
 				task.startTime = newTime
 				task.endTime = newTime + problem.carTravelTime
-				for t = task.startTime:task.endTime - 1
+				for t = task.startTime:task.endTime-1
 					carUsage[t] += 1
 				end
 			end
@@ -459,24 +458,24 @@ function improveSolution(solution, problem)
 			machineFreed = something(findprev(==(problem.machineCount), machineUsage, job.startTime - 1), -1) + 1
 			machineFreed ≥ job.startTime && continue
 			itemsAvailable = maximum(
-				findprev(==(false), bufferItems[:,i], job.startTime - 1) + 1
-			for i∈problem.itemsNeeded[j])
+				findprev(==(false), bufferItems[:, i], job.startTime - 1) + 1
+				for i ∈ problem.itemsNeeded[j])
 			itemsAvailable ≥ job.startTime && continue
 
 			newTime = max(machineFreed, itemsAvailable)
-			for t = job.startTime:job.endTime - 1
+			for t = job.startTime:job.endTime-1
 				machineUsage[t] -= 1
 			end
-			for t in job.startTime:job.endTime - 1,i∈problem.itemsNeeded[j]
-				itemLocks[t,i] = reduce((a, b) -> a || b, (jb.startTime ≤ t < job.endTime for jb ∈ jobs if jb ≢ job))
+			for t in job.startTime:job.endTime-1, i ∈ problem.itemsNeeded[j]
+				itemLocks[t, i] = reduce((a, b) -> a || b, (jb.startTime ≤ t < job.endTime for jb ∈ jobs if jb ≢ job))
 			end
 			job.startTime = newTime
 			job.endTime = newTime + problem.jobLengths[j]
-			for t = job.startTime:job.endTime - 1
+			for t = job.startTime:job.endTime-1
 				machineUsage[t] += 1
 			end
-			for t in job.startTime:job.endTime - 1,i∈problem.itemsNeeded[j]
-				itemLocks[t,i] = true
+			for t in job.startTime:job.endTime-1, i ∈ problem.itemsNeeded[j]
+				itemLocks[t, i] = true
 			end
 			changed = true
 		end

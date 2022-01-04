@@ -1,7 +1,7 @@
 using ProgressMeter
 using ValueHistories
 
-include("common.jl")
+include("encodings.jl")
 include("utility.jl")
 
 struct AnnealingSettings

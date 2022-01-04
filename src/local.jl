@@ -1,14 +1,14 @@
-include("utility.jl")
-
 using ProgressMeter
 using ValueHistories
+
+include("encodings.jl")
 
 struct LocalSearchSettings{T}
 	iterator::T
 	acceptFirst::Bool
 end
 
-function modularLocalSearch(settings, scoreFunction, startTimeTable, showProgress=true)
+function modularLocalSearch(settings, scoreFunction, startTimeTable, showProgress = true)
 	progress = ProgressUnknown("Local search:")
 
 	timeTable = startTimeTable
@@ -33,7 +33,7 @@ function modularLocalSearch(settings, scoreFunction, startTimeTable, showProgres
 		change!(timeTable, minChange)
 		score = minScore
 		push!(history, score)
-		showProgress && ProgressMeter.next!(progress, showvalues=(("Min score", score),))
+		showProgress && ProgressMeter.next!(progress, showvalues = (("Min score", score),))
 	end
 	(score = score, solution = timeTable, history = history)
 end
