@@ -1,10 +1,9 @@
-include("realDataUtility.jl");
-include("utility.jl");
-include("randomUtils.jl");
-include("scoreFunctions.jl");
+include("realDataUtility.jl")
+include("randomUtils.jl")
+include("scoreFunctions.jl")
 
-include("linear.jl");
-include("hybridTabu.jl");
+include("linear.jl")
+include("hybridTabu.jl")
 
 using Statistics
 using Distributed

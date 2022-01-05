@@ -2,7 +2,6 @@ using DataStructures
 using OffsetArrays
 
 include("problemStructures.jl")
-include("structures.jl")
 
 function computeTimeLazyReturn(timetable, problem, ::Val{true})
 	machineCount = problem.machineCount

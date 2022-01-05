@@ -1,13 +1,11 @@
-include("jsonExt.jl");
-include("simpleHeuristic.jl");
+include("jsonExt.jl")
+include("simpleHeuristic.jl")
 
 import JSON
 
 function addWorkers(procs, threads)
-	started = addprocs(procs, exeflags = ["-O3", "-t$threads", "-g0", "--math-mode=fast", "--project"])
+	started = addprocs(procs, exeflags = ["-O3", "--min-optlevel=3", "-t$threads", "-g0", "--math-mode=fast", "--project"])
 	@everywhere started begin
-		include("annealing.jl")
-		include("tabu.jl")
 		include("hybridTabu.jl")
 		include("scoreFunctions.jl")
 		include("randomUtils.jl")
