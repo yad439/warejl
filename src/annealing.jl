@@ -22,7 +22,7 @@ struct AnnealingSettings2
 	changeGenerator::Function
 end
 
-function modularAnnealing(settings::AnnealingSettings, scoreFunction, startTimeTable, showProgress = true)
+function modularAnnealing(settings::AnnealingSettings, scoreFunction::F, startTimeTable, showProgress = true) where {F}
 	progress = ProgressUnknown("Annealing:")
 
 	timeTable = startTimeTable
@@ -67,7 +67,7 @@ function modularAnnealing(settings::AnnealingSettings, scoreFunction, startTimeT
 	(score = minval, solution = minsol, history = history)
 end
 
-function modularAnnealing(settings::AnnealingSettings2, scoreFunction, startTimeTable, showProgress = true)
+function modularAnnealing(settings::AnnealingSettings2, scoreFunction::F, startTimeTable, showProgress = true) where {F}
 	progress = ProgressUnknown("Annealing:")
 
 	timeTable = startTimeTable

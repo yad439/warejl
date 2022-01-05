@@ -37,7 +37,7 @@ function toJson(output::IO, object, indent::Int)
 	print(output, '\n', repeat('\t', indent), '}')
 	nothing
 end
-function toJson(output::IO, object::T, indent::Int) where {T<:NamedTuple}
+function toJson(output::IO, object::NamedTuple, indent::Int)
 	print(output, "{\n")
 	fields = fieldnames(typeof(object))
 	firstField, rest = Iterators.peel(fields)
@@ -53,16 +53,16 @@ function toJson(output::IO, object::T, indent::Int) where {T<:NamedTuple}
 	nothing
 end
 
-toJson(output::IO, object::T, indent::Int) where {T<:AbstractVector} = toJsonCollection(output, object, indent)
+toJson(output::IO, object::AbstractVector, indent::Int) = toJsonCollection(output, object, indent)
 toJson(output::IO, object::Vector{T}, indent::Int) where {T<:Number} = toJsonCollectionCompact(output, object, indent)
 toJson(output::IO, object::Vector{T}, indent::Int) where {T<:AbstractString} = toJsonCollectionCompact(output, object, indent)
-toJson(output::IO, object::T, indent::Int) where {T<:AbstractSet} = toJsonCollection(output, object, indent)
+toJson(output::IO, object::AbstractSet, indent::Int) = toJsonCollection(output, object, indent)
 toJson(output::IO, object::Set{T}, indent::Int) where {T<:AbstractChar} = toJsonCollectionCompact(output, object, indent)
 toJson(output::IO, object::Set{T}, indent::Int) where {T<:AbstractString} = toJsonCollectionCompact(output, object, indent)
 
-toJson(output::IO, object::T, ::Int) where {T<:AbstractString} = (print(output, '"', object, '"'); nothing)
-toJson(output::IO, object::T, ::Int) where {T<:AbstractChar} = (print(output, '"', object, '"'); nothing)
-toJson(output::IO, object::T, ::Int) where {T<:Number} = (print(output, object); nothing)
+toJson(output::IO, object::AbstractString, ::Int) = (print(output, '"', object, '"'); nothing)
+toJson(output::IO, object::AbstractChar, ::Int) = (print(output, '"', object, '"'); nothing)
+toJson(output::IO, object::Number, ::Int) = (print(output, object); nothing)
 toJson(output::IO, ::Missing, ::Int) = (print(output, "null"); nothing)
 toJson(output::IO, ::Nothing, ::Int) = (print(output, "null"); nothing)
 

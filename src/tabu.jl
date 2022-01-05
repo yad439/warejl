@@ -29,7 +29,7 @@ modularTabuSearch4(settings, scoreFunction, startTimeTable::TwoVectorChange, sho
 modularTabuSearch5(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), tabuAdd5!, tabuCanChange3, showProgress)
 modularTabuSearch5(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd5!, tabuCanChange3, showProgress)
 
-function modularTabuSearch(settings, scoreFunction, startTimeTable, tabuInit, tabuAdd!, tabuCanChange, showProgress = true)
+function modularTabuSearch(settings, scoreFunction::F, startTimeTable, tabuInit, tabuAdd!, tabuCanChange, showProgress = true) where {F}
 	progress = ProgressUnknown("Local tabu search:")
 
 	timeTable = startTimeTable
@@ -62,7 +62,7 @@ function modularTabuSearch(settings, scoreFunction, startTimeTable, tabuInit, ta
 	(score = minval, solution = minsol, history = history)
 end
 
-function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, scoreFunction, canChange, ::Val{true} = Val{true}())
+function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, scoreFunction::F, canChange, ::Val{true} = Val{true}()) where {F}
 	nthreads = Threads.nthreads()
 	minval = fill(typemax(Int), nthreads)
 	toApply = fill((defaultChange(timeTable), 0, 0), nthreads)
@@ -80,7 +80,7 @@ function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, score
 	toApply[argmin(minval)]
 end
 
-function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, scoreFunction, canChange, ::Val{false})
+function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, scoreFunction::F, canChange, ::Val{false}) where {F}
 	minval = typemax(Int)
 	toApply = (defaultChange(timeTable), 0, 0)
 	for _ = 1:settings.neighbourhoodSize
@@ -95,7 +95,7 @@ function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings, score
 	toApply
 end
 
-function modularTabuImprove(timetable, tabu, settings::TabuSearchSettings2, scoreFunction, canChange)
+function modularTabuImprove(timetable, tabu, settings::TabuSearchSettings2, scoreFunction::F, canChange) where {F}
 	minval = typemax(Int)
 	toApply = (0, 0, 0)
 	for change ∈ changeIterator(timetable)
@@ -112,7 +112,7 @@ function modularTabuImprove(timetable, tabu, settings::TabuSearchSettings2, scor
 	toApply
 end
 
-function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings4{T}, scoreFunction, canChange) where {T}
+function modularTabuImprove(timeTable, tabu, settings::TabuSearchSettings4{T}, scoreFunction::F, canChange) where {T,F}
 	minval = typemax(Int)
 	toApply = (defaultChange(timeTable), 0, 0)
 	for newChange ∈ settings.neighbourhoodIterator(timeTable, change -> canChange(timeTable, change, tabu))

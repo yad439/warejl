@@ -3,29 +3,29 @@ using Statistics
 
 include("problemStructures.jl")
 
-struct Batch
-	id
-	orders
-end
-
-struct Order
-	id
-	endDate
-	boxes
+struct Item
+	id::String
+	transportTime::Int
 end
 
 struct Box
-	id
-	lineType
-	pickingTime
-	packingTime
-	weighingTime
-	items
+	id::Int
+	lineType::String
+	pickingTime::Float64
+	packingTime::Float64
+	weighingTime::Float64
+	items::Vector{Item}
 end
 
-struct Item
-	id
-	transportTime
+struct Order
+	id::Int
+	endDate::String
+	boxes::Vector{Box}
+end
+
+struct Batch
+	id::String
+	orders::Vector{Order}
 end
 
 function parseRealData(batchInfo, boxInfo, boxProcessingTime, itemInfo, itemProcessingTime)
