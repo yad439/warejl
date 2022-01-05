@@ -249,7 +249,7 @@ function fromCarsModel2(model)
 	@assert all(x -> isapprox(x, round(x), atol = 0.01), addEventTime)
 	@assert all(x -> isapprox(x, round(x), atol = 0.01), removeEventTime)
 
-	events = @NamedTuple {time::Int, item::Int, isAdd::Bool}[]
+	events = @NamedTuple{time::Int, item::Int, isAdd::Bool}[]
 	for t ∈ eachindex(addEventTime)
 		for i ∈ eachindex(addEventItems[:, t])
 			if addEventItems[i, t]
