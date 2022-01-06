@@ -3,6 +3,7 @@ using ProgressMeter
 using ValueHistories
 
 include("encodings.jl")
+include("utility.jl")
 
 struct TabuSearchSettings
 	searchTries::Int
@@ -26,7 +27,7 @@ modularTabuSearch3(settings, scoreFunction, startTimeTable::PermutationEncoding,
 modularTabuSearch3(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd3!, tabuCanChange3, showProgress)
 modularTabuSearch4(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), tabuAdd4!, tabuCanChange3, showProgress)
 modularTabuSearch4(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd4!, tabuCanChange3, showProgress)
-modularTabuSearch5(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), tabuAdd5!, tabuCanChange3, showProgress)
+modularTabuSearch5(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), FuncS(tabuAdd5!), FuncS(tabuCanChange3), showProgress)
 modularTabuSearch5(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd5!, tabuCanChange3, showProgress)
 
 function modularTabuSearch(settings, scoreFunction::F, startTimeTable, tabuInit, tabuAdd!, tabuCanChange, showProgress = true) where {F}

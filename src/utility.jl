@@ -48,3 +48,7 @@ for n = 0:5
 	eval(structDef)
 	eval(inlined)
 end
+struct FuncS{F}
+	f::F
+end
+@inline (func::FuncS{F})(x::Vararg{Any,N}) where {F,N} = func.f(x...)
