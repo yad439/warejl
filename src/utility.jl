@@ -30,6 +30,7 @@ ifmap(f) = x -> Iterators.map(f, x)
 iffilter(f) = x -> Iterators.filter(f, x)
 secondElement(x) = x[2]
 unzip(a) = map(x -> getfield.(a, x), fieldnames(eltype(a)))
+argargmin(f,itr)=findmin(f,itr)[2]
 
 for n = 0:5
 	structName = Expr(:curly, Symbol(:Func, n), :R, (Symbol(:A, i) for i = 1:n)...)
