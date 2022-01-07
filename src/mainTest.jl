@@ -568,13 +568,15 @@ open("out/data_$(problem.jobCount).txt", "w") do file
 	end
 end
 ##
-errs = map(results[collect(Iterators.flatten(groups))]) do instance
+errs = map(results[allSorted]) do instance
 	problem = instanceToProblem(instance)
 	scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 	annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 	tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
+	hybridRess = [[scoreFunction(sol.solution) for sol ∈ res.result.results] for res ∈ instance.otherResults if res.type == HYBRID13_TYPE]
 	bestAnn = argmin(map(mean, annRess))
 	bestTabu = argmin(map(mean, tabuRess))
+	bestHybrid = argmin(map(mean, hybridRess))
 	bestLB = 0
 	if instance.modelResults.fullModel ≢ nothing && instance.modelResults.fullModel.bound > bestLB
 		bestLB = instance.modelResults.fullModel.bound
@@ -588,7 +590,7 @@ errs = map(results[collect(Iterators.flatten(groups))]) do instance
 	if instance.modelResults.assignmentOnly ≢ nothing && instance.modelResults.assignmentOnly.bound > bestLB
 		bestLB = instance.modelResults.assignmentOnly.bound
 	end
-	(mean(annRess[bestAnn]) - bestLB) / bestLB, (mean(tabuRess[bestTabu]) - bestLB) / bestLB
+	(mean(annRess[bestAnn]) - bestLB) / bestLB, (mean(tabuRess[bestTabu]) - bestLB) / bestLB, (mean(hybridRess[bestHybrid]) - bestLB) / bestLB
 end
 ##
 let results = results, groups = groups
@@ -692,3 +694,10 @@ df = DataFrame(
 	buffer = map(it -> it.bufferSize, rss),
 	time = map(it -> instanceToProblem(it).carTravelTime, rss)
 )
+##
+open("out/resultsN.tex","w") do file
+	for row ∈ eachrow(tab2)
+		join(file,row," & ")
+		println(file,"\\\\")
+	end
+end
