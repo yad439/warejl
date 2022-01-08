@@ -84,12 +84,3 @@ function popfirst!(queue::EventQueue3)
 	pop!(queue.data, ret[1])
 	ret
 end
-
-mutable struct Counter
-	counter::Int
-end
-function (c::Counter)()
-	c.counter == 0 && return false
-	c.counter -= 1
-	true
-end

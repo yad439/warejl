@@ -29,8 +29,8 @@ struct Batch
 end
 
 function parseRealData(batchInfo, boxInfo, boxProcessingTime, itemInfo, itemProcessingTime)
-	items = map(it -> it.ITEM_ID => Item(it.ITEM_ID, it.WAREHOUSE_TO_PICK_TIME), eachrow(itemProcessingTime)) |> Dict
-	boxes = map(innerjoin(boxInfo, boxProcessingTime, on = :BOX_ID) |> eachrow) do box
+	items = Dict(it.ITEM_ID => Item(it.ITEM_ID, it.WAREHOUSE_TO_PICK_TIME) for it ∈ eachrow(itemProcessingTime))
+	boxes = Iterators.map(eachrow(innerjoin(boxInfo, boxProcessingTime, on = :BOX_ID))) do box
 		box.BOX_ID => Box(
 			box.BOX_ID,
 			box.PRODUCTION_LINE_TYPE,
@@ -41,24 +41,24 @@ function parseRealData(batchInfo, boxInfo, boxProcessingTime, itemInfo, itemProc
 		)
 	end |> Dict
 	@assert length(boxes) == size(boxInfo, 1) == size(boxProcessingTime, 1)
-	foreach(eachrow(itemInfo)) do entry
+	for entry ∈ eachrow(itemInfo)
 		push!(boxes[entry.BOX_ID].items, items[entry.ITEM_ID])
 	end
-	orders = map(eachrow(batchInfo)) do order
+	orders = Iterators.map(eachrow(batchInfo)) do order
 		order.ORDER_ID => Order(
 			order.ORDER_ID,
 			order.END_ESTIMATED_PACKAGE_DATE,
 			Box[]
 		)
 	end |> Dict
-	foreach(eachrow(boxInfo)) do entry
+	for entry ∈ eachrow(boxInfo)
 		push!(orders[entry.ORDER_ID].boxes, boxes[entry.BOX_ID])
 	end
-	batches = batchInfo.BATCH_ID |> unique |> fmap(i -> i => Batch(i, Order[])) |> Dict
-	foreach(eachrow(batchInfo)) do entry
+	batches = batchInfo.BATCH_ID |> unique |> ifmap(i -> i => Batch(i, Order[])) |> Dict
+	for entry ∈ eachrow(batchInfo)
 		push!(batches[entry.BATCH_ID].orders, orders[entry.ORDER_ID])
 	end
-	values(batches) |> collect
+	collect(values(batches))
 end
 
 function parseRealData(directory, instanceSize, instanceNum)
@@ -68,23 +68,23 @@ function parseRealData(directory, instanceSize, instanceNum)
 			   "box_processing_time",
 			   "item_info",
 			   "item_processing_time"] |>
-		   fmap(i -> "$dir/$(instanceSize)_$(instanceNum)_$i.csv") |>
-		   fmap(CSV.File ▷ DataFrame)
+		   ifmap(i -> "$dir/$(instanceSize)_$(instanceNum)_$i.csv") |>
+		   ifmap(CSV.File ▷ DataFrame)
 	parseRealData(data...)
 end
 
-function toModerateJobs(batches, boxFilter = _ -> true)
-	orders = map(batch -> batch.orders, batches) |> Iterators.flatten
-	boxes = map(order -> order.boxes, orders) |> Iterators.flatten |> iffilter(boxFilter) |> collect
-	jobLengths = map(box -> box.packingTime, boxes)
-	itemIds = map(box -> box.items, boxes) |> Iterators.flatten |> fmap(i -> i.id) |> unique
-	itemMapping = Iterators.enumerate(itemIds) |> fmap(x -> (x[2], x[1])) |> Dict
-	itemsForJob = [map(x -> itemMapping[x.id], box.items) for box ∈ boxes]
-	carTravelTime = map(box -> box.items, boxes) |> Iterators.flatten |> fmap(i -> i.transportTime) |> mean |> x -> round(Int, x)
-	(lengths = Int.(jobLengths), itemsForJob, carTravelTime)
+function toModerateJobs(batches, boxFilter = _ -> true, boxLimit = typemax(Int))
+	orders = Iterators.map(batch -> batch.orders, batches) |> Iterators.flatten
+	boxes = Iterators.map(order -> order.boxes, orders) |> Iterators.flatten |> iffilter(boxFilter) |> Base.Fix2(Iterators.take, boxLimit) |> collect
+	jobLengths = map(box -> Int(box.packingTime), boxes)
+	itemIds = Iterators.map(box -> box.items, boxes) |> Iterators.flatten |> ifmap(i -> i.id) |> unique
+	itemMapping = Iterators.enumerate(itemIds) |> ifmap(x -> (x[2], x[1])) |> Dict
+	itemsForJob = [[itemMapping[item.id] for item ∈ box.items] for box ∈ boxes]
+	carTravelTime = Iterators.map(box -> box.items, boxes) |> Iterators.flatten |> ifmap(i -> i.transportTime) |> mean |> x -> round(Int, x)
+	(lengths = jobLengths, itemsForJob, carTravelTime)
 end
 
-function Problem(batches::AbstractVector{Batch}, machineCount, carsCount, bufferSize, boxFilter = _ -> true)
-	jobs = toModerateJobs(batches, boxFilter)
+function Problem(batches::AbstractVector{Batch}, machineCount, carsCount, bufferSize, boxFilter = _ -> true, boxLimit = typemax(Int))
+	jobs = toModerateJobs(batches, boxFilter, boxLimit)
 	Problem(length(jobs.lengths), machineCount, carsCount, jobs.carTravelTime, maximum(Iterators.flatten(jobs.itemsForJob)), bufferSize, jobs.lengths, BitSet.(jobs.itemsForJob))
 end

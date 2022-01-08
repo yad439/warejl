@@ -207,17 +207,17 @@ function findInstance(data, problemSize, problemNumber, lineTypes, boxLimit, mac
 end
 
 function instanceToProblem(instance::ProblemInstance)::Problem
-	limitCounter = instance.boxLimit ≢ missing ? Counter(instance.boxLimit) : () -> true
 	Problem(
 		parseRealData("res/benchmark - automatic warehouse", instance.problemSize, instance.problemNumber),
 		instance.machineCount,
 		instance.carCount,
 		instance.bufferSize,
-		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!instance.skipZeros || box.packingTime ≠ 0) && limitCounter()
+		box -> box.lineType[1] ∈ instance.lineTypes && !isempty(box.items) && (!instance.skipZeros || box.packingTime ≠ 0),
+		ismissing(instance.boxLimit) ? typemax(Int) : instance.boxLimit
 	)
 end
 
-function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple {jobCount::Int, items::Int, maxItems::Int, travelTime::Int}
+function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple{jobCount::Int, items::Int, maxItems::Int, travelTime::Int}
 	lineTypesSet = Set(lineTypes)
 	data = toModerateJobs(parseRealData("res/benchmark - automatic warehouse", problemSize, problemNum), box -> box.lineType[1] ∈ lineTypesSet && !isempty(box.items))
 	(

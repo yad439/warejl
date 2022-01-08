@@ -16,7 +16,6 @@ function flt(box)
 	return false
 end
 ##
-limitCounter = Counter(10)
 probSize = 20
 probNum = 4
 machineCount = 6
