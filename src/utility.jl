@@ -53,3 +53,7 @@ struct FuncS{F}
 	f::F
 end
 @inline (func::FuncS{F})(x::Vararg{Any,N}) where {F,N} = func.f(x...)
+struct FuncR{R}
+	f::Function
+end
+@inline (func::FuncR{R})(x::Vararg{Any,N}) where {R,N} = func.f(x...)::R
