@@ -2,21 +2,14 @@ function pmxCrossover(list1, list2)
 	n = length(list1)
 	@assert length(list2) == n
 	startIndex, endIndex = minmax(rand(1:n), rand(1:n))
-	while startIndex==1 && endIndex==n
+	while startIndex == 1 && endIndex == n
 		startIndex, endIndex = minmax(rand(1:n), rand(1:n))
 	end
-	pmxCrossover(list1, list2, startIndex, endIndex)
-end
-
-function pmxCrossover(list1, list2, startIndex, endIndex)
-	n = length(list1)
-	@assert length(list2) == n
 
 	child = similar(list1)
 
 	child[startIndex:endIndex] = @view list1[startIndex:endIndex]
-	copied = BitVector(undef, n)
-	fill!(copied, false)
+	copied = falses(n)
 	copied[@view list1[startIndex:endIndex]] .= true
 	for i = startIndex:endIndex
 		val = list2[i]
@@ -50,17 +43,11 @@ function order1Crossover(list1, list2)
 	while startIndex == 1 && endIndex == n
 		startIndex, endIndex = minmax(rand(1:n), rand(1:n))
 	end
-	order1Crossover(list1, list2, startIndex, endIndex)
-end
-
-function order1Crossover(list1, list2, startIndex, endIndex)
-	n = length(list1)
-	@assert length(list2) == n
 
 	child = similar(list1)
 
 	child[startIndex:endIndex] = @view list1[startIndex:endIndex]
-	copied = fill!(BitVector(undef, n), false)
+	copied = falses(n)
 	copied[@view list1[startIndex:endIndex]] .= true
 	ind = startIndex ≠ 1 ? 1 : endIndex + 1
 	for i = 1:n
@@ -78,8 +65,7 @@ function cycleCrossover(list1, list2)
 	@assert length(list2) == n
 
 	child = similar(list1)
-	copied = BitVector(undef, n)
-	copied .= false
+	copied = falses(n)
 	takeFirst = rand(Bool)
 	for i = 1:n
 		copied[i] && continue
