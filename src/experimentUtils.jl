@@ -306,10 +306,7 @@ function resultsToArtTable(results::Vector{ProblemInstance}, optimize = false)
 		problem = instanceToProblem(instance)
 		if optimize
 			scoreFunction = sol -> begin
-				sett = LocalSearchSettings(changeIterator(PermutationEncoding(sol)), true)
-				sf(s) = computeTimeLazyReturn(s, problem, Val(false), true)
-				sol2 = modularLocalSearch(sett, sf, PermutationEncoding(sol), false).solution
-				sched = computeTimeLazyReturn(sol2, problem, Val(true)).schedule
+				sched = computeTimeLazyReturn(sol, problem, Val(true)).schedule
 				improved = all(≠(0), problem.jobLengths) ? improveSolution(sched, problem) : sched
 				maximum(i -> improved.times[i] + problem.jobLengths[i], 1:problem.jobCount)
 			end
