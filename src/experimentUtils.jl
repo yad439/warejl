@@ -217,7 +217,7 @@ function instanceToProblem(instance::ProblemInstance)::Problem
 	)
 end
 
-function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple{jobCount::Int, items::Int, maxItems::Int, travelTime::Int}
+function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char})::@NamedTuple {jobCount::Int, items::Int, maxItems::Int, travelTime::Int}
 	lineTypesSet = Set(lineTypes)
 	data = toModerateJobs(parseRealData("res/benchmark - automatic warehouse", problemSize, problemNum), box -> box.lineType[1] ∈ lineTypesSet && !isempty(box.items))
 	(
@@ -282,7 +282,7 @@ function resultsToTable(results::Vector{ProblemInstance})
 	df
 end
 
-function resultsToArtTable(results::Vector{ProblemInstance})
+function resultsToArtTable(results::Vector{ProblemInstance}, optimize = false)
 	df = DataFrame(
 		jobCount = Int[],
 		tabuBest = Union{Int,Missing}[],
@@ -303,7 +303,16 @@ function resultsToArtTable(results::Vector{ProblemInstance})
 	)
 	for instance ∈ results
 		problem = instanceToProblem(instance)
-		scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		if optimize
+			scoreFunction(sol) =
+				let
+					sched = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(true)).schedule
+					improved = improveSolution(sched, problem)
+					maximum(i -> improved.times[i] + problem.jobLengths[i], 1:problem.jobCount)
+				end
+		else
+			scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+		end
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)
 		hybrid1Res = [[scoreFunction(r.solution) for r ∈ res.result.results] for res ∈ instance.otherResults if res.type ≡ HYBRID1_TYPE]
