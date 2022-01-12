@@ -305,16 +305,16 @@ function resultsToArtTable(results::Vector{ProblemInstance}, optimize = false)
 	for instance ∈ results
 		problem = instanceToProblem(instance)
 		if optimize
-			function scoreFunction(sol)
+			scoreFunction = sol -> begin
 				sett = LocalSearchSettings(changeIterator(PermutationEncoding(sol)), true)
 				sf(s) = computeTimeLazyReturn(s, problem, Val(false), true)
 				sol2 = modularLocalSearch(sett, sf, PermutationEncoding(sol), false).solution
 				sched = computeTimeLazyReturn(sol2, problem, Val(true)).schedule
-				improved = improveSolution(sched, problem)
+				improved = all(≠(0), problem.jobLengths) ? improveSolution(sched, problem) : sched
 				maximum(i -> improved.times[i] + problem.jobLengths[i], 1:problem.jobCount)
 			end
 		else
-			scoreFunction(sol) = computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
+			scoreFunction = sol -> computeTimeLazyReturn(PermutationEncoding(sol), problem, Val(false), true)
 		end
 		annRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.annealingResults)
 		tabuRess = map(r -> map(t -> scoreFunction(t.solution), r.results), instance.tabuResults)

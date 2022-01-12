@@ -320,6 +320,10 @@ function computeTimeBufferOnly(timetable, problem)
 end
 
 function improveSolution(solution, problem)
+	if any(==(0), problem.jobLengths)
+		@warn "Zero-length job"
+		return solution
+	end
 	jobs = [Job(
 		solution.times[i],
 		solution.times[i] + problem.jobLengths[i]
