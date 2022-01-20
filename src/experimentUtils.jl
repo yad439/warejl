@@ -229,6 +229,35 @@ function problemStats(problemSize::Int, problemNum::Int, lineTypes::Vector{Char}
 	)
 end
 
+function problemStatTable(instances::AbstractVector{ProblemInstance})
+	df = DataFrame(
+		jobCount = Int[],
+		machineCount = Int[],
+		carCount = Int[],
+		bufSize = Int[],
+		travelTime = Int[],
+		minLength = Int[],
+		maxLength = Int[],
+		minItems = Int[],
+		maxItems = Int[]
+	)
+	for instance ∈ instances
+		problem = instanceToProblem(instance)
+		push!(df, (
+			problem.jobCount,
+			problem.machineCount,
+			problem.carCount,
+			problem.bufferSize,
+			problem.carTravelTime,
+			minimum(problem.jobLengths),
+			maximum(problem.jobLengths),
+			minimum(length, problem.itemsNeeded),
+			maximum(length, problem.itemsNeeded)
+		))
+	end
+	df
+end
+
 function resultsToTable(results::Vector{ProblemInstance})
 	df = DataFrame(
 		probSize = Int[],
