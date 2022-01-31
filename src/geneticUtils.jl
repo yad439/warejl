@@ -12,21 +12,19 @@ function pmxCrossover(list1, list2)
 	copied = falses(n)
 	copied[@view list1[startIndex:endIndex]] .= true
 	for i = startIndex:endIndex
-		val = list2[i]
-		copied[val] && continue
+		copied[list2[i]] && continue
 		index = i
 		cont = true
 		while cont
 			val2 = list1[index]
 			index2 = findfirst(==(val2), list2)::Int
 			if index2 ∈ startIndex:endIndex
-				val = val2
 				index = index2
-				continue
+			else
+				child[index2] = list2[i]
+				copied[list2[i]] = true
+				cont = false
 			end
-			child[index2] = list2[i]
-			copied[list2[i]] = true
-			cont = false
 		end
 	end
 	for i = 1:n
