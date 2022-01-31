@@ -137,6 +137,24 @@ for gr = 1:3
 	end
 end
 ##
+for (num, instance) ∈ enumerate(results[allSorted])
+	problem = instanceToProblem(instance)
+	open("out/exp/$num.txt", "w") do file
+		println(file, problem.jobCount, ' ', problem.machineCount, ' ', problem.carCount, ' ', problem.bufferSize, ' ', problem.itemCount, ' ', problem.carTravelTime)
+		for p ∈ problem.jobLengths
+			print(file, p, ' ')
+		end
+		println(file)
+		for s ∈ problem.itemsNeeded
+			print(file, length(s), ' ')
+			for it ∈ s
+				print(file, it, ' ')
+			end
+			println(file)
+		end
+	end
+end
+##
 instance = createInstance(200, 6, ['A'], missing, 4, 30, 6)
 problem = instanceToProblem(instance)
 open("out/data_$(problem.jobCount).txt", "w") do file
@@ -252,9 +270,9 @@ df = DataFrame(
 	time = map(it -> instanceToProblem(it).carTravelTime, rss)
 )
 ##
-open("out/resultsN.tex","w") do file
+open("out/resultsN.tex", "w") do file
 	for row ∈ eachrow(tab2)
-		join(file,row," & ")
-		println(file,"\\\\")
+		join(file, row, " & ")
+		println(file, "\\\\")
 	end
 end
