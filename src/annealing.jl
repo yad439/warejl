@@ -127,7 +127,7 @@ function maxDif(jobs::PermutationEncoding, scoreFunction)
 	maxval - minval
 end
 
-function maxDif(jobs::TwoVectorEncoding, scoreFunction)
+#=function maxDif(jobs::TwoVectorEncoding, scoreFunction)
 	minval = typemax(Int)
 	maxval = typemin(Int)
 	for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT, TWO_VECTOR_MOVE_ORDER, TWO_VECTOR_SWAP_ORDER], arg1 in 1:length(jobs), arg2 in 1:length(jobs)
@@ -146,4 +146,4 @@ function maxDif(jobs::TwoVectorEncoding, scoreFunction)
 		score > maxval && (maxval = score)
 	end
 	maxval - minval
-end
+end=#

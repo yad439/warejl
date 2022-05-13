@@ -2,7 +2,7 @@ using JuMP
 
 include("problemStructures.jl")
 
-function machinesModel(model, problem, M = 2sum(problem.jobLengths))
+#=function machinesModel(model, problem, M = 2sum(problem.jobLengths))
 	jobLengths = problem.jobLengths
 	machineCount = problem.machineCount
 	t = model[:startTime]
@@ -15,7 +15,8 @@ function machinesModel(model, problem, M = 2sum(problem.jobLengths))
 	@constraint(model, [i = 1:n], sum(ord[j, i] for j = 1:n if i ≠ j) ≥ 1 - isFirst[i])
 	@constraint(model, [i = 1:n, j = 1:n, k = 1:n; i ≠ j && i ≠ k && j ≠ k], ord[i, j] + ord[j, i] ≥ ord[k, i] + ord[k, j] - 1)
 	@constraint(model, sum(isFirst) ≤ machineCount)
-end
+end=#
+
 function machinesModel2(model, problem, M = 2sum(problem.jobLengths))
 	jobLengths = problem.jobLengths
 	machineCount = problem.machineCount
@@ -74,7 +75,7 @@ function toMachinesModel(model, schedule)
 	end
 end
 
-function carsModel1(model, problem, T = 2ceil(Int, sum(length.(problem.itemsNeeded)) / carCount), M = T * problem.travelTime)
+#=function carsModel1(model, problem, T = 2ceil(Int, sum(length.(problem.itemsNeeded)) / carCount), M = T * problem.travelTime)
 	itemsNeeded = problem.itemsNeeded
 	carCount = problem.carCount
 	travelTime = problem.carTravelTime
@@ -498,7 +499,7 @@ function carsModel4Q(model, problem, T, M)
 		[τ₀ = 1:T], sum(addItems[τ₀, :]) + sum(addItems[τ, it]in1[τ₀, τ] for τ = 1:τ₀-1, it = 1:ic) + sum(removeItems[τ, it]in12[τ₀, τ] for τ = 1:τ₀-1, it = 1:ic) ≤ problem.carCount
 		[τ₀ = 1:T], sum(addItems[τ, it]in1[τ, τ₀] for τ = τ₀+1:T, it = 1:ic) + sum(removeItems[τ₀, :]) + sum(removeItems[τ, it]in1[τ₀, τ] for τ = 1:τ₀-1, it = 1:ic) ≤ problem.carCount
 	end)
-end
+end=#
 function carsModel4(model, problem, T, M)
 	n = problem.jobCount
 	p = problem.jobLengths
@@ -506,7 +507,7 @@ function carsModel4(model, problem, T, M)
 	tt = problem.carTravelTime
 	t = model[:startTime]
 	@variables(model, begin
-		eventTime[1:T] ≥ problem.carTravelTime
+		eventTime[1:T] ≥ 0
 		beforeStart[1:T, 1:n], Bin
 		beforeEnd[1:T, 1:n], Bin
 	end)
@@ -524,8 +525,8 @@ function carsModel4(model, problem, T, M)
 		beforeEndItem[1:T, i = 1:n, problem.itemsNeeded[i]], Bin
 	end)
 	@constraints(model, begin
-		[τ = 1:T, i = 1:n, q in problem.itemsNeeded[i]], beforeStartItem[τ, i, q] ≤ beforeStart[τ, i]
-		[τ = 1:T, i = 1:n, q in problem.itemsNeeded[i]], beforeStartItem[τ, i, q] ≤ addItems[τ, q]
+		[τ = 1:T, i = 1:n], sum(beforeStartItem[τ, i, :]) ≤ beforeStart[τ, i] * length( problem.itemsNeeded[i])
+		[τ = 1:T, q=1:itemCount], sum(beforeStartItem[τ, :, q]) ≤ addItems[τ, q] * count(i->q ∈ itemsNeeded[i], 1:n)
 		[τ = 1:T, i = 1:n, q in problem.itemsNeeded[i]], beforeEndItem[τ, i, q] ≥ beforeEnd[τ, i] + removeItems[τ, q] - 1
 	end)
 	@constraint(model, [i = 1:n, q in problem.itemsNeeded[i]], sum(beforeStartItem[τ, i, q] for τ = 1:T) - sum(beforeEndItem[τ, i, q] for τ = 1:T) ≥ 1)
@@ -538,8 +539,9 @@ function carsModel4(model, problem, T, M)
 		in2[τ₀ = 1:T, 1:τ₀-1], Bin
 	end)
 	@constraints(model, begin
-		[τ₀ = 1:T, τ = 1:τ₀-1], eventTime[τ] ≤ eventTime[τ₀] - tt + M * in1[τ₀, τ]
-		[τ₀ = 1:T, τ = 1:τ₀-1], eventTime[τ] ≤ eventTime[τ₀] - 2tt + M * in2[τ₀, τ]
+		[τ₀ = 1:T, τ = 1:τ₀-1], eventTime[τ] ≤ eventTime[τ₀] - tt + (M + tt) * in1[τ₀, τ]
+		[τ₀ = 1:T, τ = 1:τ₀-1], eventTime[τ] ≥ eventTime[τ₀] - tt + 1 - M * (1 - in1[τ₀, τ])
+		[τ₀ = 1:T, τ = 1:τ₀-1], eventTime[τ] ≤ eventTime[τ₀] - 2tt + (M + 2tt) * in2[τ₀, τ]
 	end)
 	@variables(model, begin
 		addItemsIn1[τ₀ = 1:T, 1:τ₀-1] ≥ 0, Int
@@ -560,7 +562,7 @@ function carsModel4(model, problem, T, M)
 end
 
 function fromCarsModel4(model, problem)
-	eventTimes = value.(model[:eventTime])
+	eventTimes = value.(model[:eventTime]) .+ problem.carTravelTime
 	addItems = @. Bin(round(Int, value(model[:addItems])))
 	removeItems = @. Bin(round(Int, value(model[:removeItems])))
 
@@ -583,7 +585,7 @@ function fromCarsModel4(model, problem)
 	end
 	sort(events, by = first)
 end
-function toCarsModel4Q(model, solution, problem)
+#=function toCarsModel4Q(model, solution, problem)
 	events = Dict{Int,Tuple{Set{Int},Set{Int}}}()
 	for task ∈ solution.carTasks
 		if task.isAdd
@@ -627,7 +629,7 @@ function toCarsModel4Q(model, solution, problem)
 	foreach(((t0, t),) -> set_start_value(model[:in12][t0, t], in12[t0, t]), Tuple.(eachindex(model[:in12])))
 
 	nothing
-end
+end=#
 function toCarsModel4(model, solution, problem)
 	n = problem.jobCount
 	Q = problem.itemCount
@@ -653,7 +655,7 @@ function toCarsModel4(model, solution, problem)
 		tm += 1
 	end
 	for t = 1:T
-		set_start_value(model[:eventTime][t], eventVals[t][1])
+		set_start_value(model[:eventTime][t], eventVals[t][1] - problem.carTravelTime)
 		for i = 1:problem.itemCount
 			set_start_value(model[:addItems][t, i], i ∈ eventVals[t][2][1])
 			set_start_value(model[:removeItems][t, i], i ∈ eventVals[t][2][2])

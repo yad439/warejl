@@ -1,5 +1,5 @@
 
-include("annealing.jl")
+#=include("annealing.jl")
 include("randomUtils.jl")
 include("realDataUtility.jl")
 include("scoreFunctions.jl")
@@ -158,4 +158,4 @@ else
 	foreach(job -> plot!(pl3, job[1], label = false, annotations = (center(job[1])..., Plots.text(string(job[2]), fnt)), fillalpha = (bw ? 0 : 1)), jobs)
 end
 
-plr = plot(pl1, pl3, pl2, layout = (3, 1), size = (720, 480), xlabel = "Time")
+plr = plot(pl1, pl3, pl2, layout = (3, 1), size = (720, 480), xlabel = "Time")=#

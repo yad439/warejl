@@ -32,7 +32,7 @@ secondElement(x) = x[2]
 unzip(a) = map(x -> getfield.(a, x), fieldnames(eltype(a)))
 argargmin(f,itr)=findmin(f,itr)[2]
 
-for n = 0:5
+for n = 0:2
 	structName = Expr(:curly, Symbol(:Func, n), :R, (Symbol(:A, i) for i = 1:n)...)
 	structDef = quote
 		struct $structName

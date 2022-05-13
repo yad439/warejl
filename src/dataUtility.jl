@@ -88,3 +88,12 @@ function Problem(batches::AbstractVector{Batch}, machineCount, carsCount, buffer
 	jobs = toModerateJobs(batches, boxFilter, boxLimit)
 	Problem(length(jobs.lengths), machineCount, carsCount, jobs.carTravelTime, maximum(Iterators.flatten(jobs.itemsForJob)), bufferSize, jobs.lengths, BitSet.(jobs.itemsForJob))
 end
+
+function parseInstance(filename)
+	open(filename) do file
+		jobCount,machineCount,robotCount,bufferSize,itemCount,travelTime=(parse(Int,s) for s ∈ split(readline(file)))
+		jobLengths=[parse(Int,s) for s ∈ split(readline(file))]
+		itemsNeeded=[BitSet(itm for itm ∈ Iterators.drop(split(readline(file)),1)) for _=1:jobCount]
+		Problem(jobCount,machineCount,robotCount,travelTime,itemCount,bufferSize,jobLengths,itemsNeeded)
+	end
+end

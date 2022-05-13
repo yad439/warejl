@@ -14,13 +14,13 @@ end
 EncodingSample{T}(jobCount, machineCount) where {T} = EncodingSample{T}(jobCount, machineCount, 0)
 eltype(::Type{EncodingSample{T}}) where {T} = T
 rand(rng::AbstractRNG, d::Random.SamplerTrivial{EncodingSample{PermutationEncoding}}) = PermutationEncoding(shuffle(rng, 1:d[].jobCount))
-rand(rng::AbstractRNG, d::Random.SamplerTrivial{EncodingSample{TwoVectorEncoding}}) = TwoVectorEncoding(d[].machineCount, rand(rng, 1:d[].machineCount, d[].jobCount), shuffle(rng, 1:d[].jobCount))
+# rand(rng::AbstractRNG, d::Random.SamplerTrivial{EncodingSample{TwoVectorEncoding}}) = TwoVectorEncoding(d[].machineCount, rand(rng, 1:d[].machineCount, d[].jobCount), shuffle(rng, 1:d[].jobCount))
 
 changeIterator(jobs::PermutationEncoding) = ((type, arg1, arg2) for type ∈ [PERMUTATION_SWAP, PERMUTATION_MOVE], arg1 = 1:length(jobs.permutation), arg2 = 1:length(jobs.permutation) if arg1 ≠ arg2)
-changeIterator(jobs::TwoVectorEncoding) = Iterators.flatten((
+#=changeIterator(jobs::TwoVectorEncoding) = Iterators.flatten((
 	((TWO_VECTOR_MOVE_ASSIGNMENT, arg1, arg2) for arg1 = 1:length(jobs.permutation), arg2 = 1:jobs.machineCount),
 	((type, arg1, arg2) for type ∈ [TWO_VECTOR_SWAP_ASSIGNMENT, TWO_VECTOR_SWAP_ORDER, TWO_VECTOR_MOVE_ORDER], arg1 = 1:length(jobs.permutation), arg2 = 1:length(jobs.permutation) if arg1 ≠ arg2)
-))
+))=#
 
 randomChangeIterator(jobs, count::Int) = (randomChange(jobs) for _ = 1:count)
 randomChangeIterator(jobs, probability::Float64) = Iterators.filter(_ -> rand() < probability, changeIterator(jobs))

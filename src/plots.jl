@@ -1,4 +1,4 @@
-using Plots
+#=using Plots
 import Plots.center
 
 include("problemStructures.jl")
@@ -107,4 +107,4 @@ function plotDetailedBufferUsage(carHistory, carTravelTime, bufferSize, xlims; b
 	plt = plot(label = false, xlims = xlims)
 	foreach(job -> plot!(plt, job[1], label = false, annotations = (center(job[1])..., Plots.text(string(job[2]), 8)), fillalpha = (bw ? 0 : 1)), jobs)
 	plt
-end
+end=#

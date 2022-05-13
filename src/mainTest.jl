@@ -1,6 +1,6 @@
 include("singleInclude.jl")
 ##
-results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"));
+# results = fromJson(Vector{ProblemInstance}, JSON.parsefile("exp/results.json"));
 ##
 cnt = 0
 function flt(box)
@@ -32,7 +32,7 @@ sf2 = let problem = problem
 	jobs -> computeTimeLazyReturn(jobs, problem, Val(false), false)
 end
 sample1 = EncodingSample{PermutationEncoding}(problem.jobCount, problem.machineCount)
-sample2 = EncodingSample{TwoVectorEncoding}(problem.jobCount, problem.machineCount);
+# sample2 = EncodingSample{TwoVectorEncoding}(problem.jobCount, problem.machineCount);
 ##
 tab = resultsToTable(results)
 CSV.write("out/results.tsv", tab, delim = '\t')
@@ -229,7 +229,7 @@ let results = results, groups = groups
 
 		model = read_from_file(prefix * "_full.mps")
 		setStartValues(ModelWrapper(ORDER_FIRST_STRICT, SHARED_EVENTS, model), sol2.schedule, problem)
-		writeMIPStart(model.inner, prefix * "_full_best.mst")
+		writeMIPStart(model.inner, prefix * "_full_best.sol")
 
 		# if problem.jobCount < 400 && !isfile(prefix * "_full.mps")
 		# 	model = buildModel(problem, ORDER_FIRST_STRICT, SHARED_EVENTS, T, M, optimizer = nothing)

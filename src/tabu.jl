@@ -24,11 +24,11 @@ end
 modularTabuSearch(settings, scoreFunction, startTimeTable, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{changeType(startTimeTable),Int,Int}}(), tabuAdd!, tabuCanChange, showProgress)
 modularTabuSearch2(settings, scoreFunction, startTimeTable, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Int}(), tabuAdd2!, tabuCanChange2, showProgress)
 modularTabuSearch3(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), tabuAdd3!, tabuCanChange3, showProgress)
-modularTabuSearch3(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd3!, tabuCanChange3, showProgress)
+# modularTabuSearch3(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd3!, tabuCanChange3, showProgress)
 modularTabuSearch4(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), tabuAdd4!, tabuCanChange3, showProgress)
-modularTabuSearch4(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd4!, tabuCanChange3, showProgress)
+# modularTabuSearch4(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd4!, tabuCanChange3, showProgress)
 modularTabuSearch5(settings, scoreFunction, startTimeTable::PermutationEncoding, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Int,Int}}(), FuncS(tabuAdd5!), FuncS(tabuCanChange3), showProgress)
-modularTabuSearch5(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd5!, tabuCanChange3, showProgress)
+# modularTabuSearch5(settings, scoreFunction, startTimeTable::TwoVectorChange, showProgress = true) = modularTabuSearch(settings, scoreFunction, startTimeTable, OrderedSet{Tuple{Bool,Int,Int}}(), tabuAdd5!, tabuCanChange3, showProgress)
 
 function modularTabuSearch(settings, scoreFunction::F, startTimeTable, tabuInit, tabuAdd!, tabuCanChange, showProgress = true) where {F}
 	progress = ProgressUnknown("Local tabu search:")
@@ -150,7 +150,7 @@ function tabuAdd3!(tabu, newChange, restoreChange, solution::PermutationEncoding
 		@assert false
 	end
 end
-function tabuAdd3!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
+#=function tabuAdd3!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
 	if restoreChange[1] ≡ TWO_VECTOR_MOVE_ORDER
 		push!(tabu, (true, solution.permutation[restoreChange[2]], restoreChange[3]))
 	elseif restoreChange[1] ≡ TWO_VECTOR_SWAP_ORDER
@@ -164,7 +164,7 @@ function tabuAdd3!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
 	else
 		@assert false
 	end
-end
+end=#
 function tabuAdd4!(tabu, newChange, restoreChange, solution::PermutationEncoding)
 	if newChange[1] ≡ PERMUTATION_MOVE
 		push!(tabu, (solution.permutation[newChange[2]], newChange[2]))
@@ -175,7 +175,7 @@ function tabuAdd4!(tabu, newChange, restoreChange, solution::PermutationEncoding
 		@assert false
 	end
 end
-function tabuAdd4!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
+#=function tabuAdd4!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
 	if newChange[1] ≡ TWO_VECTOR_MOVE_ORDER
 		push!(tabu, (true, solution.permutation[newChange[2]], newChange[3]))
 	elseif newChange[1] ≡ TWO_VECTOR_SWAP_ORDER
@@ -189,7 +189,7 @@ function tabuAdd4!(tabu, newChange, restoreChange, solution::TwoVectorEncoding)
 	else
 		@assert false
 	end
-end
+end=#
 function tabuAdd5!(tabu, newChange, restoreChange, solution)
 	tabuAdd3!(tabu, newChange, restoreChange, solution)
 	tabuAdd4!(tabu, newChange, restoreChange, solution)
@@ -228,7 +228,7 @@ function tabuCanChange3(solution::PermutationEncoding, change, tabu)
 	end
 	@assert(false)
 end
-function tabuCanChange3(solution::TwoVectorEncoding, change, tabu)
+#=function tabuCanChange3(solution::TwoVectorEncoding, change, tabu)
 	if change[1] ≡ TWO_VECTOR_MOVE_ORDER
 		return (true, solution.permutation[change[2]], change[3]) ∉ tabu
 	elseif change[1] ≡ TWO_VECTOR_SWAP_ORDER
@@ -239,4 +239,4 @@ function tabuCanChange3(solution::TwoVectorEncoding, change, tabu)
 		return (false, change[2], solution.assignment[change[3]]) ∉ tabu && (false, change[3], solution.assignment[change[2]]) ∉ tabu
 	end
 	@assert(false)
-end
+end=#
