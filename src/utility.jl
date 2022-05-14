@@ -13,7 +13,7 @@ function randchoice(list, count)
 	res
 end
 
-function tmap(f, x)
+#=function tmap(f, x)
 	type = Base.return_types(f, (eltype(x),))
 	@assert length(type) == 1
 	result = similar(x, first(type))
@@ -21,7 +21,7 @@ function tmap(f, x)
 		result[i] = f(x[i])
 	end
 	result
-end
+end=#
 
 ▷(f, g) = g ∘ f
 fmap(f) = x -> map(f, x)

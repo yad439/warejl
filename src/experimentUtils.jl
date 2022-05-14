@@ -601,7 +601,7 @@ function runLinear(problem::Problem, machineType::MachineModelType, carType::Car
 	res = runModel(exactModel, timeLimit)
 
 	if carType ∈ [BUFFER_ONLY, NO_CARS]
-		res = res .+ problem.carTravelTime
+		res = res .+ problem.travelTime
 	end
 	res
 end
