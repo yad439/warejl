@@ -1,4 +1,4 @@
-using JuMP, Gurobi
+using JuMP
 
 include("hardLinear.jl")
 include("simplifiedLinears.jl")
@@ -13,7 +13,7 @@ struct ModelWrapper
     travelTime::Int
 end
 
-function buildModel(problem::Problem, machineModelType, carModelType, T=0, M=0; optimizer=Gurobi.Optimizer)
+function buildModel(problem::Problem, machineModelType, carModelType, T=0, M=0; optimizer=nothing)
     jobCount = problem.jobCount
     itemsNeeded = problem.itemsNeeded
 
