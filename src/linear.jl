@@ -10,6 +10,7 @@ struct ModelWrapper
     machineType::MachineModelType
     carType::CarModelType
     inner::Model
+    travelTime::Int
 end
 
 function buildModel(problem::Problem, machineModelType, carModelType, T=0, M=0; optimizer=Gurobi.Optimizer)
@@ -71,7 +72,7 @@ function buildModel(problem::Problem, machineModelType, carModelType, T=0, M=0; 
         @assert carModelType ≡ NO_CARS
     end
 
-    ModelWrapper(machineModelType, carModelType, model)
+    ModelWrapper(machineModelType, carModelType, model, problem.travelTime)
 end
 
 function runModel(model, timeout=0; attributes=[])
@@ -80,7 +81,7 @@ function runModel(model, timeout=0; attributes=[])
         set_optimizer_attribute(model.inner, attr[1], attr[2])
     end
     optimize!(model.inner)
-    (has_values(model.inner) ? objective_value(model.inner) : missing, objective_bound(model.inner))
+    (has_values(model.inner) ? objective_value(model.inner) + model.travelTime : missing, objective_bound(model.inner) + model.travelTime)
 end
 
 function setStartValues(model, schedule::Solution, problem::Problem)
