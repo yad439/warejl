@@ -1,5 +1,4 @@
 using JuMP
-using LinearAlgebra
 
 #=function moderateCars(model,itemsNeeded,carCount,carTravelTime,T=ceil(Int,maximum(Iterators.flatten(itemsNeeded))/carCount))
 	itemCount=maximum(Iterators.flatten(itemsNeeded))
