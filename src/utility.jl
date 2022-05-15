@@ -3,14 +3,14 @@ using Random
 jobDistance(itemsNeeded) = map(((i, j),) -> length(symdiff(i, j)), Iterators.product(itemsNeeded, itemsNeeded))
 
 function randchoice(list, count)
-	notChosen = BitSet(1:length(list))
-	res = Vector{eltype(list)}(undef, count)
-	for i = 1:count
-		val = rand(notChosen)
-		res[i] = list[val]
-		delete!(notChosen, val)
-	end
-	res
+    notChosen = BitSet(1:length(list))
+    res = Vector{eltype(list)}(undef, count)
+    for i = 1:count
+        val = rand(notChosen)
+        res[i] = list[val]
+        delete!(notChosen, val)
+    end
+    res
 end
 
 #=function tmap(f, x)
@@ -30,9 +30,10 @@ ifmap(f) = x -> Iterators.map(f, x)
 iffilter(f) = x -> Iterators.filter(f, x)
 secondElement(x) = x[2]
 unzip(a) = map(x -> getfield.(a, x), fieldnames(eltype(a)))
-argargmin(f,itr)=findmin(f,itr)[2]
+argargmin(f, itr) = findmin(f, itr)[2]
+argargmax(f, itr) = findmax(f, itr)[2]
 
-for n = 0:2
+#=for n = 0:2
 	structName = Expr(:curly, Symbol(:Func, n), :R, (Symbol(:A, i) for i = 1:n)...)
 	structDef = quote
 		struct $structName
@@ -48,12 +49,12 @@ for n = 0:2
 
 	eval(structDef)
 	eval(inlined)
-end
+end=#
 struct FuncS{F}
-	f::F
+    f::F
 end
 @inline (func::FuncS{F})(x::Vararg{Any,N}) where {F,N} = func.f(x...)
 struct FuncR{R}
-	f::Function
+    f::Function
 end
 @inline (func::FuncR{R})(x::Vararg{Any,N}) where {R,N} = func.f(x...)::R
