@@ -1,6 +1,3 @@
-using ProgressMeter
-using ValueHistories
-
 include("encodings.jl")
 include("utility.jl")
 
@@ -9,8 +6,8 @@ struct AnnealingSettings
 	isDynamic::Bool
 	sameTemperatureTries::Int
 	startTheshold::Float64
-	decreasingFunction::Func1{Float64,Float64}
-	applyChange::Func3{Bool,Int,Int,Float64}
+	decreasingFunction::FuncR{Float64}
+	applyChange::FuncR{Bool}
 end
 struct AnnealingSettings2
 	searchTries::Int
@@ -22,9 +19,7 @@ struct AnnealingSettings2
 	changeGenerator::Function
 end
 
-function modularAnnealing(settings::AnnealingSettings, scoreFunction::F, startTimeTable, showProgress = true) where {F}
-	progress = ProgressUnknown("Annealing:")
-
+function modularAnnealing(settings::AnnealingSettings, scoreFunction::F, startTimeTable) where {F}
 	timeTable = startTimeTable
 	minval = scoreFunction(timeTable)
 	minsol = copy(timeTable)
@@ -32,8 +27,6 @@ function modularAnnealing(settings::AnnealingSettings, scoreFunction::F, startTi
 	threshold = settings.startTheshold
 
 	prevScore = minval
-	history = QHistory(typeof(minval))
-	push!(history, minval)
 	scounter = 1
 	while counter < settings.searchTries
 		newChange, restoreChange = randomChange!(timeTable, change -> true)
@@ -60,16 +53,11 @@ function modularAnnealing(settings::AnnealingSettings, scoreFunction::F, startTi
 		else
 			scounter += 1
 		end
-		push!(history, prevScore)
-		showProgress && ProgressMeter.next!(progress, showvalues = (("Min score", minval),))
 	end
-	ProgressMeter.finish!(progress)
-	(score = minval, solution = minsol, history = history)
+	(score = minval, solution = minsol)
 end
 
-function modularAnnealing(settings::AnnealingSettings2, scoreFunction::F, startTimeTable, showProgress = true) where {F}
-	progress = ProgressUnknown("Annealing:")
-
+function modularAnnealing(settings::AnnealingSettings2, scoreFunction::F, startTimeTable) where {F}
 	timeTable = startTimeTable
 	minval = scoreFunction(timeTable)
 	minsol = copy(timeTable)
@@ -77,8 +65,6 @@ function modularAnnealing(settings::AnnealingSettings2, scoreFunction::F, startT
 	threshold = settings.startTheshold
 
 	prevScore = minval
-	history = QHistory(typeof(minval))
-	push!(history, minval)
 	scounter = 1
 	while counter < settings.searchTries
 		newChange = settings.changeGenerator(timeTable)
@@ -106,11 +92,8 @@ function modularAnnealing(settings::AnnealingSettings2, scoreFunction::F, startT
 		else
 			scounter += 1
 		end
-		push!(history, prevScore)
-		showProgress && ProgressMeter.next!(progress, showvalues = (("Min score", minval),))
 	end
-	ProgressMeter.finish!(progress)
-	(score = minval, solution = minsol, history = history)
+	(score = minval, solution = minsol)
 end
 
 function maxDif(jobs::PermutationEncoding, scoreFunction)
