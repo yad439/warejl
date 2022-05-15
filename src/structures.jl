@@ -1,5 +1,7 @@
 using DataStructures
-import Base.eltype, Base.length, Base.iterate, Base.push!, Base.pop!, Base.copy, Base.first, Base.isempty, Base.popfirst!, Base.append!
+import Base.eltype, Base.push!, Base.first, Base.isempty, Base.popfirst!
+
+include("problemStructures.jl")
 
 struct EventQueue
     data::Deque{Tuple{Int,Int}}
@@ -39,12 +41,12 @@ function push!(queue::EventQueue4,time::Int,toAdd,toRemove)
 			union!(event.toRemove,toRemove)
 		end
 	else
-		if if toAdd≢nothing
+		if toAdd≢nothing
 			toAddSet=BitSet(toAdd)
 		else
 			toAddSet=BitSet()
 		end
-		if if toRemove ≢ nothing
+		if toRemove ≢ nothing
 			toRemoveSet = BitSet(toRemove)
 		else
 			toRemoveSet = BitSet()

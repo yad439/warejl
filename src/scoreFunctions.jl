@@ -1,7 +1,6 @@
 using DataStructures
-using OffsetArrays
 
-include("problemStructures.jl")
+include("structures.jl")
 
 function computeSolutionLazyReturn(permutation, problem::Problem)::Solution
     machineCount = problem.machineCount
@@ -166,7 +165,7 @@ function computeTimeLazyReturn(permutation, problem::Problem, sortRemoves=true)
         machine = 0
         minSum = typemax(Int)
         for i = 1:machineCount
-            if sums[i] ≤ availableFromTime + travelTime
+            if sums[i] ≤ availableFromTime + carTravelTime
                 machine = i
                 break
             end

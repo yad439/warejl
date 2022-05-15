@@ -1,5 +1,4 @@
 include("encodings.jl")
-include("structures.jl")
 include("utility.jl")
 
 struct Problem
