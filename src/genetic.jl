@@ -12,12 +12,12 @@ struct Encoding
     score::Int
 end
 
-function differentialEvolution(settings, scoreFunction, startingPopulation, selector, crossover, replacer)
+function differentialEvolution(settings::DeSettings, scoreFunction, startingPopulation, selector, crossover, replacer)
     if settings.normalize
         foreach(normalize!, startingPopulation)
     end
     population = [Encoding(sol, scoreFunction(sol)) for sol ∈ startingPopulation]
-    for _ = 1:settings.iterationLimit
+    for t = 1:settings.iterationLimit
         target = rand(1:length(population))
         candidate = selector(target, population, settings.moveCoefficient)
         crossover(candidate, target, population, settings.crossoverIntensity)
@@ -25,7 +25,7 @@ function differentialEvolution(settings, scoreFunction, startingPopulation, sele
             normalize!(candidate)
         end
         newSol = Encoding(candidate, scoreFunction(candidate))
-        replacer(newSol, target, population)
+        replacer(newSol, target, population, t / settings.iterationLimit)
     end
     minimum(sol.score for sol ∈ population)
 end
@@ -62,15 +62,21 @@ function uniformCrosover(candadate, target, population, crossoverIntensity)
     end
 end
 
-function improveReplacer(candidate, target, population)
+function improveReplacer(candidate, target, population, _)
     if candidate.score ≤ population[target].score
         population[target] = candidate
     end
 end
 
-worstImproveReplacer(candidate, _, population) = improveReplacer(candidate, argargmax(e -> e.score, population), population)
+worstImproveReplacer(candidate, _, population, p) = improveReplacer(candidate, argargmax(e -> e.score, population), population, p)
 
-function worstReplacer(candidate, _, population)
+function worstReplacer(candidate, _, population, _)
     population[argargmax(e -> e.score, population)] = candidate
     nothing
+end
+
+function annealingReplacer(candidate, target, population, progress, opts)
+    if rand() < exp((population[target].score - candidate.score) / (opts.start * (opts.endC^progress)))
+        population[target] = candidate
+    end
 end

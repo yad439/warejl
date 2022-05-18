@@ -9,10 +9,14 @@ const WARE_DATA = ENV["WARE_DATA"]
 ##
 instance = parseInstance("$WARE_DATA/data/instances/26.dat");
 ##
-population = [rand(instance.jobCount) for _ = 1:64];
+population = [rand(instance.jobCount) for _ = 1:96];
 settings = DeSettings(2_000_000, 0.3, 0.5, true);
-result = differentialEvolution(settings, s -> computeTimeLazyReturn(sortperm(s), instance), population, randomToBestSelector, uniformCrosover, worstReplacer)
-println(result)
+result = differentialEvolution(settings,
+    s -> computeTimeLazyReturn(sortperm(s), instance),
+    population,
+    randomToBestSelector,
+    uniformCrosover,
+    (c, t, po, pr) -> annealingReplacer(c, t, po, pr, (start=1000, endC=1e-5)))
 ##
 enc = PermutationEncoding(shuffle(1:instance.jobCount));
 sett = AnnealingSettings(2_000_000, false, 1, 1000, FuncR{Float64}(t -> t * (-1000 * log(10^-3))^(-1 / 2_000_000)), FuncR{Bool}((old, new, threshold) -> rand() < exp((old - new) / threshold)));
