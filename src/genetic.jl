@@ -3,6 +3,8 @@ using LinearAlgebra
 struct DeSettings
     iterationLimit::Int
     moveCoefficient::Float64
+    crossoverIntensity::Float64
+    normalize::Bool
 end
 
 struct Encoding
@@ -10,13 +12,19 @@ struct Encoding
     score::Int
 end
 
-function differentialEvolution(settings, scoreFunction, startingPopulation, selector, crosser, replacer)
-    population = [Encoding(normalize(sol), scoreFunction(sol)) for sol ∈ startingPopulation]
-    for t = 1:settings.iterationLimit
+function differentialEvolution(settings, scoreFunction, startingPopulation, selector, crossover, replacer)
+    if settings.normalize
+        foreach(normalize!, startingPopulation)
+    end
+    population = [Encoding(sol, scoreFunction(sol)) for sol ∈ startingPopulation]
+    for _ = 1:settings.iterationLimit
         target = rand(1:length(population))
-        candadate = normalize(selector(target, population, settings.moveCoefficient))
-        crosser(candadate, target, population)
-        newSol = Encoding(candadate, scoreFunction(candadate))
+        candidate = selector(target, population, settings.moveCoefficient)
+        crossover(candidate, target, population, settings.crossoverIntensity)
+        if settings.normalize
+            normalize!(candidate)
+        end
+        newSol = Encoding(candidate, scoreFunction(candidate))
         replacer(newSol, target, population)
     end
     minimum(sol.score for sol ∈ population)
@@ -46,9 +54,9 @@ function randomToBestSelector(target, population, moveCoefficient)
     population[mutator].data + moveCoefficient * (population[best].data - population[solution₂].data)
 end
 
-function uniformCrosover(candadate, target, population)
+function uniformCrosover(candadate, target, population, crossoverIntensity)
     for i ∈ eachindex(candadate)
-        if rand() < 0.5
+        if rand() < (1 - crossoverIntensity)
             candadate[i] = population[target].data[i]
         end
     end
@@ -60,9 +68,9 @@ function improveReplacer(candidate, target, population)
     end
 end
 
-worstImproveReplacer(candidate, _, population)=improveReplacer(candidate,argargmax(e->e.score,population),population)
+worstImproveReplacer(candidate, _, population) = improveReplacer(candidate, argargmax(e -> e.score, population), population)
 
 function worstReplacer(candidate, _, population)
-    population[argargmax(e->e.score,population)]=candidate
+    population[argargmax(e -> e.score, population)] = candidate
     nothing
 end
