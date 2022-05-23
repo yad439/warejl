@@ -1,7 +1,7 @@
 include("encodings.jl")
 
 using LinearAlgebra
-using Distributions
+#using Distributions
 
 import Base.eltype
 import Random.rand
@@ -27,7 +27,7 @@ randomChangeIterator(jobs, probability::Float64) = Iterators.filter(_ -> rand() 
 randomChangeIterator(jobs, count::Int, canDo) = (randomChange(jobs, canDo) for _ = 1:count)
 
 
-struct PermutationRandomIterable
+#=struct PermutationRandomIterable
 	jobCount::Int
 	tryCount::Int
 	moveProbability::Float64
@@ -169,4 +169,4 @@ function idleBasedRandom(n, idles, coef)
 	normalize!(probs, 1)
 	dst = Categorical(probs)
 	timetable -> randomChange!(timetable, _ -> true, dst)
-end
+end=#
