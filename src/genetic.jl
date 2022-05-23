@@ -7,8 +7,17 @@ struct DeSettings
     normalize::Bool
 end
 
-struct Encoding
+struct GeneticSettings
+    iterationLimit::Int
+end
+
+struct DeEncoding
     data::Vector{Float64}
+    score::Int
+end
+
+struct PermEncoding
+    solution::Vector{Int}
     score::Int
 end
 
@@ -16,7 +25,7 @@ function differentialEvolution(settings::DeSettings, scoreFunction, startingPopu
     if settings.normalize
         foreach(normalize!, startingPopulation)
     end
-    population = [Encoding(sol, scoreFunction(sol)) for sol ∈ startingPopulation]
+    population = [DeEncoding(sol, scoreFunction(sol)) for sol ∈ startingPopulation]
     for t = 1:settings.iterationLimit
         target = rand(1:length(population))
         candidate = selector(target, population, settings.moveCoefficient)
@@ -24,8 +33,19 @@ function differentialEvolution(settings::DeSettings, scoreFunction, startingPopu
         if settings.normalize
             normalize!(candidate)
         end
-        newSol = Encoding(candidate, scoreFunction(candidate))
+        newSol = DeEncoding(candidate, scoreFunction(candidate))
         replacer(newSol, target, population, t / settings.iterationLimit)
+    end
+    minimum(sol.score for sol ∈ population)
+end
+
+function stationaryGenetic(settings, scoreFunction, selector, crossover, mutator, replacer, population)
+    for t = 1:settings.iterationLimit
+        s₁, s₂ = selector(population, t / settings.iterationLimit)
+        newSol = crossover(s₁, s₂)
+        mutator(newSol)
+        sₙ = PermEncoding(newSol, scoreFunction(newSol))
+        replacer(population, s₁, s₂, sₙ)
     end
     minimum(sol.score for sol ∈ population)
 end
@@ -79,4 +99,14 @@ function annealingReplacer(candidate, target, population, progress, opts)
     if rand() < exp((population[target].score - candidate.score) / (opts.start * (opts.endC^progress)))
         population[target] = candidate
     end
+end
+
+function tournamentSelectorHelper(population, num)
+    cands = randchoice(population, num)
+    argmin(s -> s.score, cands)
+end
+
+function worstReplacer2(population, _, _, sol)
+    population[argargmax(e -> e.score, population)] = sol
+    nothing
 end
