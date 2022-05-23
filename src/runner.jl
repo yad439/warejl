@@ -1,4 +1,9 @@
-let
+include("annealing.jl");
+include("dataUtility.jl");
+include("utility.jl");
+include("scoreFunctions.jl");
+
+#=let
 	# resFile = "exp/results.json"
 
 	# probSize = 20
@@ -103,7 +108,7 @@ let
 		end
 	end
 end
-GC.gc()
+GC.gc()=#
 
 
 # let
@@ -240,3 +245,24 @@ let
 	end
 end
 =#
+
+const WARE_DATA = ENV["WARE_DATA"]
+instance = parseInstance("$WARE_DATA/data/instances/26.dat");
+
+nearestDivisable(number, divisor) = round(typeof(number), number / divisor) * divisor
+
+df = DataFrame(iterCount=Int[], nsize=Int[], score=Int[]);
+lk = ReentrantLock();
+iters = [1_000, 2_000, 6_000, 10_000, 30_000, 100_000, 300_000, 1_000_000, 3_000_000, 10_000_000]
+for iterCount ∈ (nearestDivisable(it, 16) for it ∈ iters), nsize ∈ [1, 2, 4, 8, 16, 32]
+    @show iterCount nsize
+    sett = AnnealingSettings(iterCount ÷ nsize, nsize, false, 1, 1000, FuncR{Float64}(t -> t * (-1000 * log(10^-3))^(-1 / (iterCount ÷ nsize))), FuncR{Bool}((old, new, threshold) -> rand() < exp((old - new) / threshold)))
+    Threads.@threads for _ = 1:32
+        enc = PermutationEncoding(shuffle(1:instance.jobCount))
+        result, _ = modularAnnealing(sett, p -> computeTimeLazyReturn(p.permutation, instance), enc)
+        lock(lk) do
+            push!(df, (iterCount, nsize, result))
+        end
+    end
+end
+CSV.write("out/annealing_26.csv", df)
