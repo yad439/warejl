@@ -9,6 +9,8 @@ include("geneticUtils.jl");
 include("local.jl");
 include("randomUtils.jl");
 ##
+include("native.jl");
+##
 const WARE_DATA = ENV["WARE_DATA"]
 ##
 instance = parseInstance("$WARE_DATA/data/instances/26.dat");
@@ -28,7 +30,7 @@ res2, _ = modularAnnealing(sett, p -> computeTimeLazyReturn(p.permutation, insta
 ##
 function locmut(sol)
     s = PermutationEncoding(sol)
-    modularLocalSearch(LocalSearchSettings2(1000, false), ()->randomChangeIterator(s, 100), it -> computeTimeLazyReturn(it.permutation, instance), s)
+    modularLocalSearch(LocalSearchSettings2(1000, false), () -> randomChangeIterator(s, 100), it -> computeTimeLazyReturn(it.permutation, instance), s)
 end
 ##
 population = map(1:16) do _
@@ -52,3 +54,8 @@ for iterCount ∈ [1_024, 16_384, 131_072, 1_048_576], nsize ∈ [1, 2, 4, 8]
         end
     end
 end
+##
+ninst = NativeInstance(instance)
+perm = shuffle(1:instance.jobCount)
+s1 = computeTimeLazyReturn(perm, instance)
+s2 = computeScoreNative(ninst, perm)
