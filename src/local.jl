@@ -39,7 +39,7 @@ function modularLocalSearch(settings::LocalSearchSettings2, iterator, scoreFunct
     score = scoreFunction(timeTable)
 
     for _ = 1:settings.iterationCount
-        minScore = score
+        minScore = typemax(Int)
         minChange = (0, 0, 0)
         for change ∈ iterator()
             restore = change!(timeTable, change)
@@ -51,7 +51,6 @@ function modularLocalSearch(settings::LocalSearchSettings2, iterator, scoreFunct
             end
             change!(timeTable, restore)
         end
-        minScore == score && break
         change!(timeTable, minChange)
         score = minScore
     end
