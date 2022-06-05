@@ -102,7 +102,7 @@ function computeTimeLazyReturn(permutation, problem::Problem, sortRemoves=true)
     bufferState = BitSet()
     itemNum = problem.itemCount
     lockTime = zeros(Int, itemNum)
-    nexts = similar(lockTime)
+    nexts = zeros(Int, itemNum)
     minLocks = Vector{Int}(undef, bufferSize)
     itemsLeft = BitSet()
     sizehint!(itemsLeft, itemNum)
@@ -142,8 +142,10 @@ function computeTimeLazyReturn(permutation, problem::Problem, sortRemoves=true)
                 if sortRemoves
                     for i = 1:minLocksLen
                         item = minLocks[i]
-                        nxt = findnext(jb -> item ∈ itemsNeeded[jb], permutation, ind + 1)
-                        nexts[item] = nxt ≡ nothing ? typemax(Int) : nxt
+                        if nexts[item] ≤ ind
+                            nxt = findnext(jb -> item ∈ itemsNeeded[jb], permutation, ind + 1)
+                            nexts[item] = nxt ≡ nothing ? length(permutation) + 1 : nxt
+                        end
                     end
                     sort!(view(minLocks, 1:minLocksLen), by=it -> nexts[it], rev=true)
                 end
